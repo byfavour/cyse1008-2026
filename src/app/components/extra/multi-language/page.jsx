@@ -11,11 +11,17 @@ export const metadata = { title: `Multi language | Components - ${CONFIG.appName
 export default async function Page() {
   let ssrNavData;
 
-  if (!CONFIG.isStaticExport) {
-    const { t } = await getServerTranslations('navbar');
-    const data = navData(t);
+  try {
+    if (!CONFIG.isStaticExport) {
+      const { t } = await getServerTranslations('navbar');
+      const data = navData(t);
 
-    ssrNavData = data;
+      ssrNavData = data;
+    }
+  } catch (error) {
+    console.error('Error in Page component:', error);
+    // Optionally, you can re-throw the error if you want the build to fail intentionally
+    // throw error;
   }
 
   return <MultiLanguageView ssrNavData={ssrNavData} />;
