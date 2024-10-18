@@ -19,7 +19,7 @@
     "start:out": "npx serve@latest out -p 3032"
   },
   "engines": {
-    "node": "20.x"
+    "node": "18.x"
   },
   "packageManager": "yarn@1.22.22",
   "dependencies": {
@@ -83,7 +83,6 @@
     "lowlight": "^3.1.0",
     "mapbox-gl": "^3.4.0",
     "mui-one-time-password-input": "^2.0.3",
-    "next": "^14.2.5",
     "nprogress": "^0.2.0",
     "react": "^18.3.1",
     "react-apexcharts": "^1.4.1",
