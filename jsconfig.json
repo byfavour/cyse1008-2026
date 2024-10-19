@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
-    "baseUrl": "."
+    "baseUrl": ".",
+    "typeRoots": ["./node_modules/@types"]  // Specify where types are loaded from
   }
 }
+  
