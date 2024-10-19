@@ -1,3 +1,4 @@
+
 import { CONFIG } from 'src/config-global';
 import { getServerTranslations } from 'src/locales/server';
 
@@ -5,10 +6,9 @@ import { MultiLanguageView } from 'src/sections/_examples/extra/multi-language-v
 import { navData } from 'src/sections/_examples/extra/multi-language-view/config-nav';
 
 // ----------------------------------------------------------------------
-
+export const dynamic = 'force-dynamic';
 export const metadata = { title: `Multi language | Components - ${CONFIG.appName}` };
 
-export const dynamic = 'force-dynamic';
 
 export default async function Page() {
   let ssrNavData;
