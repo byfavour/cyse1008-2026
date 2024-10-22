@@ -90,7 +90,7 @@ export function HomeHero({ sx, ...other }) {
             ml: { xs: 0.75, md: 1, xl: 1.5 },
           }}
         >
-          Minimal
+          Quilt
         </Box>
       </Box>
     </AnimatedDiv>
