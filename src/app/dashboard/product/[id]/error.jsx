@@ -12,7 +12,7 @@ import { EmptyContent } from 'src/components/empty-content';
 
 // ----------------------------------------------------------------------
 
-export default function Error({ error, reset }) {
+export default function Error() {
   return (
     <DashboardContent sx={{ pt: 5 }}>
       <EmptyContent

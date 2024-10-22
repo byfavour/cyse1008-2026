@@ -6,7 +6,7 @@ import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 
-export function FormReturnLink({ sx, href, children, label, icon, ...other }) {
+export function FormReturnLink({ sx, href, label, icon, ...other }) {
   return (
     <Link
       component={RouterLink}
