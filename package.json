@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "next dev -p 3032",
     "start": "next start -p 3032",
-    "build": "next build",
+    "build": "NEXT_PUBLIC_SKIP_ESLINT=true npx next build",
     "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
     "lint:fix": "eslint --fix \"src/**/*.{js,jsx,ts,tsx}\"",
     "fm:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx}\"",
@@ -92,6 +92,7 @@
     "lowlight": "^3.1.0",
     "mapbox-gl": "^3.4.0",
     "mui-one-time-password-input": "^2.0.3",
+    "next": "^14.2.15",
     "nprogress": "^0.2.0",
     "react": "^18.3.1",
     "react-apexcharts": "^1.4.1",

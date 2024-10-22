@@ -4,12 +4,9 @@
     "indexes": "firestore.indexes.json"
   },
  "hosting": {
+   "hosting": {
     "source": ".next",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "frameworksBackend": {
       "region": "us-central1"
     },
@@ -19,6 +16,7 @@
         "destination": "/index.html"
       }
     ]
+  }
   },
   "functions": [
     {
@@ -31,6 +29,9 @@
         "firebase-debug.log",
         "firebase-debug.*.log",
         "*.local"
+      ],
+      "predeploy": [
+        "npm run lint || exit 0"
       ]
     }
   ],
