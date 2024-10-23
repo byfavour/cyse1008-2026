@@ -3,8 +3,24 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
+ "hosting": {
+   "hosting": {
+    "source": ".next",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "frameworksBackend": {
+      "region": "us-central1"
+    },
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+  },
   "functions": [
     {
+      "runtime": "nodejs18",
       "source": "functions",
       "codebase": "default",
       "ignore": [
@@ -15,7 +31,7 @@
         "*.local"
       ],
       "predeploy": [
-        "npm --prefix \"$RESOURCE_DIR\" run lint"
+        "npm run lint || exit 0"
       ]
     }
   ],

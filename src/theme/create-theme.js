@@ -43,7 +43,7 @@ export function createTheme(localeComponents, settings) {
 
 // ----------------------------------------------------------------------
 
-function shouldSkipGeneratingVar(keys, value) {
+function shouldSkipGeneratingVar(keys) {
   const skipGlobalKeys = [
     'mixins',
     'overlays',

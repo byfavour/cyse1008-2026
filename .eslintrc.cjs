@@ -1,70 +1,98 @@
 module.exports = {
   root: true,
-  env: { browser: true, es2020: true },
-  plugins: ['perfectionist', 'unused-imports', 'prettier'],
-  extends: ['airbnb', 'airbnb/hooks', 'prettier'],
+  env: { 
+    browser: true, 
+    es2020: true, 
+    node: true // Ensure compatibility for Node.js-based tools
+  },
   parserOptions: {
     ecmaVersion: 'latest',
     sourceType: 'module',
     ecmaFeatures: {
-      jsx: true,
+      jsx: true, // Enable JSX parsing
     },
   },
   settings: {
     react: {
-      version: 'detect',
+      version: 'detect', // Auto-detect React version
     },
     'import/resolver': {
       alias: {
         map: [['src', './src']],
-        extensions: ['.js', '.jsx', '.json'],
+        extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'], // Support for TS and JS files
       },
     },
   },
-  /**
-   * 0 ~ 'off'
-   * 1 ~ 'warn'
-   * 2 ~ 'error'
-   */
+  plugins: [
+    'perfectionist', 
+    'unused-imports', 
+    'prettier', 
+    'react', 
+    'react-hooks'
+  ],
+  extends: [
+    'airbnb', 
+    'airbnb/hooks', 
+    'prettier'
+  ],
   rules: {
-    'no-use-before-define': 0,
-    'no-alert': 0,
-    camelcase: 0,
-    'no-console': 0,
-    'no-unused-vars': 0,
-    'no-nested-ternary': 0,
-    'no-param-reassign': 0,
-    'no-underscore-dangle': 0,
-    'no-restricted-exports': 0,
-    'no-promise-executor-return': 0,
-    'import/prefer-default-export': 0,
-    'prefer-destructuring': [1, { object: true, array: false }],
-    // react
-    'react/prop-types': 0,
-    'react/no-children-prop': 0,
-    'react/react-in-jsx-scope': 0,
-    'react/no-array-index-key': 0,
-    'react/require-default-props': 0,
-    'react/jsx-props-no-spreading': 0,
-    'react/function-component-definition': 0,
-    'react/jsx-no-duplicate-props': [1, { ignoreCase: false }],
-    'react/jsx-no-useless-fragment': [1, { allowExpressions: true }],
-    'react/no-unstable-nested-components': [1, { allowAsProps: true }],
-    // jsx-a11y
-    'jsx-a11y/anchor-is-valid': 0,
-    'jsx-a11y/control-has-associated-label': 0,
-    // unused imports
-    'unused-imports/no-unused-imports': 1,
-    'unused-imports/no-unused-vars': [
-      0,
-      { vars: 'all', varsIgnorePattern: '^_', args: 'after-used', argsIgnorePattern: '^_' },
+    // General Rules
+    'no-use-before-define': 'off',
+    'no-alert': 'off',
+    camelcase: 'off',
+    'no-console': 'off',
+    'no-unused-vars': 'off',
+    'no-nested-ternary': 'off',
+    'no-param-reassign': 'off',
+    'no-underscore-dangle': 'off',
+    'no-restricted-exports': 'off',
+    'no-promise-executor-return': 'off',
+    'import/prefer-default-export': 'off',
+
+    // React Rules
+    'react/react-in-jsx-scope': 'off', // Not required in Next.js
+    'react/prop-types': 'off', // Disable prop-types if using TypeScript
+    'react/no-children-prop': 'off',
+    'react/no-array-index-key': 'off',
+    'react/require-default-props': 'off',
+    'react/jsx-props-no-spreading': 'off', // Allow prop spreading
+    'react/function-component-definition': [
+      'off', // Turn off the rule
+      {
+        namedComponents: 'arrow-function', // Or use 'function-declaration' if preferred
+        unnamedComponents: 'arrow-function',
+      },
     ],
-    // perfectionist
-    'perfectionist/sort-exports': [1, { order: 'asc', type: 'line-length' }],
-    'perfectionist/sort-named-imports': [1, { order: 'asc', type: 'line-length' }],
-    'perfectionist/sort-named-exports': [1, { order: 'asc', type: 'line-length' }],
+    'react/jsx-no-duplicate-props': ['warn', { ignoreCase: false }],
+    'react/jsx-no-useless-fragment': ['warn', { allowExpressions: true }],
+    'react/no-unstable-nested-components': ['warn', { allowAsProps: true }],
+
+    // JSX Accessibility Rules
+    'jsx-a11y/anchor-is-valid': 'off',
+    'jsx-a11y/control-has-associated-label': 'off',
+
+    // Unused Imports Plugin
+    'unused-imports/no-unused-imports': 'warn',
+    'unused-imports/no-unused-vars': [
+      'warn', 
+      { vars: 'all', varsIgnorePattern: '^_', args: 'after-used', argsIgnorePattern: '^_' }
+    ],
+
+    // Perfectionist Plugin Rules (Sorting)
+    'perfectionist/sort-exports': [
+      'warn', 
+      { order: 'asc', type: 'line-length' }
+    ],
+    'perfectionist/sort-named-imports': [
+      'warn', 
+      { order: 'asc', type: 'line-length' }
+    ],
+    'perfectionist/sort-named-exports': [
+      'warn', 
+      { order: 'asc', type: 'line-length' }
+    ],
     'perfectionist/sort-imports': [
-      1,
+      'warn',
       {
         order: 'asc',
         type: 'line-length',
@@ -89,14 +117,14 @@ module.exports = {
         ],
         'custom-groups': {
           value: {
-            ['custom-mui']: '@mui/**',
-            ['custom-auth']: 'src/auth/**',
-            ['custom-hooks']: 'src/hooks/**',
-            ['custom-utils']: 'src/utils/**',
-            ['custom-types']: 'src/types/**',
-            ['custom-routes']: 'src/routes/**',
-            ['custom-sections']: 'src/sections/**',
-            ['custom-components']: 'src/components/**',
+            'custom-mui': '@mui/**',
+            'custom-auth': 'src/auth/**',
+            'custom-hooks': 'src/hooks/**',
+            'custom-utils': 'src/utils/**',
+            'custom-types': 'src/types/**',
+            'custom-routes': 'src/routes/**',
+            'custom-sections': 'src/sections/**',
+            'custom-components': 'src/components/**',
           },
         },
         'internal-pattern': ['src/**'],

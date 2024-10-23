@@ -12,6 +12,7 @@ import { EmptyContent } from 'src/components/empty-content';
 // ----------------------------------------------------------------------
 
 export default function Error({ error, reset }) {
+  console.log({ error, reset });
   return (
     <Container sx={{ my: 5 }}>
       <EmptyContent
