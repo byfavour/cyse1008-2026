@@ -10,7 +10,7 @@ import { useRouter, usePathname } from 'src/routes/hooks';
 import { Label } from 'src/components/label';
 import { usePopover, CustomPopover } from 'src/components/custom-popover';
 
-import { useMockedUser } from 'src/auth/hooks';
+import { useAuthContext } from 'src/auth/hooks';
 
 import { AccountButton } from './account-button';
 import { SignOutButton } from './sign-out-button';
@@ -24,7 +24,7 @@ export function AccountPopover({ data = [], sx, ...other }) {
 
   const pathname = usePathname();
 
-  const { user } = useMockedUser();
+  const { user } = useAuthContext();
 
   const handleClickItem = (path) => {
     popover.onClose();
