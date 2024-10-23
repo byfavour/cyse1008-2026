@@ -1,7 +1,7 @@
 {
   "name": "quilt",
-  "author": "Minimals",
-  "version": "6.1.0",
+  "author": "Coulter",
+  "version": "1.0.1",
   "description": "Next & JavaScript",
   "private": true,
   "scripts": {
