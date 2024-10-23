@@ -8,7 +8,7 @@ import { useSetState } from 'src/hooks/use-set-state';
 
 import axios from 'src/utils/axios';
 
-import { AUTH, FIRESTORE } from 'src/lib/firebase';
+import { AUTH, FIRESTORE } from 'src/lib/firebase/firebase';
 
 import { AuthContext } from '../auth-context';
 
