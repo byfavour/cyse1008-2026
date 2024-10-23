@@ -9,15 +9,14 @@ import { varAlpha } from 'src/theme/styles';
 import { Iconify } from 'src/components/iconify';
 import { AnimateAvatar } from 'src/components/animate';
 
-import { useMockedUser } from 'src/auth/hooks';
+import { useAuthContext } from 'src/auth/hooks';
 
 // ----------------------------------------------------------------------
 
 export function CourseMyAccount({ ...other }) {
   const theme = useTheme();
 
-  const { user } = useMockedUser();
-
+  const { user } = useAuthContext();
   const renderAvatar = (
     <AnimateAvatar
       width={96}
