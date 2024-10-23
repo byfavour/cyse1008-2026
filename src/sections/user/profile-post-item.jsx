@@ -23,13 +23,12 @@ import { varAlpha } from 'src/theme/styles';
 import { Image } from 'src/components/image';
 import { Iconify } from 'src/components/iconify';
 
-import { useMockedUser } from 'src/auth/hooks';
+import { useAuthContext } from 'src/auth/hooks';
 
 // ----------------------------------------------------------------------
 
 export function ProfilePostItem({ post }) {
-  const { user } = useMockedUser();
-
+  const { user } = useAuthContext();
   const commentRef = useRef(null);
 
   const fileRef = useRef(null);

@@ -20,7 +20,7 @@ import { createConversation } from 'src/actions/chat';
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 
-import { useMockedUser } from 'src/auth/hooks';
+import { useAuthContext } from 'src/auth/hooks';
 
 import { ToggleButton } from './styles';
 import { ChatNavItem } from './chat-nav-item';
@@ -40,8 +40,7 @@ export function ChatNav({ loading, contacts, collapseNav, conversations, selecte
 
   const mdUp = useResponsive('up', 'md');
 
-  const { user } = useMockedUser();
-
+  const { user } = useAuthContext();
   const {
     openMobile,
     onOpenMobile,
