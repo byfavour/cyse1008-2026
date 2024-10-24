@@ -15,3 +15,5 @@ export const AUTH = isFirebase ? getAuth(firebaseApp) : {};
 export const FIRESTORE = isFirebase ? getFirestore(firebaseApp) : {};
 
 export const storage = getStorage(firebaseApp);
+
+export const db = getFirestore(firebaseApp);
