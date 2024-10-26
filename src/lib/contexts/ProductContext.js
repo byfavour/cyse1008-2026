@@ -1,5 +1,7 @@
-import React, { createContext, useState, useEffect } from 'react';
-import { getRestaurants, addProduct } from '@/src/lib/firebase/products';
+"use client";
+
+import React, { createContext, useState } from 'react';
+import { addProduct } from 'src/lib/firebase/products';
 
 const ProductContext = createContext();
 
@@ -7,20 +9,20 @@ export function ProductProvider({ children }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const fetchedProducts = await getRestaurants();
-        setProducts(fetchedProducts);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching products: ", error);
-      }
-    };
-    fetchProducts();
-  }, []);
+//   useEffect(() => {
+//     const fetchProducts = async () => {
+//       try {
+//         const fetchedProducts = await getRestaurants();
+//         setProducts(fetchedProducts);
+//         setLoading(false);
+//       } catch (error) {
+//         console.error("Error fetching products: ", error);
+//       }
+//     };
+//     fetchProducts();
+//   }, []);
 
-  const addNewProduct = async (productData) => {
+  const createProduct = async (productData) => {
     try {
       const newProductId = await addProduct(productData);
       setProducts((prevProducts) => [...prevProducts, { id: newProductId, ...productData }]);
@@ -30,7 +32,7 @@ export function ProductProvider({ children }) {
   };
 
   return (
-    <ProductContext.Provider value={{ products, addNewProduct, loading }}>
+    <ProductContext.Provider value={{ products, createProduct, loading }}>
       {children}
     </ProductContext.Provider>
   );

@@ -1,14 +1,51 @@
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { storage } from './firebase';
 
-export async function uploadImage(entityType, entityId, image) {
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { doc, setDoc } from "firebase/firestore";
+import { v4 as uuidv4 } from 'uuid';
+import { storage, firestore } from '@/src/lib/firebase/clientApp';
+
+export async function uploadImageToLibrary(userId, image) {
   try {
-    const filePath = `${entityType}/${entityId}/${image.name}`;
-    const newImageRef = ref(storage, filePath);
-    await uploadBytesResumable(newImageRef, image);
-    return await getDownloadURL(newImageRef);
+    if (!userId) throw new Error("No user ID provided.");
+    if (!image || !image.name) throw new Error("A valid image must be provided.");
+
+    const imageId = uuidv4();
+    const filePath = `images/library/${userId}/${imageId}-${image.name}`;
+    const imageRef = ref(storage, filePath);
+
+    await uploadBytesResumable(imageRef, image);
+    const downloadURL = await getDownloadURL(imageRef);
+
+    // Store metadata in Firestore
+    const imageDocRef = doc(firestore, `users/${userId}/images/${imageId}`);
+    await setDoc(imageDocRef, {
+      imageUrl: downloadURL,
+      filePath,
+      uploadedBy: userId,
+      createdAt: new Date(),
+      associatedEntityId: null,
+    });
+
+    return downloadURL;
   } catch (error) {
-    console.error("Error uploading image: ", error);
+    console.error("Error uploading image to library:", error);
     throw error;
   }
 }
+
+export async function uploadImagesToLibrary(userId, images) {
+  const uploadedImageUrls = await Promise.all(
+    images.map(async (image) => {
+      try {
+        return await uploadImageToLibrary(userId, image);
+      } catch (error) {
+        console.error("Error uploading one of the images:", error);
+        throw error;
+      }
+    })
+  );
+  return uploadedImageUrls;
+}
+

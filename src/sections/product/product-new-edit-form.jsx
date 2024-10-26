@@ -1,3 +1,5 @@
+import React, { useContext } from 'react';
+
 import { z as zod } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -28,21 +30,23 @@ import {
 
 import { toast } from 'src/components/snackbar';
 import { Form, Field, schemaHelper } from 'src/components/hook-form';
+import ProductContext from 'src/lib/contexts/ProductContext';
+import { uploadImage } from 'src/lib/firebase/storage';
 
 // ----------------------------------------------------------------------
 
 export const NewProductSchema = zod.object({
   name: zod.string().min(1, { message: 'Name is required!' }),
-  description: schemaHelper.editor({ message: { required_error: 'Description is required!' } }),
+  // description: schemaHelper.editor({ message: { required_error: 'Description is required!' } }),
   images: schemaHelper.files({ message: { required_error: 'Images is required!' } }),
-  code: zod.string().min(1, { message: 'Product code is required!' }),
-  sku: zod.string().min(1, { message: 'Product sku is required!' }),
-  quantity: zod.number().min(1, { message: 'Quantity is required!' }),
-  colors: zod.string().array().nonempty({ message: 'Choose at least one option!' }),
-  sizes: zod.string().array().nonempty({ message: 'Choose at least one option!' }),
-  tags: zod.string().array().min(2, { message: 'Must have at least 2 items!' }),
-  gender: zod.string().array().nonempty({ message: 'Choose at least one option!' }),
-  price: zod.number().min(1, { message: 'Price should not be $0.00' }),
+  // code: zod.string().min(1, { message: 'Product code is required!' }),
+  // sku: zod.string().min(1, { message: 'Product sku is required!' }),
+  // quantity: zod.number().min(1, { message: 'Quantity is required!' }),
+  // colors: zod.string().array().nonempty({ message: 'Choose at least one option!' }),
+  // sizes: zod.string().array().nonempty({ message: 'Choose at least one option!' }),
+  // tags: zod.string().array().min(2, { message: 'Must have at least 2 items!' }),
+  // gender: zod.string().array().nonempty({ message: 'Choose at least one option!' }),
+  // price: zod.number().min(1, { message: 'Price should not be $0.00' }),
   // Not required
   category: zod.string(),
   priceSale: zod.number(),
@@ -56,6 +60,8 @@ export const NewProductSchema = zod.object({
 
 export function ProductNewEditForm({ currentProduct }) {
   const router = useRouter();
+
+  const { createProduct } = useContext(ProductContext);
 
   const [includeTaxes, setIncludeTaxes] = useState(false);
 
@@ -112,28 +118,66 @@ export function ProductNewEditForm({ currentProduct }) {
     }
   }, [currentProduct?.taxes, includeTaxes, setValue]);
 
+  // const onSubmit = handleSubmit(async (data) => {
+  //   try {
+  //     await new Promise((resolve) => setTimeout(resolve, 500));
+  //     reset();
+  //     toast.success(currentProduct ? 'Update success!' : 'Create success!');
+  //     router.push(paths.dashboard.product.root);
+  //     console.info('DATA', data);
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // });
   const onSubmit = handleSubmit(async (data) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      // Upload each image and get its URL
+      const imageUploads = data.images.map(async (file) => {
+        // Upload the image to Firebase and get the URL
+        return await uploadImage('products', data.code, file);
+      });
+
+      // Wait for all the image uploads to complete
+      const uploadedImageUrls = await Promise.all(imageUploads);
+
+      // Update product data with the image URLs
+      const productData = {
+        ...data,
+        images: uploadedImageUrls,
+      };
+
+      // Create a new product using the context method
+      await createProduct(productData);
+
+      // Reset the form and give feedback to the user
       reset();
       toast.success(currentProduct ? 'Update success!' : 'Create success!');
       router.push(paths.dashboard.product.root);
-      console.info('DATA', data);
     } catch (error) {
-      console.error(error);
+      console.error("Error creating product:", error);
+      toast.error('Something went wrong, please try again!');
     }
   });
+
+  const handleOnUpload = useCallback(
+    (inputFile) => {
+      console.log("image added", {images: values.images});
+    },
+    [setValue, values.images]
+  );
 
   const handleRemoveFile = useCallback(
     (inputFile) => {
       const filtered = values.images && values.images?.filter((file) => file !== inputFile);
       setValue('images', filtered);
+      console.log("image removed", {images: values.images});
     },
     [setValue, values.images]
   );
 
   const handleRemoveAllFiles = useCallback(() => {
     setValue('images', [], { shouldValidate: true });
+    console.log("image removed", {images: values.images});
   }, [setValue]);
 
   const handleChangeIncludeTaxes = useCallback((event) => {
@@ -165,7 +209,7 @@ export function ProductNewEditForm({ currentProduct }) {
             maxSize={3145728}
             onRemove={handleRemoveFile}
             onRemoveAll={handleRemoveAllFiles}
-            onUpload={() => console.info('ON UPLOAD')}
+            onUpload={() => handleOnUpload}
           />
         </Stack>
       </Stack>
