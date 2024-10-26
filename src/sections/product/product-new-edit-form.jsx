@@ -133,19 +133,31 @@ export function ProductNewEditForm({ currentProduct }) {
   // });
   const onSubmit = handleSubmit(async (data) => {
     try {
-      // Upload each image and get its URL
-      const uploadedImageUrls = await uploadImagesToLibrary(user?.id, data.images);
-
-       // Update product data with the image URLs
+      // Separate URLs and new file uploads
+      const images = data.images || [];
+      const filesToUpload = images.filter(file => file instanceof File);
+      const existingUrls = images.filter(file => typeof file === 'string');
+  
+      let uploadedUrls = [];
+      if (filesToUpload.length > 0) {
+        console.log("Files to upload:", filesToUpload);
+        // Upload new images and get their URLs
+        uploadedUrls = await uploadImagesToLibrary(user.id, filesToUpload);
+      }
+  
+      // Combine existing URLs with newly uploaded URLs
+      const allImageUrls = [...existingUrls, ...uploadedUrls];
+  
+      // Create product data with image URLs
       const productData = {
         ...data,
-        images: uploadedImageUrls,
+        images: allImageUrls,
       };
-
-      // Create a new product using the context method
+  
+      // Call your context function to create the product
       await createProduct(productData);
-
-      // Reset the form and give feedback to the user
+  
+      // Reset form and notify user
       reset();
       toast.success(currentProduct ? 'Update success!' : 'Create success!');
       router.push(paths.dashboard.product.root);
@@ -154,6 +166,7 @@ export function ProductNewEditForm({ currentProduct }) {
       toast.error('Something went wrong, please try again!');
     }
   });
+  
 
   // const handleOnUpload = useCallback(
   //   (inputFile) => {
@@ -177,17 +190,24 @@ export function ProductNewEditForm({ currentProduct }) {
   // }, [setValue]);
   const handleOnUpload = useCallback(
     async (inputFiles) => {
-      console.log("jfjfjfjfjfjfj")
+      console.log("Starting file upload...");
       console.log({ inputFiles });
       try {
+        // Upload files to the library
         const uploadedUrls = await uploadImagesToLibrary(user.id, inputFiles);
+        console.log("Uploaded URLs:", uploadedUrls);
+  
+        // Update form state to only store the URLs after upload
         setValue('images', [...values.images, ...uploadedUrls]);
+        console.log("Image upload completed successfully.");
       } catch (error) {
         console.error("Error uploading images:", error);
       }
     },
     [user.id, setValue, values.images]
   );
+  
+  
   
   const handleRemoveFile = useCallback(
     (fileUrl) => {
