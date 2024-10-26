@@ -1,8 +1,8 @@
 import useSWR from 'swr';
-import { useMemo } from 'react';
 
 import { fetcher, endpoints } from 'src/utils/axios';
-
+import { useEffect, useMemo, useState } from 'react';
+import { getProducts } from 'src/lib/firebase/products';
 // ----------------------------------------------------------------------
 
 const swrOptions = {
@@ -13,20 +13,60 @@ const swrOptions = {
 
 // ----------------------------------------------------------------------
 
-export function useGetProducts() {
-  const url = endpoints.product.list;
+// export function useGetProducts() {
+//   const url = endpoints.product.list;
 
-  const { data, isLoading, error, isValidating } = useSWR(url, fetcher, swrOptions);
+//   const { data, isLoading, error, isValidating } = useSWR(url, fetcher, swrOptions);
+
+//   const memoizedValue = useMemo(
+//     () => ({
+//       products: data?.products || [],
+//       productsLoading: isLoading,
+//       productsError: error,
+//       productsValidating: isValidating,
+//       productsEmpty: !isLoading && !data?.products.length,
+//     }),
+//     [data?.products, error, isLoading, isValidating]
+//   );
+
+//   return memoizedValue;
+// }
+
+export function useGetProducts() {
+  const [products, setProducts] = useState([]);
+  const [productsLoading, setProductsLoading] = useState(true);
+  const [productsError, setProductsError] = useState(null);
+  const [productsValidating, setProductsValidating] = useState(false);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      setProductsLoading(true);
+      setProductsValidating(true);
+      try {
+        const fetchedProducts = await getProducts();
+        setProducts(fetchedProducts);
+        setProductsError(null);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+        setProductsError(error);
+      } finally {
+        setProductsLoading(false);
+        setProductsValidating(false);
+      }
+    }
+
+    fetchProducts();
+  }, []);
 
   const memoizedValue = useMemo(
     () => ({
-      products: data?.products || [],
-      productsLoading: isLoading,
-      productsError: error,
-      productsValidating: isValidating,
-      productsEmpty: !isLoading && !data?.products.length,
+      products,
+      productsLoading,
+      productsError,
+      productsValidating,
+      productsEmpty: !productsLoading && products.length === 0,
     }),
-    [data?.products, error, isLoading, isValidating]
+    [products, productsLoading, productsError, productsValidating]
   );
 
   return memoizedValue;
@@ -51,6 +91,9 @@ export function useGetProduct(productId) {
 
   return memoizedValue;
 }
+// src/actions/product.js
+
+
 
 // ----------------------------------------------------------------------
 
