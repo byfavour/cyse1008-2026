@@ -1,10 +1,7 @@
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { storage } from './firebase';
-
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { doc, setDoc } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
-import { storage, firestore } from '@/src/lib/firebase/clientApp';
+import { storage, db } from 'src/lib/firebase/firebase';
 
 export async function uploadImageToLibrary(userId, image) {
   try {
@@ -19,7 +16,7 @@ export async function uploadImageToLibrary(userId, image) {
     const downloadURL = await getDownloadURL(imageRef);
 
     // Store metadata in Firestore
-    const imageDocRef = doc(firestore, `users/${userId}/images/${imageId}`);
+    const imageDocRef = doc(db, `users/${userId}/images/${imageId}`);
     await setDoc(imageDocRef, {
       imageUrl: downloadURL,
       filePath,

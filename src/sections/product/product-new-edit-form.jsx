@@ -19,6 +19,7 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
+import { useAuthContext } from 'src/auth/hooks';
 
 import {
   _tags,
@@ -31,7 +32,7 @@ import {
 import { toast } from 'src/components/snackbar';
 import { Form, Field, schemaHelper } from 'src/components/hook-form';
 import ProductContext from 'src/lib/contexts/ProductContext';
-import { uploadImage } from 'src/lib/firebase/storage';
+import { uploadImagesToLibrary } from 'src/lib/firebase/storage';
 
 // ----------------------------------------------------------------------
 
@@ -60,6 +61,7 @@ export const NewProductSchema = zod.object({
 
 export function ProductNewEditForm({ currentProduct }) {
   const router = useRouter();
+  const { user } = useAuthContext();
 
   const { createProduct } = useContext(ProductContext);
 
@@ -132,15 +134,9 @@ export function ProductNewEditForm({ currentProduct }) {
   const onSubmit = handleSubmit(async (data) => {
     try {
       // Upload each image and get its URL
-      const imageUploads = data.images.map(async (file) => {
-        // Upload the image to Firebase and get the URL
-        return await uploadImage('products', data.code, file);
-      });
+      const uploadedImageUrls = await uploadImagesToLibrary(user?.id, data.images);
 
-      // Wait for all the image uploads to complete
-      const uploadedImageUrls = await Promise.all(imageUploads);
-
-      // Update product data with the image URLs
+       // Update product data with the image URLs
       const productData = {
         ...data,
         images: uploadedImageUrls,
@@ -159,26 +155,51 @@ export function ProductNewEditForm({ currentProduct }) {
     }
   });
 
+  // const handleOnUpload = useCallback(
+  //   (inputFile) => {
+  //     console.log("image added", {images: values.images});
+  //   },
+  //   [setValue, values.images]
+  // );
+
+  // const handleRemoveFile = useCallback(
+  //   (inputFile) => {
+  //     const filtered = values.images && values.images?.filter((file) => file !== inputFile);
+  //     setValue('images', filtered);
+  //     console.log("image removed", {images: values.images});
+  //   },
+  //   [setValue, values.images]
+  // );
+
+  // const handleRemoveAllFiles = useCallback(() => {
+  //   setValue('images', [], { shouldValidate: true });
+  //   console.log("image removed", {images: values.images});
+  // }, [setValue]);
   const handleOnUpload = useCallback(
-    (inputFile) => {
-      console.log("image added", {images: values.images});
+    async (inputFiles) => {
+      console.elog({ inputFiles })
+      try {
+        const uploadedUrls = await uploadImagesToLibrary(user.id, inputFiles);
+        setValue('images', [...values.images, ...uploadedUrls]);
+      } catch (error) {
+        console.error("Error uploading images:", error);
+      }
     },
-    [setValue, values.images]
+    [user.id, setValue, values.images]
   );
-
+  
   const handleRemoveFile = useCallback(
-    (inputFile) => {
-      const filtered = values.images && values.images?.filter((file) => file !== inputFile);
+    (fileUrl) => {
+      const filtered = values.images && values.images?.filter((url) => url !== fileUrl);
       setValue('images', filtered);
-      console.log("image removed", {images: values.images});
     },
     [setValue, values.images]
   );
-
+  
   const handleRemoveAllFiles = useCallback(() => {
     setValue('images', [], { shouldValidate: true });
-    console.log("image removed", {images: values.images});
   }, [setValue]);
+  
 
   const handleChangeIncludeTaxes = useCallback((event) => {
     setIncludeTaxes(event.target.checked);
