@@ -11,7 +11,6 @@ import { uploadClasses } from '../classes';
 import { fileData, FileThumbnail } from '../../file-thumbnail';
 
 // ----------------------------------------------------------------------
-
 export function MultiFilePreview({
   sx,
   onRemove,
@@ -66,12 +65,13 @@ export function MultiFilePreview({
     >
       {renderFirstNode}
 
-      {files.map((file) => {
+      {files.map((file, index) => {
         const { name, size } = fileData(file);
 
-        if (thumbnail) {
+        if (thumbnail && file.type && file.type.startsWith('image/')) {
+          // Ensure only images get rendered as thumbnails
           return (
-            <Box component="li" key={name} sx={{ display: 'inline-flex' }}>
+            <Box component="li" key={name + '-' + index} sx={{ display: 'inline-flex' }}>
               <FileThumbnail
                 tooltip
                 imageView
@@ -93,7 +93,7 @@ export function MultiFilePreview({
         return (
           <Box
             component="li"
-            key={name}
+            key={name + '-' + index}
             sx={{
               py: 1,
               pr: 1,
@@ -130,3 +130,4 @@ export function MultiFilePreview({
     </Box>
   );
 }
+

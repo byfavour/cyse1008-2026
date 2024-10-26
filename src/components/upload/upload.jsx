@@ -56,16 +56,27 @@ export function Upload({
             </Button>
           )}
 
-          {onUpload && (
-            <Button
-              size="small"
-              variant="contained"
-              onClick={onUpload}
-              startIcon={<Iconify icon="eva:cloud-upload-fill" />}
-            >
-              Upload
-            </Button>
-          )}
+{onUpload && (
+  <Button
+    size="small"
+    variant="contained"
+    onClick={async () => {
+      try {
+        console.log("Upload button clicked, initiating upload...");
+        await onUpload(value); // Use await here to properly handle any async operations in onUpload
+        console.log("Upload successful!");
+      } catch (error) {
+        console.error("Error during upload:", error);
+        // Optionally, provide user feedback for the error
+        toast.error('Upload failed. Please try again.');
+      }
+    }}
+    startIcon={<Iconify icon="eva:cloud-upload-fill" />}
+  >
+    Upload
+  </Button>
+)}
+
         </Box>
       )}
     </>

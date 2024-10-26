@@ -177,7 +177,8 @@ export function ProductNewEditForm({ currentProduct }) {
   // }, [setValue]);
   const handleOnUpload = useCallback(
     async (inputFiles) => {
-      console.elog({ inputFiles })
+      console.log("jfjfjfjfjfjfj")
+      console.log({ inputFiles });
       try {
         const uploadedUrls = await uploadImagesToLibrary(user.id, inputFiles);
         setValue('images', [...values.images, ...uploadedUrls]);
@@ -227,10 +228,10 @@ export function ProductNewEditForm({ currentProduct }) {
             multiple
             thumbnail
             name="images"
-            maxSize={3145728}
+            // maxSize={3145728}
             onRemove={handleRemoveFile}
             onRemoveAll={handleRemoveAllFiles}
-            onUpload={() => handleOnUpload}
+            onUpload={handleOnUpload}
           />
         </Stack>
       </Stack>
