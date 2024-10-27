@@ -25,6 +25,8 @@ import { useSetState } from 'src/hooks/use-set-state';
 
 import { PRODUCT_STOCK_OPTIONS } from 'src/_mock';
 import { useGetProducts } from 'src/actions/product';
+import { deleteProduct } from 'src/lib/firebase/products';
+
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { toast } from 'src/components/snackbar';
@@ -61,11 +63,11 @@ export function ProductListView() {
 
   const router = useRouter();
 
-  const { products, productsLoading } = useGetProducts();
-
   const filters = useSetState({ publish: [], stock: [] });
 
+  const { products, productsLoading } = useGetProducts();
   const [tableData, setTableData] = useState([]);
+  
 
   const [selectedRowIds, setSelectedRowIds] = useState([]);
 
@@ -84,23 +86,30 @@ export function ProductListView() {
   const dataFiltered = applyFilter({ inputData: tableData, filters: filters.state });
 
   const handleDeleteRow = useCallback(
-    (id) => {
-      const deleteRow = tableData.filter((row) => row.id !== id);
-
-      toast.success('Delete success!');
-
-      setTableData(deleteRow);
+    async (id) => {
+      try {
+        await deleteProduct(id); // Delete from Firestore
+        toast.success('Delete success!');
+        setTableData((prevData) => prevData.filter((row) => row.id !== id)); // Update state
+      } catch (error) {
+        toast.error('Failed to delete product. Please try again.');
+        console.error("Error deleting product:", error);
+      }
     },
-    [tableData]
+    []
   );
 
-  const handleDeleteRows = useCallback(() => {
-    const deleteRows = tableData.filter((row) => !selectedRowIds.includes(row.id));
-
-    toast.success('Delete success!');
-
-    setTableData(deleteRows);
-  }, [selectedRowIds, tableData]);
+  const handleDeleteRows = useCallback(async () => {
+    try {
+      await Promise.all(selectedRowIds.map((id) => deleteProduct(id))); // Delete from Firestore
+      toast.success('Delete success!');
+      setTableData((prevData) => prevData.filter((row) => !selectedRowIds.includes(row.id))); // Update state
+    } catch (error) {
+      toast.error('Failed to delete selected products. Please try again.');
+      console.error("Error deleting products:", error);
+    }
+  }, [selectedRowIds]);
+  
 
   const handleEditRow = useCallback(
     (id) => {
@@ -250,7 +259,7 @@ export function ProductListView() {
             disableRowSelectionOnClick
             rows={dataFiltered}
             columns={columns}
-            loading={productsLoading}
+            loading={productsLoading} // This now comes from useGetProducts
             getRowHeight={() => 'auto'}
             pageSizeOptions={[5, 10, 25]}
             initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
