@@ -85,7 +85,7 @@ export function MultiFilePreview({
   }
 
   // If it's a File object (local file selected but not yet uploaded)
-  const { name, size } = fileData(file);
+  const { name } = fileData(file);
   return (
     <Box component="li" key={name + '-' + index} sx={{ display: 'inline-flex' }}>
       <FileThumbnail
