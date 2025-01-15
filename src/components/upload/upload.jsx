@@ -97,7 +97,10 @@ export function Upload({
     onClick={async () => {
       try {
         console.log("Upload button clicked, initiating upload...");
-        await onUpload(value); // Use await here to properly handle any async operations in onUpload
+        const filesToUpload = value.filter((file) => file instanceof File);
+        if (filesToUpload.length > 0) {
+          await onUpload(filesToUpload); // Pass only File objects to onUpload
+        }
         console.log("Upload successful!");
       } catch (error) {
         console.error("Error during upload:", error);
@@ -113,8 +116,35 @@ export function Upload({
 
         </Box>
       )}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     </>
-  );
+  );b  
 
   return (
     <Box

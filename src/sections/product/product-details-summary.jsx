@@ -38,10 +38,10 @@ export function ProductDetailsSummary({
   const {
     id,
     name,
-    sizes,
+    sizes = [],
     price,
     coverUrl,
-    colors,
+    colors = [],
     newLabel,
     available,
     priceSale,

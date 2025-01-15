@@ -28,7 +28,7 @@ export async function uploadImageToLibrary(userId, image) {
     return downloadURL;
   } catch (error) {
     console.error("Error uploading image to library:", error);
-    throw error;
+    throw error;;l 
   }
 }
 

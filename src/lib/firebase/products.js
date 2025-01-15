@@ -48,7 +48,7 @@ export async function getProductById(productId) {
     const productSnapshot = await getDoc(productDocRef);
 
     if (productSnapshot.exists()) {
-      return { id: productSnapshot.id, ...productSnapshot.data() };
+      return { product: { id: productSnapshot.id, reviews: [] , ...productSnapshot.data() }};
     } else {
       throw new Error("Product does not exist");
     }
