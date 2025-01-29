@@ -13,7 +13,7 @@ import { AUTH, FIRESTORE } from 'src/lib/firebase';
 import { AuthContext } from '../auth-context';
 
 // ----------------------------------------------------------------------
-
+// FIND_ME_CYSE_1008_1
 export function AuthProvider({ children }) {
   const { state, setState } = useSetState({
     user: null,
