@@ -11,7 +11,7 @@ import { AuthContext } from '../auth-context';
 import { setSession, isValidToken } from './utils';
 
 // ----------------------------------------------------------------------
-
+// FIND_ME_CYSE_1008_2
 export function AuthProvider({ children }) {
   const { state, setState } = useSetState({
     user: null,
