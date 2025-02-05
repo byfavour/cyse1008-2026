@@ -34,7 +34,7 @@ export function HomeView() {
 
       <HomeHeroCYSE1008 />
 
-      <Stack sx={{ position: 'relative', bgcolor: 'background.default' }}>
+      {/* <Stack sx={{ position: 'relative', bgcolor: 'background.default' }}>
         <HomeMinimal />
 
         <HomeHugePackElements />
@@ -54,7 +54,7 @@ export function HomeView() {
         <HomeZoneUI />
 
         <HomeAdvertisement />
-      </Stack>
+      </Stack> */}
     </>
   );
 }
