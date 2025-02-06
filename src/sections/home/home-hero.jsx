@@ -31,7 +31,13 @@ import { HeroBackground } from './components/hero-background';
 const smKey = 'sm';
 const mdKey = 'md';
 const lgKey = 'lg';
-
+/* ----------------------------------------------------------------------
+ CYSE_1008_ASSIGNMENT_5_HOME_PAGE_ORIGINAL_EXAMPLE
+ Here's the original component - you can use for an example comparison
+ Notice how components are imported at the top from other files to
+ be used in the component here, and how this component is exported
+ for other components to use
+----------------------------------------------------------------------*/
 export function HomeHero({ sx, ...other }) {
   const theme = useTheme();
 

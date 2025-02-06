@@ -1,5 +1,7 @@
-export function HomeHeroCYSE1008({ sx, ...other }) {
+export function HomeHeroCYSE1008() {
   return (
-    <></>
+  <>
+  
+  </>
   );
 }
