@@ -19,7 +19,7 @@
     "start:out": "npx serve@latest out -p 3032"
   },
   "engines": {
-    "node": "18.x"
+    "node": "18"
   },
   "browser": {
     "fs": false,
