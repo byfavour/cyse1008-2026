@@ -14,18 +14,21 @@ export const ExtendedEuclideanAlgorithm = () => {
   /**
    * Computes the GCD of two numbers using the Extended Euclidean Algorithm.
    * Also finds x and y such that ax + by = gcd(a, b).
-   * @param {number} a - First input number.
-   * @param {number} b - Second input number.
+   * @param {number} q - First input number.
+   * @param {number} m - Second input number.
    * @returns {Object} - An object containing gcd, x, and y.
    */
-  const extendedEuclidean = (a, b) => {
-    let oldR = a, r = b;
-    let oldS = 1, s = 0;
-    let oldT = 0, t = 1;
-    let steps = [];
+  const extendedEuclidean = (q, m) => {
+    let oldR = q;
+    let r = m;
+    let oldS = 1;
+    let s = 0;
+    let oldT = 0;
+    let t = 1;
+    const steps = [];
 
     while (r !== 0) {
-      let quotient = Math.floor(oldR / r);
+      const quotient = Math.floor(oldR / r);
       [oldR, r] = [r, oldR - quotient * r];
       [oldS, s] = [s, oldS - quotient * s];
       [oldT, t] = [t, oldT - quotient * t];
@@ -47,7 +50,7 @@ export const ExtendedEuclideanAlgorithm = () => {
    */
   const handleSubmit = (event) => {
     event.preventDefault();
-    const computedResult = extendedEuclidean(parseInt(a), parseInt(b));
+    const computedResult = extendedEuclidean(parseInt(a, 10), parseInt(b, 10));
     setResult(computedResult);
   };
 
@@ -55,12 +58,12 @@ export const ExtendedEuclideanAlgorithm = () => {
     <div>
       <h2>Extended Euclidean Algorithm</h2>
       <form onSubmit={handleSubmit}>
-        <label>
+        <label htmlFor="foo">
           Enter a:
           <input type="number" value={a} onChange={(e) => setA(e.target.value)} required />
         </label>
         <br />
-        <label>
+        <label htmlFor="foo">
           Enter b:
           <input type="number" value={b} onChange={(e) => setB(e.target.value)} required />
         </label>
