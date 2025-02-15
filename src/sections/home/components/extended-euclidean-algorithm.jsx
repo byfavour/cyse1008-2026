@@ -1,4 +1,12 @@
 import React, { useState } from "react";
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
 
 /**
  * ExtendedEuclideanAlgorithm Component
@@ -48,45 +56,58 @@ export const ExtendedEuclideanAlgorithm = () => {
    * Handles form submission, computes the Extended Euclidean Algorithm,
    * and updates the state with the results.
    */
-  const handleSubmit = (event) => {
+  const handleCalculate = (event) => {
     event.preventDefault();
     const computedResult = extendedEuclidean(parseInt(a, 10), parseInt(b, 10));
     setResult(computedResult);
   };
 
   return (
-    <div>
-      <h2>Extended Euclidean Algorithm</h2>
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="foo">
-          Enter a:
-          <input type="number" value={a} onChange={(e) => setA(e.target.value)} required />
-        </label>
-        <br />
-        <label htmlFor="foo">
-          Enter b:
-          <input type="number" value={b} onChange={(e) => setB(e.target.value)} required />
-        </label>
-        <br />
-        <button type="submit">Compute</button>
-      </form>
+    <Stack>
+      <Typography variant="h2">Extended Euclidean Algorithm</Typography>
+      <Box
+        component="form"
+        sx={{ '& > :not(style)': { m: 1, width: '25ch' } }}
+        noValidate
+        autoComplete="off"
+      >
+        <TextField
+          id="a"
+          label="Enter a:"
+          type="number"
+          value={a}
+          onChange={(e) => setA(e.target.value)}
+        />
+        <TextField
+          id="b"
+          label="Enter b:"
+          type="number"
+          value={b}
+          onChange={(e) => setB(e.target.value)}
+        />
+        <Button variant="contained" color="primary" onClick={handleCalculate}>
+          Compute 
+        </Button>
+      </Box>
       
       {result && (
-        <div>
-          <h3>Results</h3>
-          <p>GCD: {result.gcd}</p>
-          <p>Coefficients: x = {result.x}, y = {result.y}</p>
-          <h4>Steps:</h4>
-          <ul>
+        <Box>
+          <Typography variant="h3">Results</Typography>
+          <Typography variant="p">GCD: {result.gcd}</Typography>
+          <Typography variant="p">Coefficients: x = {result.x}, y = {result.y}</Typography>
+          <Typography variant="h4">Steps</Typography>
+          <List dense={dense}>
             {result.steps.map((step, index) => (
-              <li key={index}>
-                Quotient: {step.quotient}, Remainder: {step.remainder}, x: {step.x}, y: {step.y}
-              </li>
+              <ListItem key={index}>
+                <ListItemText
+                  primary={`Quotient: ${step.quotient}, Remainder: ${step.remainder}, x: ${step.x}, y: ${step.y}`}
+                />
+              </ListItem>
             ))}
-          </ul>
-        </div>
+          </List>
+        </Box>
       )}
-    </div>
+    </Stack>
   );
 };
 

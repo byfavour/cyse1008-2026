@@ -5,6 +5,8 @@ import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import { textGradient } from 'src/theme/styles';
 import { useTheme } from '@mui/material/styles';
+import { ExtendedEuclideanAlgorithm } from './components/extended-euclidean-algorithm';
+import { ModularExponentiation } from './components/modular-exponentiation';
 
 const lgKey = 'lg';
 
@@ -51,6 +53,8 @@ export function HomeHeroCYSE1008() {
     <Button variant="contained" color="primary" onClick={() => setCount(count + 1)}>
       Click Me {count}
     </Button>
+    <ExtendedEuclideanAlgorithm />
+    <ModularExponentiation />
   </Stack>
   </>
   );
