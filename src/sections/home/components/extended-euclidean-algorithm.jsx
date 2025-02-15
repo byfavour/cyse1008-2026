@@ -93,10 +93,10 @@ export const ExtendedEuclideanAlgorithm = () => {
       {result && (
         <Box>
           <Typography variant="h3">Results</Typography>
-          <Typography variant="p">GCD: {result.gcd}</Typography>
+          <Typography variant="p">GCD: {result.gcd} </Typography>
           <Typography variant="p">Coefficients: x = {result.x}, y = {result.y}</Typography>
           <Typography variant="h4">Steps</Typography>
-          <List dense={dense}>
+          <List dense>
             {result.steps.map((step, index) => (
               <ListItem key={index}>
                 <ListItemText

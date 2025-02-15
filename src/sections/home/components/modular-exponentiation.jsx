@@ -2,6 +2,7 @@ import { useState } from "react";
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
 
 export function ModularExponentiation() {
     const [base, setBase] = useState(0);
@@ -34,7 +35,7 @@ export function ModularExponentiation() {
             noValidate
             autoComplete="off"
           >
-            <h2 className="text-xl font-bold mb-4">Modular Exponentiation</h2>
+            <Typography variant="h2">Modular Exponentiation</Typography>
             <TextField
               id="base"
               label="Base"
@@ -57,10 +58,10 @@ export function ModularExponentiation() {
               onChange={(e) => setModulus(e.target.value)}
             />
             <Button variant="contained" color="primary" onClick={handleCalculate}>
-              Calculate 
+              Compute 
             </Button>
             {result !== null && (
-                <div className="mt-4 p-2 bg-gray-100 rounded">Result: {result}</div>
+                <Box>Result: {result}</Box>
             )}
         </Box>
     );
