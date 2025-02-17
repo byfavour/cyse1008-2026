@@ -62,11 +62,12 @@ export function RenderCellStock({ params }) {
 // ----------------------------------------------------------------------
 
 export function RenderCellProduct({ params, onViewRow }) {
+  console.log({ params: params.row })
   return (
     <Stack direction="row" alignItems="center" sx={{ py: 2, width: 1 }}>
       <Avatar
         alt={params.row.name}
-        src={params.row.coverUrl}
+        src={params.row.images && params.row.images.length > 0 ? params.row.images[0] : ''}
         variant="rounded"
         sx={{ width: 64, height: 64, mr: 2 }}
       />

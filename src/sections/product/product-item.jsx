@@ -27,6 +27,10 @@ export function ProductItem({ product }) {
 
   const linkTo = paths.product.details(id);
 
+  console.log({
+    id, name, coverUrl, price, colors, available, sizes, priceSale, newLabel, saleLabel
+  })
+
   const handleAddCart = async () => {
     const newProduct = {
       id,

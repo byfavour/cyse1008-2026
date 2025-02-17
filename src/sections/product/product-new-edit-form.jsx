@@ -1,3 +1,5 @@
+import React, { useContext } from 'react';
+
 import { z as zod } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -17,6 +19,7 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
+import { useAuthContext } from 'src/auth/hooks';
 
 import {
   _tags,
@@ -28,21 +31,23 @@ import {
 
 import { toast } from 'src/components/snackbar';
 import { Form, Field, schemaHelper } from 'src/components/hook-form';
+import ProductContext from 'src/lib/contexts/ProductContext';
+import { uploadImagesToLibrary } from 'src/lib/firebase/storage';
 
 // ----------------------------------------------------------------------
 
 export const NewProductSchema = zod.object({
   name: zod.string().min(1, { message: 'Name is required!' }),
-  description: schemaHelper.editor({ message: { required_error: 'Description is required!' } }),
+  // description: schemaHelper.editor({ message: { required_error: 'Description is required!' } }),
   images: schemaHelper.files({ message: { required_error: 'Images is required!' } }),
-  code: zod.string().min(1, { message: 'Product code is required!' }),
-  sku: zod.string().min(1, { message: 'Product sku is required!' }),
-  quantity: zod.number().min(1, { message: 'Quantity is required!' }),
-  colors: zod.string().array().nonempty({ message: 'Choose at least one option!' }),
-  sizes: zod.string().array().nonempty({ message: 'Choose at least one option!' }),
-  tags: zod.string().array().min(2, { message: 'Must have at least 2 items!' }),
-  gender: zod.string().array().nonempty({ message: 'Choose at least one option!' }),
-  price: zod.number().min(1, { message: 'Price should not be $0.00' }),
+  // code: zod.string().min(1, { message: 'Product code is required!' }),
+  // sku: zod.string().min(1, { message: 'Product sku is required!' }),
+  // quantity: zod.number().min(1, { message: 'Quantity is required!' }),
+  // colors: zod.string().array().nonempty({ message: 'Choose at least one option!' }),
+  // sizes: zod.string().array().nonempty({ message: 'Choose at least one option!' }),
+  // tags: zod.string().array().min(2, { message: 'Must have at least 2 items!' }),
+  // gender: zod.string().array().nonempty({ message: 'Choose at least one option!' }),
+  // price: zod.number().min(1, { message: 'Price should not be $0.00' }),
   // Not required
   category: zod.string(),
   priceSale: zod.number(),
@@ -56,6 +61,9 @@ export const NewProductSchema = zod.object({
 
 export function ProductNewEditForm({ currentProduct }) {
   const router = useRouter();
+  const { user } = useAuthContext();
+
+  const { createProduct } = useContext(ProductContext);
 
   const [includeTaxes, setIncludeTaxes] = useState(false);
 
@@ -112,29 +120,107 @@ export function ProductNewEditForm({ currentProduct }) {
     }
   }, [currentProduct?.taxes, includeTaxes, setValue]);
 
+  // const onSubmit = handleSubmit(async (data) => {
+  //   try {
+  //     await new Promise((resolve) => setTimeout(resolve, 500));
+  //     reset();
+  //     toast.success(currentProduct ? 'Update success!' : 'Create success!');
+  //     router.push(paths.dashboard.product.root);
+  //     console.info('DATA', data);
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // });
   const onSubmit = handleSubmit(async (data) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      // Separate URLs and new file uploads
+      const images = data.images || [];
+      const filesToUpload = images.filter(file => file instanceof File);
+      const existingUrls = images.filter(file => typeof file === 'string');
+  
+      let uploadedUrls = [];
+      if (filesToUpload.length > 0) {
+        console.log("Files to upload:", filesToUpload);
+        // Upload new images and get their URLs
+        uploadedUrls = await uploadImagesToLibrary(user.id, filesToUpload);
+      }
+  
+      // Combine existing URLs with newly uploaded URLs
+      const allImageUrls = [...existingUrls, ...uploadedUrls];
+  
+      // Create product data with image URLs
+      const productData = {
+        ...data,
+        images: allImageUrls,
+      };
+  
+      // Call your context function to create the product
+      await createProduct(productData);
+  
+      // Reset form and notify user
       reset();
       toast.success(currentProduct ? 'Update success!' : 'Create success!');
       router.push(paths.dashboard.product.root);
-      console.info('DATA', data);
     } catch (error) {
-      console.error(error);
+      console.error("Error creating product:", error);
+      toast.error('Something went wrong, please try again!');
     }
   });
+  
 
+  // const handleOnUpload = useCallback(
+  //   (inputFile) => {
+  //     console.log("image added", {images: values.images});
+  //   },
+  //   [setValue, values.images]
+  // );
+
+  // const handleRemoveFile = useCallback(
+  //   (inputFile) => {
+  //     const filtered = values.images && values.images?.filter((file) => file !== inputFile);
+  //     setValue('images', filtered);
+  //     console.log("image removed", {images: values.images});
+  //   },
+  //   [setValue, values.images]
+  // );
+
+  // const handleRemoveAllFiles = useCallback(() => {
+  //   setValue('images', [], { shouldValidate: true });
+  //   console.log("image removed", {images: values.images});
+  // }, [setValue]);
+  const handleOnUpload = useCallback(
+    async (inputFiles) => {
+      console.log("Starting file upload...");
+      console.log({ inputFiles });
+      try {
+        // Upload files to the library
+        const uploadedUrls = await uploadImagesToLibrary(user.id, inputFiles);
+        console.log("Uploaded URLs:", uploadedUrls);
+  
+        // Update form state to only store the URLs after upload
+        setValue('images', [...values.images, ...uploadedUrls]);
+        console.log("Image upload completed successfully.");
+      } catch (error) {
+        console.error("Error uploading images:", error);
+      }
+    },
+    [user.id, setValue, values.images]
+  );
+  
+  
+  
   const handleRemoveFile = useCallback(
-    (inputFile) => {
-      const filtered = values.images && values.images?.filter((file) => file !== inputFile);
+    (fileUrl) => {
+      const filtered = values.images && values.images?.filter((url) => url !== fileUrl);
       setValue('images', filtered);
     },
     [setValue, values.images]
   );
-
+  
   const handleRemoveAllFiles = useCallback(() => {
     setValue('images', [], { shouldValidate: true });
   }, [setValue]);
+  
 
   const handleChangeIncludeTaxes = useCallback((event) => {
     setIncludeTaxes(event.target.checked);
@@ -162,10 +248,10 @@ export function ProductNewEditForm({ currentProduct }) {
             multiple
             thumbnail
             name="images"
-            maxSize={3145728}
+            // maxSize={3145728}
             onRemove={handleRemoveFile}
             onRemoveAll={handleRemoveAllFiles}
-            onUpload={() => console.info('ON UPLOAD')}
+            onUpload={handleOnUpload}
           />
         </Stack>
       </Stack>

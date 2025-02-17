@@ -34,6 +34,40 @@ export function Upload({
     multiple,
     disabled,
     ...other,
+    onDrop: (acceptedFiles) => {
+      console.log("Initial Files Received:", acceptedFiles);
+    
+      // Normalize filenames and create a deep clone of each file to ensure clean references
+      const normalizedFiles = acceptedFiles.map((file) => {
+        // Normalize the extension to lowercase and recreate a new `File` object
+        const normalizedFileName = file.name.replace(/\.[^.]+$/, (ext) => ext.toLowerCase());
+        const clonedFile = new File([file], normalizedFileName, {
+          type: file.type,
+          lastModified: file.lastModified,
+        });
+    
+        // Log each file after normalization
+        console.log("Normalized File:", clonedFile);
+        return clonedFile;
+      });
+    
+      // Log the normalizedFiles array
+      console.log("Normalized Files Array:", normalizedFiles);
+    
+      // Proceed to handle the upload
+      if (multiple) {
+        if (onUpload) {
+          console.log("Starting Upload for Normalized Files:", normalizedFiles);
+          onUpload([...value, ...normalizedFiles]);
+        }
+      } else {
+        if (onUpload) {
+          console.log("Starting Upload for Single Normalized File:", normalizedFiles[0]);
+          onUpload(normalizedFiles[0]);
+        }
+      }
+    }
+    
   });
 
   const isArray = Array.isArray(value) && multiple;
@@ -56,20 +90,61 @@ export function Upload({
             </Button>
           )}
 
-          {onUpload && (
-            <Button
-              size="small"
-              variant="contained"
-              onClick={onUpload}
-              startIcon={<Iconify icon="eva:cloud-upload-fill" />}
-            >
-              Upload
-            </Button>
-          )}
+{onUpload && (
+  <Button
+    size="small"
+    variant="contained"
+    onClick={async () => {
+      try {
+        console.log("Upload button clicked, initiating upload...");
+        const filesToUpload = value.filter((file) => file instanceof File);
+        if (filesToUpload.length > 0) {
+          await onUpload(filesToUpload); // Pass only File objects to onUpload
+        }
+        console.log("Upload successful!");
+      } catch (error) {
+        console.error("Error during upload:", error);
+        // Optionally, provide user feedback for the error
+        toast.error('Upload failed. Please try again.');
+      }
+    }}
+    startIcon={<Iconify icon="eva:cloud-upload-fill" />}
+  >
+    Upload
+  </Button>
+)}
+
         </Box>
       )}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     </>
-  );
+  );b  
 
   return (
     <Box

@@ -13,7 +13,7 @@ import {
   createUserWithEmailAndPassword as _createUserWithEmailAndPassword,
 } from 'firebase/auth';
 
-import { AUTH, FIRESTORE } from 'src/lib/firebase';
+import { AUTH, FIRESTORE } from 'src/lib/firebase/firebase';
 
 /** **************************************
  * Sign in

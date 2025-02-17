@@ -23,6 +23,8 @@ import { AuthProvider as AmplifyAuthProvider } from 'src/auth/context/amplify';
 import { AuthProvider as SupabaseAuthProvider } from 'src/auth/context/supabase';
 import { AuthProvider as FirebaseAuthProvider } from 'src/auth/context/firebase';
 
+import { ProductProvider } from 'src/lib/contexts/ProductContext';
+
 // ----------------------------------------------------------------------
 
 const AuthProvider =
@@ -65,10 +67,12 @@ export default async function RootLayout({ children }) {
                 <ThemeProvider>
                   <MotionLazy>
                     <CheckoutProvider>
-                      <Snackbar />
-                      <ProgressBar />
-                      <SettingsDrawer />
-                      {children}
+                      <ProductProvider>
+                        <Snackbar />
+                        <ProgressBar />
+                        <SettingsDrawer />
+                        {children}
+                      </ProductProvider>
                     </CheckoutProvider>
                   </MotionLazy>
                 </ThemeProvider>
