@@ -144,7 +144,7 @@ export function Upload({
 
 
     </>
-  );b  
+  );
 
   return (
     <Box
