@@ -29,14 +29,21 @@ export function AuthProvider({ children }) {
            * Remove the condition (if/else) : user.emailVerified
            */
           const userProfile = doc(FIRESTORE, 'users', user.uid);
-
           const docSnap = await getDoc(userProfile);
+          const profileData = docSnap.exists() ? docSnap.data() : {};
 
-          const profileData = docSnap.data();
+          // Get custom claims (role) from Firebase Authentication
+          const tokenResult = await user.getIdTokenResult(true);
+          const roleFromAuth = tokenResult.claims.role || ''; // Extract role from token
+
+          // Final role priority: Firestore role > Auth Claim role > Default empty string
+          const role = profileData?.role ?? roleFromAuth ?? '';
+
+          console.log({ role })
 
           const { accessToken } = user;
 
-          setState({ user: { ...user, ...profileData }, loading: false });
+          setState({ user: { ...user, ...profileData, role }, loading: false });
           axios.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
         } else {
           setState({ user: null, loading: false });
@@ -69,7 +76,7 @@ export function AuthProvider({ children }) {
             accessToken: state.user?.accessToken,
             displayName: state.user?.displayName,
             photoURL: state.user?.photoURL,
-            role: state.user?.role ?? '',// role: state.user?.role ?? 'admin',
+            role: state.user?.role ?? '', // Ensures role is set
           }
         : null,
       checkUserSession,
