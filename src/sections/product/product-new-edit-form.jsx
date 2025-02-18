@@ -34,12 +34,15 @@ import { Form, Field, schemaHelper } from 'src/components/hook-form';
 import ProductContext from 'src/lib/contexts/ProductContext';
 import { uploadImagesToLibrary } from 'src/lib/firebase/storage';
 
+
+import { CONFIG } from 'src/config-global';
+
 // ----------------------------------------------------------------------
 
 export const NewProductSchema = zod.object({
   name: zod.string().min(1, { message: 'Name is required!' }),
   // description: schemaHelper.editor({ message: { required_error: 'Description is required!' } }),
-  images: schemaHelper.files({ message: { required_error: 'Images is required!' } }),
+  // images: schemaHelper.files({ message: { required_error: 'Images is required!' } }),
   // code: zod.string().min(1, { message: 'Product code is required!' }),
   // sku: zod.string().min(1, { message: 'Product sku is required!' }),
   // quantity: zod.number().min(1, { message: 'Quantity is required!' }),
@@ -66,13 +69,13 @@ export function ProductNewEditForm({ currentProduct }) {
   const { createProduct } = useContext(ProductContext);
 
   const [includeTaxes, setIncludeTaxes] = useState(false);
-
+ 
   const defaultValues = useMemo(
     () => ({
       name: currentProduct?.name || '',
       description: currentProduct?.description || '',
       subDescription: currentProduct?.subDescription || '',
-      images: currentProduct?.images || [],
+      images: currentProduct?.images || [`${CONFIG.assetsDir}/assets/images/mock/m-product/product-1.webp`],
       //
       code: currentProduct?.code || '',
       sku: currentProduct?.sku || '',

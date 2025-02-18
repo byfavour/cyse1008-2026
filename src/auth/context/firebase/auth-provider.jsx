@@ -69,7 +69,7 @@ export function AuthProvider({ children }) {
             accessToken: state.user?.accessToken,
             displayName: state.user?.displayName,
             photoURL: state.user?.photoURL,
-            role: state.user?.role ?? 'admin',
+            role: state.user?.role ?? '',// role: state.user?.role ?? 'admin',
           }
         : null,
       checkUserSession,
