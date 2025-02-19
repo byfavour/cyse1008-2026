@@ -62,6 +62,7 @@ export const navData = [
    */
   {
     subheader: 'Management',
+    roles: ['admin'],
     items: [
       {
         title: 'User',
@@ -171,7 +172,7 @@ export const navData = [
         title: 'Permission',
         path: paths.dashboard.permission,
         icon: ICONS.lock,
-        roles: ['admin', 'manager'],
+        roles: ['admin', ],
         caption: 'Only admin can see this item',
       },
       {
