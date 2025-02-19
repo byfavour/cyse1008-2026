@@ -1,17 +1,19 @@
 import { m } from 'framer-motion';
+
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import { textGradient } from 'src/theme/styles';
 import { useTheme } from '@mui/material/styles';
-import { ExtendedEuclideanAlgorithm } from './components/extended-euclidean-algorithm';
+
+import { textGradient } from 'src/theme/styles';
+
 import { ModularExponentiation } from './components/modular-exponentiation';
+import { ExtendedEuclideanAlgorithm } from './components/extended-euclidean-algorithm';
 
 const lgKey = 'lg';
 
 export function HomeHeroCYSE1008() {
   const theme = useTheme();
   return (
-  <>
   <Stack alignItems="center" spacing={2.5}>
     <Box
       component="h1"
@@ -50,6 +52,5 @@ export function HomeHeroCYSE1008() {
     <ExtendedEuclideanAlgorithm />
     <ModularExponentiation />
   </Stack>
-  </>
   );
 }
