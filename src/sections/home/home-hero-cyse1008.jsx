@@ -8,6 +8,7 @@ import { textGradient } from 'src/theme/styles';
 
 import { ModularExponentiation } from './components/modular-exponentiation';
 import { ExtendedEuclideanAlgorithm } from './components/extended-euclidean-algorithm';
+import { EulerTotientFunction } from './components/euler-totient-function';
 
 const lgKey = 'lg';
 
@@ -51,6 +52,7 @@ export function HomeHeroCYSE1008() {
     </Box>
     <ExtendedEuclideanAlgorithm />
     <ModularExponentiation />
+    <EulerTotientFunction />
   </Stack>
   );
 }

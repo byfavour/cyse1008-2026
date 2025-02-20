@@ -6,28 +6,23 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
 export function EulerTotientFunction() {
-    const [base, setBase] = useState(0);
-    const [exponent, setExponent] = useState(0);
-    const [modulus, setModulus] = useState(0);
-    const [result, setResult] = useState(null);
+  const [p, setP] = useState(0);
+  const [q, setQ] = useState(0);
+  const [totient, setTotient] = useState(null);
 
-    function modExp(_base, _exponent, _modulus) {
-        if (_modulus === 1) return 0;
-        let _result = 1;
-        _base %= _modulus;
-        while (_exponent > 0) {
-            if (_exponent % 2 === 1) {
-              _result = (_result * _base) % _modulus;
-            }
-            _exponent = Math.floor(_exponent / 2);
-            _base = (_base * _base) % _modulus;
-        }
-        return _result;
-    }
+  const calculateTotient = () => {
+      const pInt = parseInt(p);
+      const qInt = parseInt(q);
 
-    const handleCalculate = () => {
-        setResult(modExp(parseInt(base, 10), parseInt(exponent, 10), parseInt(modulus, 10)));
-    };
+      if (isNaN(pInt) || isNaN(qInt) || pInt <= 1 || qInt <= 1) {
+          alert("Please enter valid prime numbers greater than 1 for p and q.");
+          return;
+      }
+
+      const totientValue = (pInt - 1) * (qInt - 1);
+          setTotient(totientValue);
+      };
+
 
     return (
           <Box
@@ -36,33 +31,28 @@ export function EulerTotientFunction() {
             noValidate
             autoComplete="off"
           >
-            <Typography variant="h2">Modular Exponentiation</Typography>
+            <Typography variant="h2">Euler's Totient Function</Typography>
+            <Typography variant="subtitle1">ϕ(N)=(p−1)×(q−1)</Typography>
             <TextField
-              id="base"
-              label="Base"
+              id="p"
+              label="Prime p"
+              placeholder="Enter prime p"
               type="number"
-              value={base}
-              onChange={(e) => setBase(e.target.value)}
+              value={p}
+              onChange={(e) => setP(e.target.value)}
             />
             <TextField
-              id="exponent"
-              label="Exponent"
+              id="q"
+              label="Prime q"
               type="number"
-              value={exponent}
-              onChange={(e) => setExponent(e.target.value)}
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
             />
-            <TextField
-              id="modulus"
-              label="Modulus"
-              type="number"
-              value={modulus}
-              onChange={(e) => setModulus(e.target.value)}
-            />
-            <Button variant="contained" color="primary" onClick={handleCalculate}>
+            <Button variant="contained" color="primary" onClick={calculateTotient}>
               Compute 
             </Button>
-            {result !== null && (
-                <Box>Result: {result}</Box>
+            {totient !== null && (
+                <Box>Result: {totient}</Box>
             )}
         </Box>
     );
