@@ -1,20 +1,19 @@
-import { useState } from 'react';
 import { m } from 'framer-motion';
+
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
-import { textGradient } from 'src/theme/styles';
 import { useTheme } from '@mui/material/styles';
-import { ExtendedEuclideanAlgorithm } from './components/extended-euclidean-algorithm';
+
+import { textGradient } from 'src/theme/styles';
+
 import { ModularExponentiation } from './components/modular-exponentiation';
+import { ExtendedEuclideanAlgorithm } from './components/extended-euclidean-algorithm';
 
 const lgKey = 'lg';
 
 export function HomeHeroCYSE1008() {
   const theme = useTheme();
-  const [count, setCount] = useState(0);
   return (
-  <>
   <Stack alignItems="center" spacing={2.5}>
     <Box
       component="h1"
@@ -50,12 +49,8 @@ export function HomeHeroCYSE1008() {
       Welcome to Quilt
     </Box>
     </Box>
-    <Button variant="contained" color="primary" onClick={() => setCount(count + 1)}>
-      Click Me {count}
-    </Button>
     <ExtendedEuclideanAlgorithm />
     <ModularExponentiation />
   </Stack>
-  </>
   );
 }

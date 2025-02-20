@@ -5,7 +5,7 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
-export function ModularExponentiation() {
+export function EulerTotientFunction() {
     const [base, setBase] = useState(0);
     const [exponent, setExponent] = useState(0);
     const [modulus, setModulus] = useState(0);
@@ -14,7 +14,7 @@ export function ModularExponentiation() {
     function modExp(_base, _exponent, _modulus) {
         if (_modulus === 1) return 0;
         let _result = 1;
-        _base %= _exponent;
+        _base %= _modulus;
         while (_exponent > 0) {
             if (_exponent % 2 === 1) {
               _result = (_result * _base) % _modulus;
