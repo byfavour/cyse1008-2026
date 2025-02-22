@@ -1,16 +1,22 @@
-import Container from '@mui/material/Container';
-import Typography from '@mui/material/Typography';
+'use client';
+import Grid from '@mui/material/Unstable_Grid2';
 
-import { CONFIG } from 'src/config-global';
-
+import { DashboardContent } from 'src/layouts/dashboard';
+import { EncryptionRSA } from '../encryption-rsa';
 // ----------------------------------------------------------------------
 
-export const metadata = { title: `Encryption - ${CONFIG.appName}` };
 
 export function OverviewEncryptionView() {
   return (
-    <Container>
-      <Typography variant="h4">Encryption</Typography>
-    </Container>
+    <DashboardContent maxWidth="xl">
+      <Grid container spacing={3}>
+        <Grid xs={12} md={8}>
+          <EncryptionRSA 
+            title="RSA"
+            subheader="Encryption"
+          />
+        </Grid>
+      </Grid>
+    </DashboardContent>
   );
 }
