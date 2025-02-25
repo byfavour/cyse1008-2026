@@ -10,11 +10,11 @@ export function OverviewEncryptionView() {
   return (
     <DashboardContent maxWidth="xl">
       <Grid container spacing={3}>
-        <Grid xs={12} md={6}>
-          <EncryptionRSA title="RSA Key Generator" subheader="(node-forge) & Encrypt/Decrypt" />
+        <Grid xs={12} md={8}>
+          <EncryptionSimplifiedRSA title="RSA Step by Step" subheader="Simplified Version" />
         </Grid>
-        <Grid xs={12} md={6}>
-          <EncryptionSimplifiedRSA title="RSA Simple Model" subheader="Simplified Version" />
+        <Grid xs={12} md={4}>
+          <EncryptionRSA title="RSA Key Generator" subheader="(node-forge) & Encrypt/Decrypt" />
         </Grid>
       </Grid>
     </DashboardContent>

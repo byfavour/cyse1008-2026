@@ -95,7 +95,7 @@ export function EncryptionRSA({ title, subheader, ...other }) {
           <Box>
             <Accordion>
               <AccordionSummary
-                expandIcon={<Iconify icon="eva:collapse-fill" />}
+                expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
                 aria-controls="panel1-content"
                 id="panel1-header"
               >
@@ -110,7 +110,7 @@ export function EncryptionRSA({ title, subheader, ...other }) {
 
             <Accordion>
               <AccordionSummary
-                expandIcon={<Iconify icon="eva:collapse-fill" />}
+                expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
                 aria-controls="panel1-content"
                 id="panel1-header"
               >
@@ -131,7 +131,7 @@ export function EncryptionRSA({ title, subheader, ...other }) {
 
             <Accordion>
               <AccordionSummary
-                expandIcon={<Iconify icon="eva:collapse-fill" />}
+                expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
                 aria-controls="panel1-content"
                 id="panel1-header"
               >
@@ -150,7 +150,7 @@ export function EncryptionRSA({ title, subheader, ...other }) {
 
             <Accordion>
               <AccordionSummary
-                expandIcon={<Iconify icon="eva:collapse-fill" />}
+                expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
                 aria-controls="panel1-content"
                 id="panel1-header"
               >
