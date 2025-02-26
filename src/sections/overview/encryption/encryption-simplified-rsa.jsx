@@ -1,25 +1,51 @@
-import React, { useState } from 'react';
-import forge from 'node-forge';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
+import React, { useEffect, useState } from 'react';
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
-import Stack from '@mui/material/Stack';
+import Grid from '@mui/material/Grid';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
 import Typography from '@mui/material/Typography';
+import Table from '@mui/material/Table';
+import TableRow from '@mui/material/TableRow';
+import TableCell from '@mui/material/TableCell';
+import TableBody from '@mui/material/TableBody';
+import TableHead from '@mui/material/TableBody';
 import TextField from '@mui/material/TextField';
+import ApexCharts from 'react-apexcharts';
 // ----------------------------------------------------------------------
 
 export function EncryptionSimplifiedRSA({ title, subheader, ...other }) {
-  const [p, setP] = useState(11); // Small prime
-  const [q, setQ] = useState(13); // Small prime
-  const [n, setN] = useState(p * q); // n = p * q
-  const [phiN, setPhiN] = useState(null); // phi(n) = (p-1)*(q-1)
-  const [e, setE] = useState(7); // Public exponent (co-prime with phiN)
-  const [d, setD] = useState(null); // Private exponent (modular inverse of e mod phiN)
-
-  const [plaintext, setPlaintext] = useState('');
-  const [ciphertext, setCiphertext] = useState('');
-  const [decryptedText, setDecryptedText] = useState('');
+  const [p, setP] = useState(2); // Small prime
+  const [q, setQ] = useState(7); // Small prime
+  const [n, setN] = useState(14); // n = p * q
+  const [phiN, setPhiN] = useState(6); // phi(n) = (p-1)*(q-1)
+  const [e, setE] = useState(3); // Default exponent
+  const [validEs, setValidEs] = useState([]);
+  const [roots, setRoots] = useState([]);
+  const [cipherToMessages, setCipherToMessages] = useState({});
+  const [chartOptions, setChartOptions] = useState({});
+  const [chartSeries, setChartSeries] = useState([]);
+  const [chartRootsOfUnityOptions, setChartRootsOfUnityOptions] = useState({});
+  const [chartRootsOfUnitySeries, setChartRootsOfUnitySeries] = useState([]);
+  const [chartData, setChartData] = useState({
+    series: [],
+    options: {
+      chart: {
+        type: 'scatter',
+        zoom: { enabled: true },
+      },
+      xaxis: {
+        title: { text: 'Message (m)' },
+      },
+      yaxis: {
+        title: { text: 'Ciphertext (c)' },
+      },
+      title: {
+        text: 'Message to Ciphertext Mapping',
+        align: 'center',
+      },
+    },
+  });
 
   // Function to compute GCD
   const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
@@ -36,6 +62,91 @@ export function EncryptionSimplifiedRSA({ title, subheader, ...other }) {
     }
     return x1 < 0 ? x1 + m0 : x1;
   };
+
+  // Compute phi(n) and valid e values
+  useEffect(() => {
+    const computedN = p * q;
+    const computedPhiN = (p - 1) * (q - 1);
+    setN(computedN);
+    setPhiN(computedPhiN);
+
+    // Find valid e values (coprime to phi(n))
+    const es = [];
+    for (let i = 2; i < computedPhiN; i++) {
+      if (gcd(i, computedPhiN) === 1) es.push(i);
+    }
+    setValidEs(es);
+    if (!es.includes(e)) setE(es[0]); // Set default e if current e isn't valid
+  }, [p, q]);
+
+  // Generate mapping and chart data
+  useEffect(() => {
+    const messages = Array.from({ length: n - 1 }, (_, i) => i + 1);
+    const cipherMap = {};
+
+    const chartData = messages.map((m) => {
+      const c = Math.pow(m, e) % n;
+      if (!cipherMap[c]) cipherMap[c] = [];
+      cipherMap[c].push(m);
+      return { x: m, y: c };
+    });
+
+    setCipherToMessages(cipherMap);
+
+    // Setup ApexCharts options
+    setChartOptions({
+      chart: { type: 'scatter', zoom: { enabled: true } },
+      xaxis: { title: { text: 'Message (m)' } },
+      yaxis: { title: { text: `Ciphertext (c = m^${e} mod ${n})` } },
+      title: { text: 'Message to Ciphertext Mapping', align: 'center' },
+    });
+
+    setChartSeries([{ name: 'm vs c', data: chartData }]);
+  }, [n, e]);
+
+  // Compute n and roots of unity
+  useEffect(() => {
+    const computedN = p * q;
+    setN(computedN);
+
+    // Find e-th roots of unity: r^e ≡ 1 mod n
+    const foundRoots = [];
+    for (let r = 1; r < computedN; r++) {
+      if (Math.pow(r, e) % computedN === 1) {
+        foundRoots.push(r);
+      }
+    }
+    setRoots(foundRoots);
+
+    // Prepare chart data
+    const angleStep = (2 * Math.PI) / foundRoots.length;
+    const dataPoints = foundRoots.map((root, index) => {
+      const angle = index * angleStep;
+      return {
+        x: Math.cos(angle),
+        y: Math.sin(angle),
+        root: root,
+      };
+    });
+
+    // ApexCharts config
+    setChartOptions({
+      chart: { type: 'scatter', zoom: { enabled: true } },
+      xaxis: { min: -1.5, max: 1.5, title: { text: 'Re' } },
+      yaxis: { min: -1.5, max: 1.5, title: { text: 'Im' } },
+      title: { text: `Roots of Unity (r^${e} ≡ 1 mod ${computedN})`, align: 'center' },
+      annotations: {
+        points: dataPoints.map((pt) => ({
+          x: pt.x,
+          y: pt.y,
+          marker: { size: 6, fillColor: '#FF4560' },
+          label: { text: `r=${pt.root}` },
+        })),
+      },
+    });
+
+    setChartSeries([{ name: 'Roots', data: dataPoints.map((pt) => [pt.x, pt.y]) }]);
+  }, [p, q, e]);
 
   // Generate RSA keys
   const generateKeys = () => {
@@ -54,123 +165,100 @@ export function EncryptionSimplifiedRSA({ title, subheader, ...other }) {
     setD(dValue);
   };
 
-  // Encrypt plaintext
-  const encrypt = () => {
-    const m = plaintext.charCodeAt(0); // Simple: take first character
-    const c = Math.pow(m, e) % n;
-    setCiphertext(c);
-  };
+  // // Encrypt plaintext
+  // const encrypt = () => {
+  //   const m = plaintext.charCodeAt(0); // Simple: take first character
+  //   const c = Math.pow(m, e) % n;
+  //   setCiphertext(c);
+  // };
 
-  // Decrypt ciphertext
-  const decrypt = () => {
-    const m = Math.pow(ciphertext, d) % n;
-    const decryptedChar = String.fromCharCode(m);
-    setDecryptedText(decryptedChar);
-  };
+  // // Decrypt ciphertext
+  // const decrypt = () => {
+  //   const m = Math.pow(ciphertext, d) % n;
+  //   const decryptedChar = String.fromCharCode(m);
+  //   setDecryptedText(decryptedChar);
+  // };
 
   return (
     <Card {...other}>
-      <CardHeader
-        title={title}
-        subheader={subheader}
-        action={
-          <Button onClick={generateKeys} color="primary" variant="contained">
-            Generate RSA Keys
-          </Button>
-        }
-        sx={{ mb: 3 }}
-      />
-      <Stack spacing={3} sx={{ p: 3 }}>
-        <Box>
-          <Typography variant="h4">Step 1</Typography>
-          <Typography variant="subtitle1" gutterBottom>
-            Start with 2 different prime numbers
-          </Typography>
-          <TextField
-            label="Prime p"
-            type="number"
-            value={p}
-            onChange={(e) => setP(e.target.value)}
-            sx={{ mr: 2 }}
-          />
-          <TextField
-            label="Prime q"
-            type="number"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-          />
-          <Typography variant="h4">Step 2</Typography>
-          <Typography variant="subtitle1" gutterBottom>
-            Calculate key values: n, d, e
-          </Typography>
-          <Typography variant="body2" gutterBottom>
-            The next steps will calculate the two keys. Both consist of two numbers, one of which is
-            equal.
-            <br />
-            Private key: (n, d)
-            <br />
-            Public key: (n, d)
-            <br />
-            We call <i>n</i> the <i>RSA module</i>, <i>e</i> the <i>encryption exponent</i> and
-            <i>d</i> the <i>decryption exponent</i>.
-          </Typography>
-          <Typography variant="h5">
-            Step 2.1: Calculate <i>n</i>
-          </Typography>
-          <Typography variant="body2">
-            <pre>n = p ⋅ q</pre>
-          </Typography>
-          <Typography variant="body2">
-            <pre>
-              n = {p} ⋅ {q}
-            </pre>
-          </Typography>
-          <Typography variant="body2">
-            <pre>n = {p * q}</pre>
-            Since this will all be done in binary, {n} = {n.toString(2)}
-            <sub>2</sub> <i>This means a length of {n.toString(2).length} bit</i>
-          </Typography>
-          <Typography variant="h5">
-            Step 2.2: Calculate <i>ϕ(n)</i>, the 'Euler phi function', to make e, d
-          </Typography>
-          <Typography variant="body1">
-            ϕ(n) = ϕ(p×q)=(p−1)×(q−1) ϕ(n) = ({p} -1 ) x ({q} - 1) = {phiN}
-          </Typography>
-          <Typography variant="h6">e (public exponent): {e}</Typography>
-          <Typography variant="h6">d (private exponent): {d}</Typography>
-        </Box>
-        {n && (
-          <div className="mt-6">
-            <h3 className="text-lg font-bold mb-2">Encryption & Decryption</h3>
+      <CardHeader title={title} subheader={subheader} sx={{ mb: 3 }} />
+      <Grid container spacing={3}>
+        <Grid item container size={6} spacing={2}>
+          <Grid item xs={4}>
             <TextField
-              type="text"
-              placeholder="Enter single character"
-              value={plaintext}
-              onChange={(e) => setPlaintext(e.target.value)}
+              label="Prime p"
+              type="number"
+              value={p}
+              onChange={(e) => setP(Number(e.target.value))}
+              fullWidth
             />
-            <Button onClick={encrypt} className="mt-2 w-full">
-              Encrypt
-            </Button>
-            {ciphertext && (
-              <div className="mt-4 p-2 bg-gray-100 rounded">
-                <Typography variant="h6">
-                  <strong>Ciphertext:</strong> {ciphertext}
-                </Typography>
-              </div>
-            )}
-            <Button onClick={decrypt} className="mt-2 w-full">
-              Decrypt
-            </Button>
-            {decryptedText && (
-              <div className="mt-4 p-2 bg-gray-100 rounded">
-                <Typography variant="h6">
-                  <strong>Decrypted Text:</strong> {decryptedText}
-                </Typography>
-              </div>
-            )}
-          </div>
-        )}
-      </Stack>
+          </Grid>
+          <Grid item xs={4}>
+            <TextField
+              label="Prime q"
+              type="number"
+              value={q}
+              onChange={(e) => setQ(Number(e.target.value))}
+              fullWidth
+            />
+          </Grid>
+          <Grid item xs={4}>
+            <Select value={e} onChange={(e) => setE(Number(e.target.value))} fullWidth>
+              {validEs.map((val) => (
+                <MenuItem key={val} value={val}>
+                  {val}
+                </MenuItem>
+              ))}
+            </Select>
+            <Typography variant="caption">Select Public Exponent (e)</Typography>
+          </Grid>
+          <Grid item size={12}>
+            <Typography variant="h6" style={{ marginTop: '20px' }}>
+              n = {n}, φ(n) = {phiN}
+            </Typography>
+          </Grid>
+        </Grid>
+
+        <Grid item size={6}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>
+                  <strong>
+                    Ciphertext (c = m^{e} mod {n})
+                  </strong>
+                </TableCell>
+                <TableCell>
+                  <strong>Messages Mapping to c</strong>
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {Object.entries(cipherToMessages).map(([cipher, messages]) => (
+                <TableRow key={cipher}>
+                  <TableCell>{cipher}</TableCell>
+                  <TableCell>{JSON.stringify(messages)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Grid>
+        <Grid item size={6}>
+          <ApexCharts options={chartOptions} series={chartSeries} type="scatter" />
+        </Grid>
+
+        <Grid item size={12}>
+          <ApexCharts
+            options={chartRootsOfUnityOptions}
+            series={chartRootsOfUnitySeries}
+            type="scatter"
+          />
+        </Grid>
+        {/* List of Roots */}
+        <Typography variant="h6" style={{ marginTop: '20px' }}>
+          Found Roots of Unity: {roots.length > 0 ? roots.join(', ') : 'None'}
+        </Typography>
+      </Grid>
     </Card>
   );
 }
