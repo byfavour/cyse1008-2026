@@ -1,12 +1,13 @@
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { doc, setDoc } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
-import { storage, db } from 'src/lib/firebase/firebase';
+import { doc, setDoc } from 'firebase/firestore';
+import { ref, getDownloadURL, uploadBytesResumable } from 'firebase/storage';
+
+import { db, storage } from 'src/lib/firebase/firebase';
 
 export async function uploadImageToLibrary(userId, image) {
   try {
-    if (!userId) throw new Error("No user ID provided.");
-    if (!image || !image.name) throw new Error("A valid image must be provided.");
+    if (!userId) throw new Error('No user ID provided.');
+    if (!image || !image.name) throw new Error('A valid image must be provided.');
 
     const imageId = uuidv4();
     const filePath = `images/library/${userId}/${imageId}-${image.name}`;
@@ -27,8 +28,8 @@ export async function uploadImageToLibrary(userId, image) {
 
     return downloadURL;
   } catch (error) {
-    console.error("Error uploading image to library:", error);
-    throw error;;l 
+    console.error('Error uploading image to library:', error);
+    throw error;
   }
 }
 
@@ -38,11 +39,10 @@ export async function uploadImagesToLibrary(userId, images) {
       try {
         return await uploadImageToLibrary(userId, image);
       } catch (error) {
-        console.error("Error uploading one of the images:", error);
+        console.error('Error uploading one of the images:', error);
         throw error;
       }
     })
   );
   return uploadedImageUrls;
 }
-

@@ -1,7 +1,8 @@
 import useSWR from 'swr';
+import { useMemo, useState, useEffect } from 'react';
 
 import { fetcher, endpoints } from 'src/utils/axios';
-import { useEffect, useMemo, useState } from 'react';
+
 import { getProducts } from 'src/lib/firebase/products';
 // ----------------------------------------------------------------------
 

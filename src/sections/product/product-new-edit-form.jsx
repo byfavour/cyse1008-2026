@@ -1,9 +1,7 @@
-import React, { useContext } from 'react';
-
 import { z as zod } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useEffect, useContext, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
@@ -19,8 +17,9 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
-import { useAuthContext } from 'src/auth/hooks';
 
+import ProductContext from 'src/lib/contexts/ProductContext';
+import { uploadImagesToLibrary } from 'src/lib/firebase/storage';
 import {
   _tags,
   PRODUCT_SIZE_OPTIONS,
@@ -31,15 +30,15 @@ import {
 
 import { toast } from 'src/components/snackbar';
 import { Form, Field, schemaHelper } from 'src/components/hook-form';
-import ProductContext from 'src/lib/contexts/ProductContext';
-import { uploadImagesToLibrary } from 'src/lib/firebase/storage';
+
+import { useAuthContext } from 'src/auth/hooks';
 
 // ----------------------------------------------------------------------
 
 export const NewProductSchema = zod.object({
   name: zod.string().min(1, { message: 'Name is required!' }),
   // description: schemaHelper.editor({ message: { required_error: 'Description is required!' } }),
-  images: schemaHelper.files({ message: { required_error: 'Images is required!' } }),
+  // images: schemaHelper.files({ message: { required_error: 'Images is required!' } }),
   // code: zod.string().min(1, { message: 'Product code is required!' }),
   // sku: zod.string().min(1, { message: 'Product sku is required!' }),
   // quantity: zod.number().min(1, { message: 'Quantity is required!' }),
@@ -100,6 +99,8 @@ export function ProductNewEditForm({ currentProduct }) {
     reset,
     watch,
     setValue,
+    getValues,
+    trigger,
     handleSubmit,
     formState: { isSubmitting },
   } = methods;
@@ -113,6 +114,10 @@ export function ProductNewEditForm({ currentProduct }) {
   }, [currentProduct, defaultValues, reset]);
 
   useEffect(() => {
+    methods.register('images', { required: true });
+  }, [methods]);
+
+  useEffect(() => {
     if (includeTaxes) {
       setValue('taxes', 0);
     } else {
@@ -120,95 +125,55 @@ export function ProductNewEditForm({ currentProduct }) {
     }
   }, [currentProduct?.taxes, includeTaxes, setValue]);
 
-  // const onSubmit = handleSubmit(async (data) => {
-  //   try {
-  //     await new Promise((resolve) => setTimeout(resolve, 500));
-  //     reset();
-  //     toast.success(currentProduct ? 'Update success!' : 'Create success!');
-  //     router.push(paths.dashboard.product.root);
-  //     console.info('DATA', data);
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // });
   const onSubmit = handleSubmit(async (data) => {
     try {
-      // Separate URLs and new file uploads
-      const images = data.images || [];
-      const filesToUpload = images.filter(file => file instanceof File);
-      const existingUrls = images.filter(file => typeof file === 'string');
-  
-      let uploadedUrls = [];
-      if (filesToUpload.length > 0) {
-        console.log("Files to upload:", filesToUpload);
-        // Upload new images and get their URLs
-        uploadedUrls = await uploadImagesToLibrary(user.id, filesToUpload);
+      const images = getValues('images')();
+
+      if (!Array.isArray(images) || images.length === 0) {
+        console.error('Error: No images found!');
+        toast.error('Please upload at least one image.');
+        return;
       }
-  
-      // Combine existing URLs with newly uploaded URLs
-      const allImageUrls = [...existingUrls, ...uploadedUrls];
-  
-      // Create product data with image URLs
+
       const productData = {
         ...data,
-        images: allImageUrls,
+        images,
       };
-  
-      // Call your context function to create the product
+
       await createProduct(productData);
-  
-      // Reset form and notify user
       reset();
       toast.success(currentProduct ? 'Update success!' : 'Create success!');
       router.push(paths.dashboard.product.root);
     } catch (error) {
-      console.error("Error creating product:", error);
+      console.error('Error creating product:', error);
       toast.error('Something went wrong, please try again!');
     }
   });
-  
 
-  // const handleOnUpload = useCallback(
-  //   (inputFile) => {
-  //     console.log("image added", {images: values.images});
-  //   },
-  //   [setValue, values.images]
-  // );
-
-  // const handleRemoveFile = useCallback(
-  //   (inputFile) => {
-  //     const filtered = values.images && values.images?.filter((file) => file !== inputFile);
-  //     setValue('images', filtered);
-  //     console.log("image removed", {images: values.images});
-  //   },
-  //   [setValue, values.images]
-  // );
-
-  // const handleRemoveAllFiles = useCallback(() => {
-  //   setValue('images', [], { shouldValidate: true });
-  //   console.log("image removed", {images: values.images});
-  // }, [setValue]);
   const handleOnUpload = useCallback(
     async (inputFiles) => {
-      console.log("Starting file upload...");
-      console.log({ inputFiles });
       try {
-        // Upload files to the library
         const uploadedUrls = await uploadImagesToLibrary(user.id, inputFiles);
-        console.log("Uploaded URLs:", uploadedUrls);
-  
-        // Update form state to only store the URLs after upload
-        setValue('images', [...values.images, ...uploadedUrls]);
-        console.log("Image upload completed successfully.");
+        console.log('Uploaded URLs:', uploadedUrls);
+
+        setValue(
+          'images',
+          (prevImages) => {
+            const prev = typeof prevImages === 'function' ? prevImages() : prevImages || [];
+            const uniqueImages = Array.from(new Set([...prev, ...uploadedUrls]));
+            console.log('Updated images in form:', uniqueImages);
+            return uniqueImages;
+          },
+          { shouldValidate: true, shouldDirty: true }
+        );
+        await trigger('images');
       } catch (error) {
-        console.error("Error uploading images:", error);
+        console.error('Error uploading images:', error);
       }
     },
-    [user.id, setValue, values.images]
+    [user.id, setValue, getValues, trigger]
   );
-  
-  
-  
+
   const handleRemoveFile = useCallback(
     (fileUrl) => {
       const filtered = values.images && values.images?.filter((url) => url !== fileUrl);
@@ -216,11 +181,10 @@ export function ProductNewEditForm({ currentProduct }) {
     },
     [setValue, values.images]
   );
-  
+
   const handleRemoveAllFiles = useCallback(() => {
     setValue('images', [], { shouldValidate: true });
   }, [setValue]);
-  
 
   const handleChangeIncludeTaxes = useCallback((event) => {
     setIncludeTaxes(event.target.checked);

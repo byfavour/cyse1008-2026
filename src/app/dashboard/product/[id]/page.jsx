@@ -1,10 +1,9 @@
 import axios, { endpoints } from 'src/utils/axios';
 
 import { CONFIG } from 'src/config-global';
+import { getProductById } from 'src/lib/firebase/products';
 
 import { ProductDetailsView } from 'src/sections/product/view';
-
-import { getProductById } from 'src/lib/firebase/products';
 
 // ----------------------------------------------------------------------
 

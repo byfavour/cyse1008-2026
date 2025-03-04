@@ -1,7 +1,8 @@
-import { getAuth } from 'firebase/auth';
+import { getAuth, connectAuthEmulator } from 'firebase/auth';
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
+import { getStorage, connectStorageEmulator } from 'firebase/storage';
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+
 import { CONFIG } from 'src/config-global';
 
 // ----------------------------------------------------------------------
@@ -14,7 +15,7 @@ const firebaseConfig = isLocalhost
   ? { ...CONFIG.firebase, ...CONFIG.firebaselocal }
   : CONFIG.firebase;
 
-export const firebaseApp = isFirebase ? initializeApp(CONFIG.firebase) : {};
+export const firebaseApp = isFirebase ? initializeApp(firebaseConfig) : {};
 
 export const AUTH = isFirebase ? getAuth(firebaseApp) : {};
 
@@ -23,3 +24,10 @@ export const FIRESTORE = isFirebase ? getFirestore(firebaseApp) : {};
 export const storage = getStorage(firebaseApp);
 
 export const db = getFirestore(firebaseApp);
+
+if (isLocalhost) {
+  // Point to the Storage emulator running on localhost.
+  connectAuthEmulator(auth, 'http://127.0.0.1:9099');
+  connectStorageEmulator(storage, '127.0.0.1', 9199);
+  connectFirestoreEmulator(db, '127.0.0.1', 8080);
+}

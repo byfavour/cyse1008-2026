@@ -38,3 +38,5 @@ build
 tsconfig.tsbuildinfo
 setAdmin.js
 keys/
+
+apphosting.local.yaml

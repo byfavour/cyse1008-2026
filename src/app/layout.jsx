@@ -9,6 +9,7 @@ import { detectLanguage } from 'src/locales/server';
 import { schemeConfig } from 'src/theme/scheme-config';
 import { I18nProvider } from 'src/locales/i18n-provider';
 import { ThemeProvider } from 'src/theme/theme-provider';
+import { ProductProvider } from 'src/lib/contexts/ProductContext';
 
 import { Snackbar } from 'src/components/snackbar';
 import { ProgressBar } from 'src/components/progress-bar';
@@ -22,8 +23,6 @@ import { AuthProvider as Auth0AuthProvider } from 'src/auth/context/auth0';
 import { AuthProvider as AmplifyAuthProvider } from 'src/auth/context/amplify';
 import { AuthProvider as SupabaseAuthProvider } from 'src/auth/context/supabase';
 import { AuthProvider as FirebaseAuthProvider } from 'src/auth/context/firebase';
-
-import { ProductProvider } from 'src/lib/contexts/ProductContext';
 
 // ----------------------------------------------------------------------
 
