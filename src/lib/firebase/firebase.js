@@ -7,7 +7,9 @@ import { CONFIG } from 'src/config-global';
 
 // ----------------------------------------------------------------------
 // Check if running on localhost
-const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+const isLocalhost =
+  typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
 const isFirebase = CONFIG.auth.method === 'firebase';
 // Merge emulator config dynamically if on localhost
@@ -25,9 +27,8 @@ export const storage = getStorage(firebaseApp);
 
 export const db = getFirestore(firebaseApp);
 
-if (isLocalhost) {
-  // Point to the Storage emulator running on localhost.
-  connectAuthEmulator(auth, 'http://127.0.0.1:9099');
-  connectStorageEmulator(storage, '127.0.0.1', 9199);
-  connectFirestoreEmulator(db, '127.0.0.1', 8080);
-}
+// Point to the Storage emulator running on localhost.
+console.log({ isLocalhost });
+connectAuthEmulator(AUTH, 'http://127.0.0.1:9099');
+connectStorageEmulator(storage, '127.0.0.1', 9199);
+connectFirestoreEmulator(db, '127.0.0.1', 8080);

@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState, createContext } from 'react';
 
-import { addProduct } from 'src/lib/firebase/products';
+import { addProduct, updateProduct } from 'src/lib/firebase/products';
 
 const ProductContext = createContext();
 
@@ -20,7 +20,7 @@ export function ProductProvider({ children }) {
   };
 
   const contextValue = useMemo(
-    () => ({ products, createProduct, loading }),
+    () => ({ products, createProduct, updateProduct, loading }),
     [products, loading] // Only re-create when these values change
   );
 

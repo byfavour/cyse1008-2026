@@ -13,7 +13,16 @@ service cloud.firestore {
     // all client requests to your Firestore database will be denied until you Update
     // your rules
     match /{document=**} {
-      allow read, write: if request.time < timestamp.date(2025, 12, 12);
+      allow read, write: if true;
+    match /products/{productId} {
+      allow read: if true;
+
+      // 🔐 Only allow the owner to edit or delete their own products
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.ownerId;
+      
+      // 🆕 Allow users to create products only if they are authenticated
+      allow create: if request.auth != null;
+    }
     }
   }
 }

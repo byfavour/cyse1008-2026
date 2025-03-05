@@ -62,7 +62,7 @@ export function ProductNewEditForm({ currentProduct }) {
   const router = useRouter();
   const { user } = useAuthContext();
 
-  const { createProduct } = useContext(ProductContext);
+  const { createProduct, updateProduct } = useContext(ProductContext);
 
   const [includeTaxes, setIncludeTaxes] = useState(false);
 
@@ -127,7 +127,8 @@ export function ProductNewEditForm({ currentProduct }) {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      const images = getValues('images')();
+      await trigger('images'); // Ensure images field is up-to-date
+      const images = getValues('images');
 
       if (!Array.isArray(images) || images.length === 0) {
         console.error('Error: No images found!');
@@ -140,7 +141,15 @@ export function ProductNewEditForm({ currentProduct }) {
         images,
       };
 
-      await createProduct(productData);
+      if (currentProduct) {
+        // 🛠 If editing, update existing product
+        await updateProduct(currentProduct.id, productData);
+        toast.success('Update successful!');
+      } else {
+        // 🆕 If creating, add a new product
+        await createProduct(productData);
+        toast.success('Product created!');
+      }
       reset();
       toast.success(currentProduct ? 'Update success!' : 'Create success!');
       router.push(paths.dashboard.product.root);

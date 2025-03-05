@@ -1,7 +1,18 @@
 // products.js
-import { doc, addDoc, getDoc, getDocs, updateDoc, deleteDoc, collection } from 'firebase/firestore';
+import {
+  doc,
+  addDoc,
+  getDoc,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+  collection,
+  // connectFirestoreEmulator,
+} from 'firebase/firestore';
 
 import { db } from './firebase';
+
+// connectFirestoreEmulator(db, '127.0.0.1', 8080); // Ensure it's using emulator
 
 const productsCollectionRef = collection(db, 'products');
 
@@ -35,6 +46,7 @@ export async function getProducts() {
       id: _doc.id,
       ..._doc.data(),
     }));
+    console.log({ products });
     return products;
   } catch (error) {
     console.error('Error fetching products: ', error);
@@ -46,12 +58,15 @@ export async function getProducts() {
 export async function getProductById(productId) {
   try {
     const productDocRef = doc(db, 'products', productId);
-    const productSnapshot = await getDoc(productDocRef);
 
+    const productSnapshot = await getDoc(productDocRef);
     if (productSnapshot.exists()) {
-      return { product: { id: productSnapshot.id, reviews: [], ...productSnapshot.data() } };
+      return {
+        product: { id: productId, reviews: [], ...productSnapshot.data() },
+      };
     }
-    throw new Error('Product does not exist');
+
+    throw new Error(`Product does not exist ${productId}`);
   } catch (error) {
     console.error('Error fetching product by ID: ', error);
     throw error;
