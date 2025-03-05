@@ -18,6 +18,7 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 
+import { CONFIG } from 'src/config-global';
 import ProductContext from 'src/lib/contexts/ProductContext';
 import { uploadImagesToLibrary } from 'src/lib/firebase/storage';
 import {
@@ -29,12 +30,9 @@ import {
 } from 'src/_mock';
 
 import { toast } from 'src/components/snackbar';
-import { Form, Field, schemaHelper } from 'src/components/hook-form';
+import { Form, Field } from 'src/components/hook-form';
 
 import { useAuthContext } from 'src/auth/hooks';
-
-
-import { CONFIG } from 'src/config-global';
 
 // ----------------------------------------------------------------------
 
@@ -68,13 +66,15 @@ export function ProductNewEditForm({ currentProduct }) {
   const { createProduct, updateProduct } = useContext(ProductContext);
 
   const [includeTaxes, setIncludeTaxes] = useState(false);
- 
+
   const defaultValues = useMemo(
     () => ({
       name: currentProduct?.name || '',
       description: currentProduct?.description || '',
       subDescription: currentProduct?.subDescription || '',
-      images: currentProduct?.images || [`${CONFIG.assetsDir}/assets/images/mock/m-product/product-1.webp`],
+      images: currentProduct?.images || [
+        `${CONFIG.assetsDir}/assets/images/mock/m-product/product-1.webp`,
+      ],
       //
       code: currentProduct?.code || '',
       sku: currentProduct?.sku || '',
@@ -183,7 +183,7 @@ export function ProductNewEditForm({ currentProduct }) {
         console.error('Error uploading images:', error);
       }
     },
-    [user.id, setValue, getValues, trigger]
+    [user.id, setValue, trigger]
   );
 
   const handleRemoveFile = useCallback(

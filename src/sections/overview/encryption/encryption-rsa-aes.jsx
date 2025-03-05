@@ -1,40 +1,41 @@
-import React, { useState } from 'react';
 import forge from 'node-forge';
+import React, { useState } from 'react';
+
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
-import CardHeader from '@mui/material/CardHeader';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
+import CardHeader from '@mui/material/CardHeader';
 // ----------------------------------------------------------------------
 
 // Extended Euclidean Algorithm to compute modular inverse
-function extendedGCD(a, b) {
-  if (b === 0) return [a, 1, 0];
-  const [gcd, x1, y1] = extendedGCD(b, a % b);
-  const x = y1;
-  const y = x1 - Math.floor(a / b) * y1;
-  return [gcd, x, y];
-}
+// function extendedGCD(a, b) {
+//   if (b === 0) return [a, 1, 0];
+//   const [gcd, x1, y1] = extendedGCD(b, a % b);
+//   const x = y1;
+//   const y = x1 - Math.floor(a / b) * y1;
+//   return [gcd, x, y];
+// }
 
-function modularInverse(e, phi) {
-  const [gcd, x] = extendedGCD(e, phi);
-  if (gcd !== 1) {
-    throw new Error('e and φ(N) are not coprime. Choose a different e.');
-  }
-  return ((x % phi) + phi) % phi; // Ensure positive inverse
-}
+// function modularInverse(e, phi) {
+//   const [gcd, x] = extendedGCD(e, phi);
+//   if (gcd !== 1) {
+//     throw new Error('e and φ(N) are not coprime. Choose a different e.');
+//   }
+//   return ((x % phi) + phi) % phi; // Ensure positive inverse
+// }
 
 // Convert string to BigInt
-function stringToBigInt(str) {
-  return BigInt('0x' + Buffer.from(str, 'utf8').toString('hex'));
-}
+// function stringToBigInt(str) {
+//   return BigInt(`0x${  Buffer.from(str, 'utf8').toString('hex')}`);
+// }
 
 // Convert BigInt back to string
-function bigIntToString(bigInt) {
-  const hex = bigInt.toString(16);
-  return Buffer.from(hex, 'hex').toString('utf8');
-}
+// function bigIntToString(bigInt) {
+//   const hex = bigInt.toString(16);
+//   return Buffer.from(hex, 'hex').toString('utf8');
+// }
 
 export function EncryptionRSAToy({ title, subheader, ...other }) {
   const [publicKey, setPublicKey] = useState(null);
@@ -53,7 +54,7 @@ export function EncryptionRSAToy({ title, subheader, ...other }) {
       setPrivateKey(keypair.privateKey);
       setError('');
     } catch (err) {
-      setError('Error generating keys: ' + err.message);
+      setError(`Error generating keys: ${err.message}`);
     }
   };
   // Function to encrypt plaintext
@@ -68,7 +69,7 @@ export function EncryptionRSAToy({ title, subheader, ...other }) {
       setCiphertext(forge.util.encode64(encrypted));
       setError('');
     } catch (err) {
-      setError('Error during encryption: ' + err.message);
+      setError(`Error during encryption: ${err.message}`);
     }
   };
 
@@ -84,7 +85,7 @@ export function EncryptionRSAToy({ title, subheader, ...other }) {
       setDecryptedText(forge.util.decodeUtf8(decrypted));
       setError('');
     } catch (err) {
-      setError('Error during decryption: ' + err.message);
+      setError(`Error during decryption: ${err.message}`);
     }
   };
 

@@ -1,17 +1,18 @@
-import React, { useState } from 'react';
 import forge from 'node-forge';
+import React, { useState } from 'react';
+
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import CardHeader from '@mui/material/CardHeader';
-import Paper from '@mui/material/Paper';
+import Button from '@mui/material/Button';
+import { TextField } from '@mui/material';
 import Accordion from '@mui/material/Accordion';
+import CardHeader from '@mui/material/CardHeader';
+import Typography from '@mui/material/Typography';
+import CardContent from '@mui/material/CardContent';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
-import Typography from '@mui/material/Typography';
+
 import { Iconify } from 'src/components/iconify';
-import { TextField } from '@mui/material';
 
 // ----------------------------------------------------------------------
 
@@ -42,7 +43,7 @@ export function EncryptionRSA({ title, subheader, ...other }) {
 
       setError('');
     } catch (err) {
-      setError('Error generating keys: ' + err.message);
+      setError(`Error generating keys: ${  err.message}`);
     }
   };
   // Function to encrypt plaintext
@@ -57,7 +58,7 @@ export function EncryptionRSA({ title, subheader, ...other }) {
       setCiphertext(forge.util.encode64(encrypted));
       setError('');
     } catch (err) {
-      setError('Error during encryption: ' + err.message);
+      setError(`Error during encryption: ${  err.message}`);
     }
   };
 
@@ -73,7 +74,7 @@ export function EncryptionRSA({ title, subheader, ...other }) {
       setDecryptedText(forge.util.decodeUtf8(decrypted));
       setError('');
     } catch (err) {
-      setError('Error during decryption: ' + err.message);
+      setError(`Error during decryption: ${  err.message}`);
     }
   };
 

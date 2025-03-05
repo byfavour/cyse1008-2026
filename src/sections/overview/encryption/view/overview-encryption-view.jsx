@@ -1,7 +1,9 @@
 'use client';
+
 import Grid from '@mui/material/Unstable_Grid2';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+
 import { EncryptionRSA } from '../encryption-rsa';
 import { EncryptionSimplifiedRSA } from '../encryption-simplified-rsa';
 // ----------------------------------------------------------------------

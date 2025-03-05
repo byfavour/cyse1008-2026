@@ -1,17 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import ApexCharts from 'react-apexcharts';
+import React, { useState, useEffect, useCallback } from 'react';
+
 import Card from '@mui/material/Card';
-import CardHeader from '@mui/material/CardHeader';
 import Grid from '@mui/material/Grid';
-import MenuItem from '@mui/material/MenuItem';
-import Select from '@mui/material/Select';
-import Typography from '@mui/material/Typography';
 import Table from '@mui/material/Table';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
 import TableBody from '@mui/material/TableBody';
-import TableHead from '@mui/material/TableBody';
+import TableHead from '@mui/material/TableHead';
 import TextField from '@mui/material/TextField';
-import ApexCharts from 'react-apexcharts';
+import CardHeader from '@mui/material/CardHeader';
+import Typography from '@mui/material/Typography';
 // ----------------------------------------------------------------------
 
 export function EncryptionSimplifiedRSA({ title, subheader, ...other }) {
@@ -25,43 +26,45 @@ export function EncryptionSimplifiedRSA({ title, subheader, ...other }) {
   const [cipherToMessages, setCipherToMessages] = useState({});
   const [chartOptions, setChartOptions] = useState({});
   const [chartSeries, setChartSeries] = useState([]);
-  const [chartRootsOfUnityOptions, setChartRootsOfUnityOptions] = useState({});
-  const [chartRootsOfUnitySeries, setChartRootsOfUnitySeries] = useState([]);
-  const [chartData, setChartData] = useState({
-    series: [],
-    options: {
-      chart: {
-        type: 'scatter',
-        zoom: { enabled: true },
-      },
-      xaxis: {
-        title: { text: 'Message (m)' },
-      },
-      yaxis: {
-        title: { text: 'Ciphertext (c)' },
-      },
-      title: {
-        text: 'Message to Ciphertext Mapping',
-        align: 'center',
-      },
-    },
-  });
+  const [chartRootsOfUnityOptions, _setChartRootsOfUnityOptions] = useState({});
+  const [chartRootsOfUnitySeries, _setChartRootsOfUnitySeries] = useState([]);
+  // const [chartData, setChartData] = useState({
+  //   series: [],
+  //   options: {
+  //     chart: {
+  //       type: 'scatter',
+  //       zoom: { enabled: true },
+  //     },
+  //     xaxis: {
+  //       title: { text: 'Message (m)' },
+  //     },
+  //     yaxis: {
+  //       title: { text: 'Ciphertext (c)' },
+  //     },
+  //     title: {
+  //       text: 'Message to Ciphertext Mapping',
+  //       align: 'center',
+  //     },
+  //   },
+  // });
 
   // Function to compute GCD
-  const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
+  const gcd = useCallback(function computeGcd(a, b) {
+    return b === 0 ? a : computeGcd(b, a % b);
+  }, []);
 
   // Function to compute modular inverse using EEA
-  const modInverse = (a, m) => {
-    let m0 = m,
-      x0 = 0,
-      x1 = 1;
-    while (a > 1) {
-      let q = Math.floor(a / m);
-      [a, m] = [m, a % m];
-      [x0, x1] = [x1 - q * x0, x0];
-    }
-    return x1 < 0 ? x1 + m0 : x1;
-  };
+  // const modInverse = (a, m) => {
+  //   const m0 = m;
+  //   let x0 = 0;
+  //   let x1 = 1;
+  //   while (a > 1) {
+  //     const quotient = Math.floor(a / m);
+  //     [a, m] = [m, a % m];
+  //     [x0, x1] = [x1 - quotient * x0, x0];
+  //   }
+  //   return x1 < 0 ? x1 + m0 : x1;
+  // };
 
   // Compute phi(n) and valid e values
   useEffect(() => {
@@ -72,12 +75,12 @@ export function EncryptionSimplifiedRSA({ title, subheader, ...other }) {
 
     // Find valid e values (coprime to phi(n))
     const es = [];
-    for (let i = 2; i < computedPhiN; i++) {
+    for (let i = 2; i < computedPhiN; i += 1) {
       if (gcd(i, computedPhiN) === 1) es.push(i);
     }
     setValidEs(es);
     if (!es.includes(e)) setE(es[0]); // Set default e if current e isn't valid
-  }, [p, q]);
+  }, [p, q, e, gcd]);
 
   // Generate mapping and chart data
   useEffect(() => {
@@ -85,7 +88,7 @@ export function EncryptionSimplifiedRSA({ title, subheader, ...other }) {
     const cipherMap = {};
 
     const chartData = messages.map((m) => {
-      const c = Math.pow(m, e) % n;
+      const c = m ** e % n;
       if (!cipherMap[c]) cipherMap[c] = [];
       cipherMap[c].push(m);
       return { x: m, y: c };
@@ -111,8 +114,8 @@ export function EncryptionSimplifiedRSA({ title, subheader, ...other }) {
 
     // Find e-th roots of unity: r^e ≡ 1 mod n
     const foundRoots = [];
-    for (let r = 1; r < computedN; r++) {
-      if (Math.pow(r, e) % computedN === 1) {
+    for (let r = 1; r < computedN; r += 1) {
+      if (r ** e % computedN === 1) {
         foundRoots.push(r);
       }
     }
@@ -125,7 +128,7 @@ export function EncryptionSimplifiedRSA({ title, subheader, ...other }) {
       return {
         x: Math.cos(angle),
         y: Math.sin(angle),
-        root: root,
+        root,
       };
     });
 
@@ -149,21 +152,21 @@ export function EncryptionSimplifiedRSA({ title, subheader, ...other }) {
   }, [p, q, e]);
 
   // Generate RSA keys
-  const generateKeys = () => {
-    const nValue = p * q;
-    const phiValue = (p - 1) * (q - 1);
+  // const generateKeys = () => {
+  //   const nValue = p * q;
+  //   const phiValue = (p - 1) * (q - 1);
 
-    if (gcd(e, phiValue) !== 1) {
-      alert('e is not co-prime with phi(n). Choose another e.');
-      return;
-    }
+  //   if (gcd(e, phiValue) !== 1) {
+  //     alert('e is not co-prime with phi(n). Choose another e.');
+  //     return;
+  //   }
 
-    const dValue = modInverse(e, phiValue);
+  //   const dValue = modInverse(e, phiValue);
 
-    setN(nValue);
-    setPhiN(phiValue);
-    setD(dValue);
-  };
+  //   setN(nValue);
+  //   setPhiN(phiValue);
+  //   setD(dValue);
+  // };
 
   // // Encrypt plaintext
   // const encrypt = () => {
@@ -189,7 +192,7 @@ export function EncryptionSimplifiedRSA({ title, subheader, ...other }) {
               label="Prime p"
               type="number"
               value={p}
-              onChange={(e) => setP(Number(e.target.value))}
+              onChange={(_e) => setP(Number(_e.target.value))}
               fullWidth
             />
           </Grid>
@@ -198,12 +201,12 @@ export function EncryptionSimplifiedRSA({ title, subheader, ...other }) {
               label="Prime q"
               type="number"
               value={q}
-              onChange={(e) => setQ(Number(e.target.value))}
+              onChange={(exx) => setQ(Number(exx.target.value))}
               fullWidth
             />
           </Grid>
           <Grid item xs={4}>
-            <Select value={e} onChange={(e) => setE(Number(e.target.value))} fullWidth>
+            <Select value={e} onChange={(exc) => setE(Number(exc.target.value))} fullWidth>
               {validEs.map((val) => (
                 <MenuItem key={val} value={val}>
                   {val}
