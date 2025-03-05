@@ -85,6 +85,7 @@
     "embla-carousel-react": "^8.2.0",
     "firebase": "^10.13.0",
     "firebase-admin": "^12.6.0",
+    "firebase-functions": "^6.3.2",
     "framer-motion": "^11.3.29",
     "i18next": "^23.14.0",
     "i18next-browser-languagedetector": "^8.0.0",
@@ -116,6 +117,7 @@
     "stylis-plugin-rtl": "^2.1.1",
     "swr": "^2.2.5",
     "turndown": "^7.2.0",
+    "uuid": "^11.1.0",
     "yet-another-react-lightbox": "^3.21.4",
     "zod": "^3.23.8"
   },

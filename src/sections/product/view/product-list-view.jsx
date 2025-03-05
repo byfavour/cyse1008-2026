@@ -25,9 +25,8 @@ import { useSetState } from 'src/hooks/use-set-state';
 
 import { PRODUCT_STOCK_OPTIONS } from 'src/_mock';
 import { useGetProducts } from 'src/actions/product';
-import { deleteProduct } from 'src/lib/firebase/products';
-
 import { DashboardContent } from 'src/layouts/dashboard';
+import { deleteProduct } from 'src/lib/firebase/products';
 
 import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';

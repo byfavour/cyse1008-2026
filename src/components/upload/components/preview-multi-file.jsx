@@ -1,8 +1,5 @@
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
-import ListItemText from '@mui/material/ListItemText';
-
-import { fData } from 'src/utils/format-number';
 
 import { varAlpha } from 'src/theme/styles';
 
@@ -69,7 +66,7 @@ export function MultiFilePreview({
   // If it's a URL (uploaded file)
   if (typeof file === 'string') {
     return (
-      <Box component="li" key={file + '-' + index} sx={{ display: 'inline-flex' }}>
+      <Box component="li" key={`${file  }-${  index}`} sx={{ display: 'inline-flex' }}>
         <img
           src={file}
           alt={`Uploaded file ${index}`}
@@ -87,7 +84,7 @@ export function MultiFilePreview({
   // If it's a File object (local file selected but not yet uploaded)
   const { name } = fileData(file);
   return (
-    <Box component="li" key={name + '-' + index} sx={{ display: 'inline-flex' }}>
+    <Box component="li" key={`${name  }-${  index}`} sx={{ display: 'inline-flex' }}>
       <FileThumbnail
         tooltip
         imageView

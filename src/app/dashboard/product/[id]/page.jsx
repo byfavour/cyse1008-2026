@@ -1,10 +1,9 @@
 import axios, { endpoints } from 'src/utils/axios';
 
 import { CONFIG } from 'src/config-global';
+import { getProductById } from 'src/lib/firebase/products';
 
 import { ProductDetailsView } from 'src/sections/product/view';
-
-import { getProductById } from 'src/lib/firebase/products';
 
 // ----------------------------------------------------------------------
 
@@ -12,21 +11,11 @@ export const metadata = { title: `Product details | Dashboard - ${CONFIG.appName
 
 export default async function Page({ params }) {
   const { id } = params;
-
-  const { product } = await getProductById(id);
-
+  const { product = {} } = await getProductById(id);
   return <ProductDetailsView product={product} />;
 }
 
 // ----------------------------------------------------------------------
-
-// async function getProduct(id) {
-//   const URL = id ? `${endpoints.product.details}?productId=${id}` : '';
-
-//   const res = await axios.get(URL);
-
-//   return res.data;
-// }
 
 /**
  * [1] Default
