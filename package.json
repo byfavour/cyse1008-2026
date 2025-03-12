@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "next dev -p 3032",
     "start": "next start -p 3032",
-    "build": "NEXT_PUBLIC_SKIP_ESLINT=true NEXT_PUBLIC_DEBUG=true npx next build",
+    "build": "cross-env NEXT_PUBLIC_SKIP_ESLINT=true NEXT_PUBLIC_DEBUG=true npx next build",
     "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
     "lint:fix": "eslint --fix \"src/**/*.{js,jsx,ts,tsx}\"",
     "fm:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx}\"",
@@ -76,6 +76,7 @@
     "autosuggest-highlight": "^3.3.4",
     "aws-amplify": "^6.5.1",
     "axios": "^1.7.4",
+    "cross-env": "^7.0.3",
     "dayjs": "^1.11.13",
     "embla-carousel": "^8.2.0",
     "embla-carousel-auto-height": "^8.2.0",
