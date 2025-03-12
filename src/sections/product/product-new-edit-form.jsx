@@ -131,7 +131,13 @@ export function ProductNewEditForm({ currentProduct }) {
   const onSubmit = handleSubmit(async (data) => {
     try {
       await trigger('images'); // Ensure images field is up-to-date
-      const images = getValues('images')();
+      let images = [];
+      try {
+        images = getValues('images')();
+      } catch (_e) {
+        images = getValues('images');
+        console.log({ getValues: getValues('images') } ? getValues('images') : {});
+      }
 
       if (!Array.isArray(images) || images.length === 0) {
         console.error('Error: No images found!');
