@@ -6,6 +6,10 @@ import { BackToTop } from 'src/components/animate/back-to-top';
 import { ScrollProgress, useScrollProgress } from 'src/components/animate/scroll-progress';
 
 import { HomeHeroCYSE1008 } from '../home-hero-cyse1008';
+import { getProducts } from 'src/actions/product-ssr';
+
+import { ProductShopView } from 'src/sections/product/view';
+
 // import { HomeFAQs } from '../home-faqs';
 // import { HomeZoneUI } from '../home-zone-ui';
 // import { HomeMinimal } from '../home-minimal';
@@ -20,12 +24,12 @@ import { HomeHeroCYSE1008 } from '../home-hero-cyse1008';
 // ----------------------------------------------------------------------
 // CYSE_1008_ASSIGNMENT_5_PARENT_COMPONENT
 // This component is the parent of the child component you will edit
-// See the import above? ^^^ HomeHeroCYSE1008 
+// See the import above? ^^^ HomeHeroCYSE1008
 // Try to find the name of the component below where it is used
 // ----------------------------------------------------------------------
-export function HomeView() {
+export async function HomeView() {
   const pageProgress = useScrollProgress();
-
+  const { products } = await getProducts();
   return (
     <>
       <ScrollProgress
@@ -33,10 +37,9 @@ export function HomeView() {
         progress={pageProgress.scrollYProgress}
         sx={{ position: 'fixed' }}
       />
-      
       <BackToTop />
-
       <HomeHeroCYSE1008 /> {/* Here I am!  This inserts this code here */}
+      <ProductShopView products={products} />
       {/* <Stack sx={{ position: 'relative', bgcolor: 'background.default' }}>
         <HomeMinimal />
 
