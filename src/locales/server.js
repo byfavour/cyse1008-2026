@@ -17,9 +17,9 @@ import { defaultNS, cookieName, i18nOptions, fallbackLng } from './config-locale
  */
 
 export async function detectLanguage() {
-  const cookies = getCookies();
+  const cookies = await getCookies();
 
-  const language = cookies.get(cookieName)?.value ?? fallbackLng;
+  const language = (await cookies.get(cookieName)?.value) ?? fallbackLng;
 
   return language;
 }

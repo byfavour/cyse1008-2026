@@ -1,5 +1,7 @@
 {
   "projects": {
     "default": "quilt-b3dec"
-  }
+  },
+  "targets": {},
+  "etags": {}
 }

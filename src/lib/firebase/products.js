@@ -1,22 +1,10 @@
 // products.js
-import {
-  doc,
-  addDoc,
-  getDoc,
-  getDocs,
-  updateDoc,
-  deleteDoc,
-  collection,
-  // connectFirestoreEmulator,
-} from 'firebase/firestore';
+import { doc, addDoc, getDoc, getDocs, updateDoc, deleteDoc, collection } from 'firebase/firestore';
 
 import { db } from './firebase';
 
-// connectFirestoreEmulator(db, '127.0.0.1', 8080); // Ensure it's using emulator
-
 const productsCollectionRef = collection(db, 'products');
 
-// Add Product
 export async function addProduct(productData) {
   try {
     const docRef = await addDoc(productsCollectionRef, productData);

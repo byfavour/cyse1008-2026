@@ -8,7 +8,7 @@ import { useSetState } from 'src/hooks/use-set-state';
 
 import axios from 'src/utils/axios';
 
-import { AUTH, FIRESTORE } from 'src/lib/firebase/firebase';
+import { AUTH, db } from 'src/lib/firebase/firebase';
 
 import { AuthContext } from '../auth-context';
 
@@ -28,7 +28,7 @@ export function AuthProvider({ children }) {
            * (1) If skip emailVerified
            * Remove the condition (if/else) : user.emailVerified
            */
-          const userProfile = doc(FIRESTORE, 'users', user.uid);
+          const userProfile = doc(db, 'users', user.uid);
           const docSnap = await getDoc(userProfile);
           const profileData = docSnap.exists() ? docSnap.data() : {};
 
@@ -39,7 +39,7 @@ export function AuthProvider({ children }) {
           // Final role priority: Firestore role > Auth Claim role > Default empty string
           const role = profileData?.role ?? roleFromAuth ?? '';
 
-          console.log({ role })
+          console.log({ role });
 
           const { accessToken } = user;
 

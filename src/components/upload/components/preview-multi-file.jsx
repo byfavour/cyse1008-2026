@@ -72,7 +72,9 @@ export function MultiFilePreview({
               <Image
                 src={file}
                 alt={`Uploaded file ${index}`}
-                sx={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 4 }}
+                width={80}
+                height={80}
+                sx={{ objectFit: 'cover', borderRadius: 4 }}
               />
               {onRemove && (
                 <IconButton size="small" onClick={() => onRemove(file)}>
