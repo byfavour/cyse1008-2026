@@ -1,3 +1,5 @@
+'use server';
+
 import axios, { endpoints } from 'src/utils/axios';
 
 import { CONFIG } from 'src/config-global';
@@ -5,25 +7,11 @@ import { getProductById } from 'src/lib/firebase/products';
 
 import { ProductDetailsView } from 'src/sections/product/view';
 
-// ----------------------------------------------------------------------
-
-export const metadata = { title: `Product details | Dashboard - ${CONFIG.appName}` };
-
 export default async function Page({ params }) {
   const { id } = params;
   const { product = {} } = await getProductById(id);
   return <ProductDetailsView product={product} />;
 }
-
-// ----------------------------------------------------------------------
-
-/**
- * [1] Default
- * Remove [1] and [2] if not using [2]
- */
-const dynamic = CONFIG.isStaticExport ? 'auto' : 'force-dynamic';
-
-export { dynamic };
 
 /**
  * [2] Static exports

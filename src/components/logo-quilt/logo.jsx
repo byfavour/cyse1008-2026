@@ -61,12 +61,12 @@ export const Logo = forwardRef(
         <defs>
           <pattern id="grid" width="64" height="64" patternUnits="userSpaceOnUse">
             <rect width="64" height="64" fill="#EEE" />
-            <path d="M 64 0 L 0 0 0 64" stroke="#CCC" stroke-width="2" />
+            <path d="M 64 0 L 0 0 0 64" stroke="#CCC" strokeWidth="2" />
           </pattern>
         </defs>
         <rect width="512" height="512" fill="url(#grid)" />
 
-        <g stroke="#333" stroke-width="4">
+        <g stroke="#333" strokeWidth="4">
           <rect x="64" y="64" width="128" height="128" fill="#FF5733" />
           <rect x="192" y="192" width="128" height="128" fill="#33C4FF" />
           <rect x="320" y="64" width="128" height="128" fill="#FFD700" />
@@ -74,7 +74,7 @@ export const Logo = forwardRef(
           <rect x="320" y="320" width="128" height="128" fill="#9933FF" />
         </g>
 
-        <g stroke="#000" stroke-width="6" stroke-dasharray="10 10">
+        <g stroke="#000" strokeWidth="6" strokeDasharray="10 10">
           <line x1="128" y1="128" x2="256" y2="256" />
           <line x1="384" y1="128" x2="256" y2="256" />
           <line x1="128" y1="384" x2="256" y2="256" />

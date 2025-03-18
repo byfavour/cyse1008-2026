@@ -1,3 +1,5 @@
+'use server';
+
 import { paramCase } from 'src/utils/change-case';
 import axios, { endpoints } from 'src/utils/axios';
 
@@ -5,10 +7,6 @@ import { CONFIG } from 'src/config-global';
 import { getPost, getLatestPosts } from 'src/actions/blog-ssr';
 
 import { PostDetailsHomeView } from 'src/sections/blog/view';
-
-// ----------------------------------------------------------------------
-
-export const metadata = { title: `Post details - ${CONFIG.appName}` };
 
 export default async function Page({ params }) {
   const { title } = params;
@@ -19,16 +17,6 @@ export default async function Page({ params }) {
 
   return <PostDetailsHomeView post={post} latestPosts={latestPosts} />;
 }
-
-// ----------------------------------------------------------------------
-
-/**
- * [1] Default
- * Remove [1] and [2] if not using [2]
- */
-const dynamic = CONFIG.isStaticExport ? 'auto' : 'force-dynamic';
-
-export { dynamic };
 
 /**
  * [2] Static exports

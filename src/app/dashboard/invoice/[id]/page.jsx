@@ -1,15 +1,14 @@
+'use server';
+
 import { CONFIG } from 'src/config-global';
 import { _invoices } from 'src/_mock/_invoice';
 
 import { InvoiceDetailsView } from 'src/sections/invoice/view';
 
-// ----------------------------------------------------------------------
-
-export const metadata = { title: `Invoice details | Dashboard - ${CONFIG.appName}` };
-
-export default function Page({ params }) {
+export default async function Page({ params }) {
   const { id } = params;
 
+  // Ensure this runs on the server and fetches the correct invoice
   const currentInvoice = _invoices.find((invoice) => invoice.id === id);
 
   return <InvoiceDetailsView invoice={currentInvoice} />;
@@ -18,16 +17,8 @@ export default function Page({ params }) {
 // ----------------------------------------------------------------------
 
 /**
- * [1] Default
- * Remove [1] and [2] if not using [2]
- */
-const dynamic = CONFIG.isStaticExport ? 'auto' : 'force-dynamic';
-
-export { dynamic };
-
-/**
- * [2] Static exports
- * https://nextjs.org/docs/app/building-your-application/deploying/static-exports
+ * Static Exports Handling
+ * Next.js 15 no longer uses `dynamic`, so we explicitly define this function.
  */
 export async function generateStaticParams() {
   if (CONFIG.isStaticExport) {

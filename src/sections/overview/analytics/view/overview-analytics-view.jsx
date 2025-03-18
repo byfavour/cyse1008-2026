@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
 
@@ -38,7 +40,7 @@ export function OverviewAnalyticsView() {
             percent={2.6}
             total={714000}
             icon={
-              <img alt="icon" src={`${CONFIG.assetsDir}/assets/icons/glass/ic-glass-bag.svg`} />
+              <Image src={`${CONFIG.assetsDir}/assets/icons/glass/ic-glass-bag.svg`} alt="icon" />
             }
             chart={{
               categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
@@ -54,7 +56,7 @@ export function OverviewAnalyticsView() {
             total={1352831}
             color="secondary"
             icon={
-              <img alt="icon" src={`${CONFIG.assetsDir}/assets/icons/glass/ic-glass-users.svg`} />
+              <Image src={`${CONFIG.assetsDir}/assets/icons/glass/ic-glass-users.svg`} alt="icon" />
             }
             chart={{
               categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
@@ -70,7 +72,7 @@ export function OverviewAnalyticsView() {
             total={1723315}
             color="warning"
             icon={
-              <img alt="icon" src={`${CONFIG.assetsDir}/assets/icons/glass/ic-glass-buy.svg`} />
+              <Image src={`${CONFIG.assetsDir}/assets/icons/glass/ic-glass-buy.svg`} alt="icon" />
             }
             chart={{
               categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
@@ -86,7 +88,10 @@ export function OverviewAnalyticsView() {
             total={234}
             color="error"
             icon={
-              <img alt="icon" src={`${CONFIG.assetsDir}/assets/icons/glass/ic-glass-message.svg`} />
+              <Image
+                src={`${CONFIG.assetsDir}/assets/icons/glass/ic-glass-message.svg`}
+                alt="icon"
+              />
             }
             chart={{
               categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],

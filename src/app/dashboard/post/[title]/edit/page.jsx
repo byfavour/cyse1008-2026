@@ -1,3 +1,5 @@
+'use server';
+
 import { paramCase } from 'src/utils/change-case';
 import axios, { endpoints } from 'src/utils/axios';
 
@@ -7,7 +9,7 @@ import { PostEditView } from 'src/sections/blog/view';
 
 // ----------------------------------------------------------------------
 
-export const metadata = { title: `Post edit | Dashboard - ${CONFIG.appName}` };
+// export const metadata = { title: `Post edit | Dashboard - ${CONFIG.appName}` };
 
 export default async function Page({ params }) {
   const { title } = params;
@@ -31,9 +33,6 @@ async function getPost(title) {
  * [1] Default
  * Remove [1] and [2] if not using [2]
  */
-const dynamic = CONFIG.isStaticExport ? 'auto' : 'force-dynamic';
-
-export { dynamic };
 
 /**
  * [2] Static exports

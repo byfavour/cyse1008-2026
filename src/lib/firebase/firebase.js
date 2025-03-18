@@ -29,6 +29,6 @@ export const db = getFirestore(firebaseApp);
 
 // Point to the Storage emulator running on localhost.
 console.log({ isLocalhost });
-connectAuthEmulator(AUTH, 'http://127.0.0.1:9099');
+connectAuthEmulator(AUTH, 'http://127.0.0.1:9099', { disableWarnings: true });
 connectStorageEmulator(storage, '127.0.0.1', 9199);
 connectFirestoreEmulator(db, '127.0.0.1', 8080);

@@ -5,7 +5,6 @@ import Stack from '@mui/material/Stack';
 import { useTheme } from '@mui/material/styles';
 
 import { textGradient } from 'src/theme/styles';
-import { Typography } from '@mui/material';
 
 const lgKey = 'lg';
 

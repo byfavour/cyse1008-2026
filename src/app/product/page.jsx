@@ -1,14 +1,9 @@
-import { CONFIG } from 'src/config-global';
-import { getProducts } from 'src/actions/product-ssr';
+import { getProducts } from 'src/lib/firebase/products';
 
 import { ProductShopView } from 'src/sections/product/view';
 
-// ----------------------------------------------------------------------
-
-export const metadata = { title: `Product shop - ${CONFIG.appName}` };
-
 export default async function Page() {
-  const { products } = await getProducts();
+  const { products = [] } = await getProducts();
 
   return <ProductShopView products={products} />;
 }

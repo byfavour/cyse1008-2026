@@ -1,9 +1,9 @@
 module.exports = {
   root: true,
-  env: { 
-    browser: true, 
-    es2020: true, 
-    node: true // Ensure compatibility for Node.js-based tools
+  env: {
+    browser: true,
+    es2020: true,
+    node: true, // Ensure compatibility for Node.js-based tools
   },
   parserOptions: {
     ecmaVersion: 'latest',
@@ -23,18 +23,8 @@ module.exports = {
       },
     },
   },
-  plugins: [
-    'perfectionist', 
-    'unused-imports', 
-    'prettier', 
-    'react', 
-    'react-hooks'
-  ],
-  extends: [
-    'airbnb', 
-    'airbnb/hooks', 
-    'prettier'
-  ],
+  plugins: ['perfectionist', 'unused-imports', 'prettier'],
+  extends: ['next', 'airbnb', 'prettier'],
   rules: {
     // General Rules
     'no-use-before-define': 'off',
@@ -74,23 +64,14 @@ module.exports = {
     // Unused Imports Plugin
     'unused-imports/no-unused-imports': 'warn',
     'unused-imports/no-unused-vars': [
-      'warn', 
-      { vars: 'all', varsIgnorePattern: '^_', args: 'after-used', argsIgnorePattern: '^_' }
+      'warn',
+      { vars: 'all', varsIgnorePattern: '^_', args: 'after-used', argsIgnorePattern: '^_' },
     ],
 
     // Perfectionist Plugin Rules (Sorting)
-    'perfectionist/sort-exports': [
-      'warn', 
-      { order: 'asc', type: 'line-length' }
-    ],
-    'perfectionist/sort-named-imports': [
-      'warn', 
-      { order: 'asc', type: 'line-length' }
-    ],
-    'perfectionist/sort-named-exports': [
-      'warn', 
-      { order: 'asc', type: 'line-length' }
-    ],
+    'perfectionist/sort-exports': ['warn', { order: 'asc', type: 'line-length' }],
+    'perfectionist/sort-named-imports': ['warn', { order: 'asc', type: 'line-length' }],
+    'perfectionist/sort-named-exports': ['warn', { order: 'asc', type: 'line-length' }],
     'perfectionist/sort-imports': [
       'warn',
       {

@@ -136,7 +136,6 @@ export function ProductNewEditForm({ currentProduct }) {
         images = getValues('images')();
       } catch (_e) {
         images = getValues('images');
-        console.log({ getValues: getValues('images') } ? getValues('images') : {});
       }
 
       if (!Array.isArray(images) || images.length === 0) {
