@@ -1,16 +1,7 @@
 {
   "hosting": {
     "source": ".",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    "frameworksBackend": {
-      "region": "northamerica-northeast1"
-    },
-    "rewrites": [
-      {
-        "source": "/__session",
-        "function": "authSession"
-      }
-    ]
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
   },
   "functions": [
     {
@@ -37,7 +28,7 @@
     "ui": {
       "enabled": true
     },
-    "singleProjectMode": true,
+    "singleProjectMode": false,
     "auth": {
       "port": 9099
     },

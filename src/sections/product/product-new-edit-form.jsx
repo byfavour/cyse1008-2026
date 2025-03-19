@@ -63,6 +63,8 @@ export function ProductNewEditForm({ currentProduct }) {
   const router = useRouter();
   const { user } = useAuthContext();
 
+  console.log({ user });
+
   const { createProduct, updateProduct } = useContext(ProductContext);
 
   const [includeTaxes, setIncludeTaxes] = useState(false);
@@ -166,27 +168,39 @@ export function ProductNewEditForm({ currentProduct }) {
   });
 
   const handleOnUpload = useCallback(
-    async (inputFiles) => {
-      try {
-        const uploadedUrls = await uploadImagesToLibrary(user.id, inputFiles);
-        console.log('Uploaded URLs:', uploadedUrls);
+    async (event) => {
+      console.log('Event:', event); // Debugging: check what exactly is received
 
-        setValue(
-          'images',
-          (prevImages) => {
-            const prev = typeof prevImages === 'function' ? prevImages() : prevImages || [];
-            const uniqueImages = Array.from(new Set([...prev, ...uploadedUrls]));
-            console.log('Updated images in form:', uniqueImages);
-            return uniqueImages;
-          },
-          { shouldValidate: true, shouldDirty: true }
-        );
-        await trigger('images');
+      let files = [];
+
+      if (Array.isArray(event)) {
+        // 🔥 Your case: Event itself is an array of files
+        files = event;
+      } else if (event.files) {
+        files = Array.from(event.files);
+      } else if (event.target?.files) {
+        files = Array.from(event.target.files);
+      } else if (event.dataTransfer?.files) {
+        files = Array.from(event.dataTransfer.files);
+      }
+
+      if (!files.length) {
+        console.error('❌ No files found in event!');
+        return;
+      }
+
+      console.log('✅ Files selected:', files);
+
+      try {
+        const uploadedUrls = await uploadImagesToLibrary(user.id, files);
+        console.log('✅ Uploaded image URLs:', uploadedUrls);
+
+        setValue('images', uploadedUrls, { shouldValidate: true, shouldDirty: true });
       } catch (error) {
-        console.error('Error uploading images:', error);
+        console.error('❌ Error uploading images:', error);
       }
     },
-    [user.id, setValue, trigger]
+    [user.id, setValue]
   );
 
   const handleRemoveFile = useCallback(

@@ -46,6 +46,8 @@ export function AuthProvider({ children }) {
     try {
       const authSession = (await fetchAuthSession()).tokens;
 
+      console.log({ authSession });
+
       if (authSession) {
         const userAttributes = await fetchUserAttributes();
 

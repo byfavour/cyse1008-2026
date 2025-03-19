@@ -1,20 +1,41 @@
 import { v4 as uuidv4 } from 'uuid';
 import { doc, setDoc } from 'firebase/firestore';
 import { ref, getDownloadURL, uploadBytesResumable } from 'firebase/storage';
-
+import { getAuth } from 'firebase/auth';
 import { db, storage } from 'src/lib/firebase/firebase';
 
 export async function uploadImageToLibrary(userId, image) {
   try {
+    console.log('📸 Received image:', image);
+
+    const auth = getAuth();
+    auth.currentUser
+      ?.getIdToken(true)
+      .then((token) => {
+        console.log('Current Auth Token:', token);
+      })
+      .catch((error) => {
+        console.error('Auth Token Error:', error);
+      });
     if (!userId) throw new Error('No user ID provided.');
     if (!image || !image.name) throw new Error('A valid image must be provided.');
 
     const imageId = uuidv4();
+    console.log('USER ID:', userId);
+    console.log('File Name:', image.name);
+    console.log('File Type:', image.type);
+
     const filePath = `images/library/${userId}/${imageId}-${image.name}`;
     const imageRef = ref(storage, filePath);
 
-    await uploadBytesResumable(imageRef, image);
+    // ✅ Explicitly setting metadata
+    const metadata = {
+      contentType: image.type || 'image/jpeg',
+    };
+
+    await uploadBytesResumable(imageRef, image, metadata);
     const downloadURL = await getDownloadURL(imageRef);
+    console.log('✅ Image uploaded successfully:', downloadURL);
 
     // Store metadata in Firestore
     const imageDocRef = doc(db, `users/${userId}/images/${imageId}`);
@@ -28,7 +49,7 @@ export async function uploadImageToLibrary(userId, image) {
 
     return downloadURL;
   } catch (error) {
-    console.error('Error uploading image to library:', error);
+    console.error('❌ Error uploading image:', error);
     throw error;
   }
 }

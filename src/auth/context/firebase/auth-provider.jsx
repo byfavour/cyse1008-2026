@@ -1,14 +1,15 @@
 'use client';
 
+import { useMemo, useEffect, useCallback } from 'react';
+
 import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
-import { useMemo, useEffect, useCallback } from 'react';
 
 import { useSetState } from 'src/hooks/use-set-state';
 
 import axios from 'src/utils/axios';
 
-import { AUTH, db } from 'src/lib/firebase/firebase';
+import { db, AUTH } from 'src/lib/firebase/firebase';
 
 import { AuthContext } from '../auth-context';
 
@@ -20,10 +21,13 @@ export function AuthProvider({ children }) {
     loading: true,
   });
 
+  console.log('AuthProvider, ');
   const checkUserSession = useCallback(async () => {
     try {
       onAuthStateChanged(AUTH, async (user) => {
-        if (user && user.emailVerified) {
+        if (user) {
+          console.log({ user });
+
           /*
            * (1) If skip emailVerified
            * Remove the condition (if/else) : user.emailVerified
@@ -31,6 +35,7 @@ export function AuthProvider({ children }) {
           const userProfile = doc(db, 'users', user.uid);
           const docSnap = await getDoc(userProfile);
           const profileData = docSnap.exists() ? docSnap.data() : {};
+          console.log({ docSnap });
 
           // Get custom claims (role) from Firebase Authentication
           const tokenResult = await user.getIdTokenResult(true);
@@ -42,6 +47,7 @@ export function AuthProvider({ children }) {
           console.log({ role });
 
           const { accessToken } = user;
+          console.log('Setting Axios Auth Header:', accessToken);
 
           setState({ user: { ...user, ...profileData, role }, loading: false });
           axios.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
@@ -57,13 +63,15 @@ export function AuthProvider({ children }) {
   }, [setState]);
 
   useEffect(() => {
-    checkUserSession();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const unsubscribe = onAuthStateChanged(AUTH, checkUserSession);
+    return () => unsubscribe(); // Cleanup
+  }, [checkUserSession]);
 
   // ----------------------------------------------------------------------
 
   const checkAuthenticated = state.user ? 'authenticated' : 'unauthenticated';
+
+  console.log({ state });
 
   const status = state.loading ? 'loading' : checkAuthenticated;
 
