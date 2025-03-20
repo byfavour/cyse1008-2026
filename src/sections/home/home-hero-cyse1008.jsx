@@ -44,7 +44,7 @@ export function HomeHeroCYSE1008() {
             textAlign: 'center',
           }}
         >
-          CYSE-5318008
+          CYSE-1008
         </Box>
       </Box>
       <Box

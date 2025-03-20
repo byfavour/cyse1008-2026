@@ -9,6 +9,8 @@ export async function uploadImageToLibrary(userId, image) {
     console.log('📸 Received image:', image);
 
     const auth = getAuth();
+    const currentUser = auth.currentUser;
+    console.log({ currentUser });
     auth.currentUser
       ?.getIdToken(true)
       .then((token) => {
@@ -17,6 +19,14 @@ export async function uploadImageToLibrary(userId, image) {
       .catch((error) => {
         console.error('Auth Token Error:', error);
       });
+
+    const token = await auth.currentUser.getIdToken(true);
+    console.log('✅ Current Auth Token:', token);
+
+    console.log('🔎 Checking user ID match...');
+    if (auth.currentUser.uid !== userId) {
+      throw new Error(`❌ User ID mismatch! Expected ${auth.currentUser.uid}, got ${userId}`);
+    }
     if (!userId) throw new Error('No user ID provided.');
     if (!image || !image.name) throw new Error('A valid image must be provided.');
 
