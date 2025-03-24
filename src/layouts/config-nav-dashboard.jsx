@@ -48,7 +48,7 @@ export const navData = [
   {
     subheader: 'Overview',
     items: [
-      { title: 'Shop', path: paths.dashboard.general.encryption, icon: ICONS.analytics },
+      { title: 'Shop', path: paths.product.root, icon: ICONS.analytics },
       { title: 'Encryption', path: paths.dashboard.general.encryption, icon: ICONS.analytics },
       { title: 'App', path: paths.dashboard.root, icon: ICONS.dashboard },
       { title: 'Ecommerce', path: paths.dashboard.general.ecommerce, icon: ICONS.ecommerce },

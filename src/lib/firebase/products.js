@@ -34,7 +34,6 @@ export async function getProducts() {
       id: _doc.id,
       ..._doc.data(),
     }));
-    console.log({ products });
     return products;
   } catch (error) {
     console.error('Error fetching products: ', error);

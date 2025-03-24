@@ -22,14 +22,35 @@ import { useCheckoutContext } from '../checkout/context';
 export function ProductItem({ product }) {
   const checkout = useCheckoutContext();
 
-  const { id, name, coverUrl, price, colors, available, sizes, priceSale, newLabel, saleLabel } =
-    product;
+  const {
+    id,
+    name,
+    coverUrl,
+    images = [],
+    price,
+    colors = [],
+    available,
+    sizes = [],
+    priceSale,
+    newLabel,
+    saleLabel,
+  } = product;
 
   const linkTo = paths.product.details(id);
 
   console.log({
-    id, name, coverUrl, price, colors, available, sizes, priceSale, newLabel, saleLabel
-  })
+    id,
+    name,
+    coverUrl,
+    price,
+    colors,
+    available,
+    sizes,
+    priceSale,
+    newLabel,
+    saleLabel,
+    ...product,
+  });
 
   const handleAddCart = async () => {
     const newProduct = {
@@ -102,7 +123,7 @@ export function ProductItem({ product }) {
       <Tooltip title={!available && 'Out of stock'} placement="bottom-end">
         <Image
           alt={name}
-          src={coverUrl}
+          src={coverUrl || images[0]}
           ratio="1/1"
           sx={{ borderRadius: 1.5, ...(!available && { opacity: 0.48, filter: 'grayscale(1)' }) }}
         />

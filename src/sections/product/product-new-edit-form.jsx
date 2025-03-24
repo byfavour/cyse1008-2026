@@ -74,10 +74,11 @@ export function ProductNewEditForm({ currentProduct }) {
       name: currentProduct?.name || '',
       description: currentProduct?.description || '',
       subDescription: currentProduct?.subDescription || '',
-      images: currentProduct?.images || [
-        `${CONFIG.assetsDir}/assets/images/mock/m-product/product-1.webp`,
-      ],
+      // images: currentProduct?.images || [
+      //   `${CONFIG.assetsDir}/assets/images/mock/m-product/product-1.webp`,
+      // ],
       //
+      images: currentProduct?.images || [],
       code: currentProduct?.code || '',
       sku: currentProduct?.sku || '',
       price: currentProduct?.price || 0,
@@ -150,7 +151,7 @@ export function ProductNewEditForm({ currentProduct }) {
         ...data,
         images,
       };
-
+      console.log({ productData });
       if (currentProduct) {
         await updateProduct(currentProduct.id, productData);
         toast.success('Update successful!');
