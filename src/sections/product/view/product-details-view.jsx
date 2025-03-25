@@ -117,7 +117,7 @@ export function ProductDetailsView({ product }) {
         >
           {[
             { value: 'description', label: 'Description' },
-            { value: 'reviews', label: `Reviews (${product?.reviews.length})` },
+            { value: 'reviews', label: `Reviews (${product?.reviews?.length})` },
           ].map((tab) => (
             <Tab key={tab.value} value={tab.value} label={tab.label} />
           ))}

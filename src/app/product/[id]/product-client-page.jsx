@@ -1,3 +1,4 @@
+// src/app/product/[id]/product-client-page.jsx
 'use client';
 
 import withFirestoreRoute from 'src/components/firebase/with-firestore-route';
@@ -8,6 +9,4 @@ const ProductClientPage = withFirestoreRoute({
   View: ProductDetailsView,
 });
 
-export default function ProductClientPageWrapper({ params }) {
-  return <ProductClientPage id={params.id} />;
-}
+export default ProductClientPage;

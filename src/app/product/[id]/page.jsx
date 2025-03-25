@@ -1,11 +1,10 @@
-'use server';
+// src/app/product/[id]/page.jsx
+'use client';
 
-import dynamic from 'next/dynamic';
+import { useParams } from 'next/navigation';
+import ProductClientPage from './product-client-page';
 
-// Dynamically import the client component
-const ProductClientPage = dynamic(() => import('./product-client-page'), { ssr: false });
-
-export default function Page({ params }) {
-  // It's okay that this function is async if `generateStaticParams` exists
-  return <ProductClientPage id={params.id} />;
+export default function Page() {
+  const { id } = useParams();
+  return <ProductClientPage id={id} />;
 }
