@@ -1,4 +1,3 @@
-// src/app/product/[id]/product-client-page.jsx
 'use client';
 
 import withFirestoreRoute from 'src/components/firebase/with-firestore-route';
