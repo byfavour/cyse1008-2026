@@ -18,7 +18,6 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 
-import { CONFIG } from 'src/config-global';
 import ProductContext from 'src/lib/contexts/ProductContext';
 import { uploadImagesToLibrary } from 'src/lib/firebase/storage';
 import {
@@ -62,8 +61,6 @@ export const NewProductSchema = zod.object({
 export function ProductNewEditForm({ currentProduct }) {
   const router = useRouter();
   const { user } = useAuthContext();
-
-  console.log({ user });
 
   const { createProduct, updateProduct } = useContext(ProductContext);
 

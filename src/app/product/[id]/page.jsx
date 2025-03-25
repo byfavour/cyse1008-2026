@@ -1,28 +1,11 @@
 'use server';
 
-import axios, { endpoints } from 'src/utils/axios';
+import dynamic from 'next/dynamic';
 
-import { CONFIG } from 'src/config-global';
-import { getProduct } from 'src/actions/product-ssr';
+// Dynamically import the client component
+const ProductClientPage = dynamic(() => import('./product-client-page'), { ssr: false });
 
-import { ProductShopDetailsView } from 'src/sections/product/view';
-
-export default async function Page({ params }) {
-  const { id } = params;
-
-  const { product } = await getProduct(id);
-
-  return <ProductShopDetailsView product={product} />;
-}
-
-/**
- * [2] Static exports
- * https://nextjs.org/docs/app/building-your-application/deploying/static-exports
- */
-export async function generateStaticParams() {
-  if (CONFIG.isStaticExport) {
-    const res = await axios.get(endpoints.product.list);
-    return res.data.products.map((product) => ({ id: product.id }));
-  }
-  return [];
+export default function Page({ params }) {
+  // It's okay that this function is async if `generateStaticParams` exists
+  return <ProductClientPage id={params.id} />;
 }
