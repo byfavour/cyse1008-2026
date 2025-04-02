@@ -44,6 +44,8 @@ import {
   RenderCellCreatedAt,
 } from '../product-table-row';
 
+import { fetchShopifyProducts } from 'src/lib/shopify/fetch-products';
+
 // ----------------------------------------------------------------------
 
 const PUBLISH_OPTIONS = [
@@ -66,7 +68,6 @@ export function ProductListView() {
 
   const { products, productsLoading } = useGetProducts();
   const [tableData, setTableData] = useState([]);
-  
 
   const [selectedRowIds, setSelectedRowIds] = useState([]);
 
@@ -84,19 +85,16 @@ export function ProductListView() {
 
   const dataFiltered = applyFilter({ inputData: tableData, filters: filters.state });
 
-  const handleDeleteRow = useCallback(
-    async (id) => {
-      try {
-        await deleteProduct(id); // Delete from Firestore
-        toast.success('Delete success!');
-        setTableData((prevData) => prevData.filter((row) => row.id !== id)); // Update state
-      } catch (error) {
-        toast.error('Failed to delete product. Please try again.');
-        console.error("Error deleting product:", error);
-      }
-    },
-    []
-  );
+  const handleDeleteRow = useCallback(async (id) => {
+    try {
+      await deleteProduct(id); // Delete from Firestore
+      toast.success('Delete success!');
+      setTableData((prevData) => prevData.filter((row) => row.id !== id)); // Update state
+    } catch (error) {
+      toast.error('Failed to delete product. Please try again.');
+      console.error('Error deleting product:', error);
+    }
+  }, []);
 
   const handleDeleteRows = useCallback(async () => {
     try {
@@ -105,10 +103,9 @@ export function ProductListView() {
       setTableData((prevData) => prevData.filter((row) => !selectedRowIds.includes(row.id))); // Update state
     } catch (error) {
       toast.error('Failed to delete selected products. Please try again.');
-      console.error("Error deleting products:", error);
+      console.error('Error deleting products:', error);
     }
   }, [selectedRowIds]);
-  
 
   const handleEditRow = useCallback(
     (id) => {
@@ -124,6 +121,18 @@ export function ProductListView() {
     [router]
   );
 
+  const handleSyncShopify = useCallback(async () => {
+    const productsFromShopify = await fetchShopifyProducts();
+    console.log('Shopify Products:', productsFromShopify);
+    setTableData((prev) => {
+      const existingIds = new Set(prev.map((p) => p.id));
+      const unique = productsFromShopify.filter((p) => !existingIds.has(p.id));
+      return [...prev, ...unique];
+    });
+
+    toast.success(`Imported ${productsFromShopify.length} products from Shopify`);
+  }, []);
+
   const CustomToolbarCallback = useCallback(
     () => (
       <CustomToolbar
@@ -133,10 +142,10 @@ export function ProductListView() {
         setFilterButtonEl={setFilterButtonEl}
         filteredResults={dataFiltered.length}
         onOpenConfirmDeleteRows={confirmRows.onTrue}
+        onSyncShopify={handleSyncShopify} // ✅ add this
       />
     ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [filters.state, selectedRowIds]
+    [filters.state, selectedRowIds, handleSyncShopify]
   );
 
   const columns = [
@@ -313,6 +322,7 @@ function CustomToolbar({
   filteredResults,
   setFilterButtonEl,
   onOpenConfirmDeleteRows,
+  onSyncShopify,
 }) {
   return (
     <>
@@ -331,6 +341,15 @@ function CustomToolbar({
           alignItems="center"
           justifyContent="flex-end"
         >
+          <Button
+            size="small"
+            color="primary"
+            startIcon={<Iconify icon="solar:cart-plus-bold" />}
+            onClick={onSyncShopify}
+          >
+            Sync Shopify
+          </Button>
+
           {!!selectedRowIds.length && (
             <Button
               size="small"

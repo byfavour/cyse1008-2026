@@ -26,8 +26,6 @@ export function AuthProvider({ children }) {
     try {
       onAuthStateChanged(AUTH, async (user) => {
         if (user) {
-          console.log({ user });
-
           /*
            * (1) If skip emailVerified
            * Remove the condition (if/else) : user.emailVerified

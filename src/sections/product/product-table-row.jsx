@@ -62,7 +62,6 @@ export function RenderCellStock({ params }) {
 // ----------------------------------------------------------------------
 
 export function RenderCellProduct({ params, onViewRow }) {
-  console.log({ params: params.row })
   return (
     <Stack direction="row" alignItems="center" sx={{ py: 2, width: 1 }}>
       <Avatar

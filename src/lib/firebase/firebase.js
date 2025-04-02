@@ -5,26 +5,34 @@ import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 
 import { CONFIG } from 'src/config-global';
 
-const isFirebase = CONFIG.auth.method === 'firebase';
+// ----------------------------------------------------------------------
+// 1) Initialize the Firebase App
+// ----------------------------------------------------------------------
+const firebaseApp = initializeApp(CONFIG.firebase);
 
-const isLocalhost =
-  typeof window !== 'undefined' &&
-  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+// ----------------------------------------------------------------------
+// 2) Get the core services
+// ----------------------------------------------------------------------
+export const db = getFirestore(firebaseApp);
+export const AUTH = getAuth(firebaseApp);
+export const storage = getStorage(firebaseApp);
 
-console.log({ isLocalhost });
+// ----------------------------------------------------------------------
+// 3) If we detect "localhost" or "127.0.0.1", connect to local emulators
+// ----------------------------------------------------------------------
+if (typeof window !== 'undefined') {
+  const hostname = window.location.hostname;
 
-const firebaseConfig = isLocalhost
-  ? { ...CONFIG.firebase, databaseURL: 'http://127.0.0.1:9000?ns=emulatorui' }
-  : CONFIG.firebase;
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    console.log('Connecting to Firebase emulators...');
 
-export const firebaseApp = initializeApp(firebaseConfig);
-export const db = isFirebase && !isLocalhost ? getFirestore(firebaseApp) : getFirestore();
-export const AUTH = isLocalhost ? getAuth() : getAuth(firebaseApp);
-export const storage = isLocalhost ? getStorage() : getStorage(firebaseApp);
+    // Auth Emulator
+    connectAuthEmulator(AUTH, 'http://127.0.0.1:9099', { disableWarnings: true });
 
-if (typeof window !== 'undefined' && window.location.hostname === '127.0.0.1') {
-  console.log('127.0.0.1 detected!');
-  connectAuthEmulator(AUTH, 'http://127.0.0.1:9099', { disableWarnings: true });
-  connectFirestoreEmulator(db, '127.0.0.1', 8080);
-  connectStorageEmulator(storage, '127.0.0.1', 9199);
+    // Firestore Emulator
+    connectFirestoreEmulator(db, '127.0.0.1', 8080);
+
+    // Storage Emulator
+    connectStorageEmulator(storage, '127.0.0.1', 9199);
+  }
 }
