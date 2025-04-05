@@ -101,6 +101,7 @@ export const paths = {
     calendar: `${ROOTS.DASHBOARD}/calendar`,
     fileManager: `${ROOTS.DASHBOARD}/file-manager`,
     permission: `${ROOTS.DASHBOARD}/permission`,
+    connect: `${ROOTS.DASHBOARD}/connect`,
     general: {
       app: `${ROOTS.DASHBOARD}/app`,
       encryption: `${ROOTS.DASHBOARD}/encryption`,

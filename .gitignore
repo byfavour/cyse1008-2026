@@ -45,3 +45,4 @@ keys/
 apphosting.local.yaml
 emu
 seed
+service-account.json

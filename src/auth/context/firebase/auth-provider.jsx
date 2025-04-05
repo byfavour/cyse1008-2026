@@ -21,7 +21,6 @@ export function AuthProvider({ children }) {
     loading: true,
   });
 
-  console.log('AuthProvider, ');
   const checkUserSession = useCallback(async () => {
     try {
       onAuthStateChanged(AUTH, async (user) => {
@@ -33,8 +32,6 @@ export function AuthProvider({ children }) {
           const userProfile = doc(db, 'users', user.uid);
           const docSnap = await getDoc(userProfile);
           const profileData = docSnap.exists() ? docSnap.data() : {};
-          console.log({ docSnap });
-
           // Get custom claims (role) from Firebase Authentication
           const tokenResult = await user.getIdTokenResult(true);
           const roleFromAuth = tokenResult.claims.role || ''; // Extract role from token
@@ -42,10 +39,7 @@ export function AuthProvider({ children }) {
           // Final role priority: Firestore role > Auth Claim role > Default empty string
           const role = profileData?.role ?? roleFromAuth ?? '';
 
-          console.log({ role });
-
           const { accessToken } = user;
-          console.log('Setting Axios Auth Header:', accessToken);
 
           setState({ user: { ...user, ...profileData, role }, loading: false });
           axios.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
@@ -68,8 +62,6 @@ export function AuthProvider({ children }) {
   // ----------------------------------------------------------------------
 
   const checkAuthenticated = state.user ? 'authenticated' : 'unauthenticated';
-
-  console.log({ state });
 
   const status = state.loading ? 'loading' : checkAuthenticated;
 

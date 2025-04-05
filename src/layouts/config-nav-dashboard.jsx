@@ -25,6 +25,7 @@ const ICONS = {
   kanban: icon('ic-kanban'),
   folder: icon('ic-folder'),
   course: icon('ic-course'),
+  connect: icon('mdi-api'),
   banking: icon('ic-banking'),
   booking: icon('ic-booking'),
   invoice: icon('ic-invoice'),
@@ -66,6 +67,11 @@ export const navData = [
     subheader: 'Management',
     roles: ['admin'],
     items: [
+      {
+        title: 'Connect',
+        path: paths.dashboard.connect,
+        icon: ICONS.connect,
+      },
       {
         title: 'User',
         path: paths.dashboard.user.root,

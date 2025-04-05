@@ -22,3 +22,19 @@ export function fetchShopifyProducts() {
       console.error('Fetch error:', e);
     });
 }
+
+// const tokenDoc = await admin.firestore()
+//   .collection('users')
+//   .doc(uid)
+//   .collection('tokens')
+//   .doc('shopify')
+//   .get();
+
+// const { access_token, shop } = tokenDoc.data();
+
+// const res = await fetch(`https://${shop}/admin/api/2023-10/products.json`, {
+//   headers: {
+//     'X-Shopify-Access-Token': access_token,
+//     'Content-Type': 'application/json',
+//   },
+// });
