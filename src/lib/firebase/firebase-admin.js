@@ -1,16 +1,10 @@
-import * as admin from 'firebase-admin';
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import admin from 'firebase-admin';
+import serviceAccount from '../../../service-account.json';
 
-console.log('outside');
 if (!admin.apps.length) {
-  console.log('hello');
-  const serviceAccount = JSON.parse(
-    readFileSync(join(process.cwd(), 'service-account.json'), 'utf8')
-  );
-
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
+    projectId: serviceAccount.project_id, // 👈 ensure project ID is passed explicitly
   });
 }
 

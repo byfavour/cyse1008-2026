@@ -41,7 +41,9 @@ export async function GET(request) {
         created_at: Date.now(),
       });
 
-    return NextResponse.redirect(`/test/shopify?connected=true`);
+    const baseUrl = process.env.BASE_URL || request.nextUrl.origin;
+    const redirectUrl = `${baseUrl}/dashboard/connect?provider=shopify&status=success`;
+    return NextResponse.redirect(redirectUrl);
   } catch (error) {
     console.error('❌ OAuth callback error:', error);
     return NextResponse.json(
