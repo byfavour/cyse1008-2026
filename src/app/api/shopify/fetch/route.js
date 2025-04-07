@@ -1,51 +1,45 @@
 import { NextResponse } from 'next/server';
+import admin from 'src/lib/firebase/firebase-admin';
 
-// Optional runtime override if you prefer Node over the Edge runtime
 export const runtime = 'nodejs';
 
-export async function GET() {
-  // 1) Read environment variables
-  const storeDomain = process.env.SHOPIFY_STORE_DOMAIN;
-  const adminToken = process.env.SHOPIFY_ADMIN_TOKEN;
-
-  if (!storeDomain || !adminToken) {
-    return NextResponse.json(
-      { error: 'Shopify environment variables not configured' },
-      { status: 500 }
-    );
-  }
-
+export async function GET(request) {
   try {
-    // 2) Construct the Shopify Admin API URL
-    // For example, listing products:
-    // https://<STORE_DOMAIN>/admin/api/2023-10/products.json
-    const url = `https://${storeDomain}/admin/api/2023-10/products.json`;
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+    if (!userId) return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
 
-    // 3) Make the request to Shopify
-    const shopifyResponse = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'X-Shopify-Access-Token': adminToken,
-        'Content-Type': 'application/json',
-      },
-      // If you want to ensure no caching in Next, you can do:
-      // next: { revalidate: 0 },
-    });
+    const tokenDoc = await admin
+      .firestore()
+      .collection('users')
+      .doc(userId)
+      .collection('tokens')
+      .doc('shopify')
+      .get();
 
-    // 4) Check for response errors
-    if (!shopifyResponse.ok) {
-      // Return whatever status Shopify gave, or handle it differently if desired
-      return NextResponse.json(
-        { error: `Shopify API error: ${shopifyResponse.statusText}` },
-        { status: shopifyResponse.status }
-      );
+    if (!tokenDoc.exists) {
+      return NextResponse.json({ error: 'Shopify token not found' }, { status: 404 });
     }
 
-    // 5) Parse and return the JSON data
-    const data = await shopifyResponse.json();
-    return NextResponse.json(data, { status: 200 });
+    const { access_token, shop } = tokenDoc.data();
+    const url = `https://${shop}/admin/api/2023-10/products.json`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'X-Shopify-Access-Token': access_token,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      return NextResponse.json({ error: response.statusText }, { status: response.status });
+    }
+
+    const data = await response.json();
+    return NextResponse.json(data);
   } catch (error) {
-    console.error('Error fetching Shopify products:', error);
-    return NextResponse.json({ error: 'Failed to fetch Shopify products' }, { status: 500 });
+    console.error('Error:', error);
+    return NextResponse.json({ error: 'Internal error', details: error.message }, { status: 500 });
   }
 }

@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { connectShopify } from 'src/lib/shopify/connect';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
@@ -12,6 +13,16 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import Button from '@mui/material/Button';
 
 export default function ShopifyConnectPage() {
+  const searchParams = useSearchParams();
+  const status = searchParams.get('status');
+
+  {
+    status === 'success' && (
+      <Alert severity="success" variant="outlined">
+        ✅ Shopify connected successfully!
+      </Alert>
+    );
+  }
   const [shop, setShop] = useState('');
   const [clientId, setClientId] = useState('');
   const [clientSecret, setClientSecret] = useState('');
