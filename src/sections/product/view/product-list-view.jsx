@@ -123,8 +123,13 @@ export function ProductListView() {
 
   const handleSyncShopify = useCallback(async () => {
     const productsFromShopify = await fetchShopifyProducts();
+    if (!Array.isArray(productsFromShopify)) {
+      toast.error(productsFromShopify?.error || 'Failed to fetch from Shopify');
+      return;
+    }
     setTableData((prev) => {
       const existingIds = new Set(prev.map((p) => p.id));
+      console.log({ productsFromShopify });
       const unique = productsFromShopify.filter((p) => !existingIds.has(p.id));
       return [...prev, ...unique];
     });

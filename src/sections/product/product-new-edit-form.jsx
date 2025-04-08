@@ -29,7 +29,7 @@ import {
 } from 'src/_mock';
 
 import { toast } from 'src/components/snackbar';
-import { Form, Field } from 'src/components/hook-form';
+import { Form, Field, schemaHelper } from 'src/components/hook-form';
 
 import { useAuthContext } from 'src/auth/hooks';
 
@@ -37,17 +37,16 @@ import { useAuthContext } from 'src/auth/hooks';
 
 export const NewProductSchema = zod.object({
   name: zod.string().min(1, { message: 'Name is required!' }),
-  // description: schemaHelper.editor({ message: { required_error: 'Description is required!' } }),
-  // images: schemaHelper.files({ message: { required_error: 'Images is required!' } }),
-  // code: zod.string().min(1, { message: 'Product code is required!' }),
-  // sku: zod.string().min(1, { message: 'Product sku is required!' }),
-  // quantity: zod.number().min(1, { message: 'Quantity is required!' }),
-  // colors: zod.string().array().nonempty({ message: 'Choose at least one option!' }),
-  // sizes: zod.string().array().nonempty({ message: 'Choose at least one option!' }),
-  // tags: zod.string().array().min(2, { message: 'Must have at least 2 items!' }),
-  // gender: zod.string().array().nonempty({ message: 'Choose at least one option!' }),
-  // price: zod.number().min(1, { message: 'Price should not be $0.00' }),
-  // Not required
+  description: schemaHelper.editor({ message: { required_error: 'Description is required!' } }),
+  images: schemaHelper.files({ message: { required_error: 'Images is required!' } }),
+  code: zod.string().min(1, { message: 'Product code is required!' }),
+  sku: zod.string().min(1, { message: 'Product sku is required!' }),
+  quantity: zod.number().min(1, { message: 'Quantity is required!' }),
+  colors: zod.string().array().nonempty({ message: 'Choose at least one option!' }),
+  sizes: zod.string().array().nonempty({ message: 'Choose at least one option!' }),
+  tags: zod.string().array().min(2, { message: 'Must have at least 2 items!' }),
+  gender: zod.string().array().nonempty({ message: 'Choose at least one option!' }),
+  price: zod.number().min(1, { message: 'Price should not be $0.00' }),
   category: zod.string(),
   priceSale: zod.number(),
   subDescription: zod.string(),

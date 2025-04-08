@@ -11,18 +11,19 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
 import Button from '@mui/material/Button';
+import Alert from '@mui/material/Alert';
 
 export default function ShopifyConnectPage() {
   const searchParams = useSearchParams();
   const status = searchParams.get('status');
 
-  {
-    status === 'success' && (
-      <Alert severity="success" variant="outlined">
-        ✅ Shopify connected successfully!
-      </Alert>
-    );
-  }
+  // {
+  //   status === 'success' && (
+  //     <Alert severity="success" variant="outlined">
+  //       ✅ Shopify connected successfully!
+  //     </Alert>
+  //   );
+  // }
   const [shop, setShop] = useState('');
   const [clientId, setClientId] = useState('');
   const [clientSecret, setClientSecret] = useState('');
@@ -99,6 +100,11 @@ export default function ShopifyConnectPage() {
           <Button variant="outlined" onClick={() => connectShopify(shop)}>
             Connect Shopify
           </Button>
+          {status === 'success' && (
+            <Alert severity="success" variant="outlined">
+              ✅ Shopify connected successfully!
+            </Alert>
+          )}
         </Stack>
       </Stack>
     </Card>
