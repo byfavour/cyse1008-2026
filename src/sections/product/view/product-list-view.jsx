@@ -123,13 +123,11 @@ export function ProductListView() {
 
   const handleSyncShopify = useCallback(async () => {
     const productsFromShopify = await fetchShopifyProducts();
-    console.log('Shopify Products:', productsFromShopify);
-    // setTableData((prev) => {
-    //   const existingIds = new Set(prev.map((p) => p.id));
-    //   const unique = productsFromShopify.filter((p) => !existingIds.has(p.id));
-    //   return [...prev, ...unique];
-    // });
-    console.log({ products });
+    setTableData((prev) => {
+      const existingIds = new Set(prev.map((p) => p.id));
+      const unique = productsFromShopify.filter((p) => !existingIds.has(p.id));
+      return [...prev, ...unique];
+    });
 
     toast.success(`Imported ${productsFromShopify.length} products from Shopify`);
   }, []);
