@@ -1,7 +1,7 @@
 // Normalize Shopify product to Quilt format
 export function normalizeShopifyProduct(product) {
   return {
-    id: `shopify-${product.id}`, // Local Quilt ID
+    id: `${product.id}`, // Local Quilt ID
     name: product.title,
     description: product.body_html,
     images: product.images?.map((img) => img.src),
