@@ -6,8 +6,11 @@ export const runtime = 'nodejs';
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
-  const userId = searchParams.get('userId');
-  if (!userId) return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
+  const userId = searchParams.get('uid');
+
+  if (!userId) {
+    return NextResponse.json({ error: 'Missing uid' }, { status: 400 });
+  }
 
   const tokenDoc = await admin
     .firestore()
@@ -22,14 +25,25 @@ export async function GET(request) {
   }
 
   const { access_token, shop } = tokenDoc.data();
-  const response = await fetch(`https://${shop}/admin/api/2023-10/products.json`, {
-    headers: {
-      'X-Shopify-Access-Token': access_token,
-      'Content-Type': 'application/json',
-    },
-  });
 
-  const { products } = await response.json();
-  const normalized = products.map(normalizeShopifyProduct);
-  return NextResponse.json(normalized);
+  try {
+    const res = await fetch(`https://${shop}/admin/api/2023-10/products.json`, {
+      headers: {
+        'X-Shopify-Access-Token': access_token,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(await res.text());
+    }
+
+    const data = await res.json();
+    const normalized = data.products.map(normalizeShopifyProduct);
+
+    return NextResponse.json(normalized, { status: 200 });
+  } catch (error) {
+    console.error('❌ Shopify fetch error:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 }

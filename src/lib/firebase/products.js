@@ -1,5 +1,14 @@
 // products.js
-import { doc, addDoc, getDoc, getDocs, updateDoc, deleteDoc, collection } from 'firebase/firestore';
+import {
+  doc,
+  addDoc,
+  getDoc,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+  collection,
+  serverTimestamp,
+} from 'firebase/firestore';
 
 import { db } from './firebase';
 
@@ -7,7 +16,12 @@ const productsCollectionRef = collection(db, 'products');
 
 export async function addProduct(productData) {
   try {
-    const docRef = await addDoc(productsCollectionRef, productData);
+    const payload = {
+      ...productData,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    };
+    const docRef = await addDoc(productsCollectionRef, payload);
     return docRef.id;
   } catch (error) {
     console.error('Error adding product: ', error);
@@ -18,8 +32,12 @@ export async function addProduct(productData) {
 // Update Product
 export async function updateProduct(productId, updatedData) {
   try {
+    const payload = {
+      ...updatedData,
+      updatedAt: serverTimestamp(),
+    };
     const productDocRef = doc(db, 'products', productId);
-    await updateDoc(productDocRef, updatedData);
+    await updateDoc(productDocRef, payload);
   } catch (error) {
     console.error('Error updating product: ', error);
     throw error;

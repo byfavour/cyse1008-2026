@@ -1,10 +1,12 @@
-// Normalize Shopify product to Quilt format
 export function normalizeShopifyProduct(product) {
   return {
-    id: `${product.id}`, // Local Quilt ID
-    name: product.title,
+    title: product.title,
+    handle: product.handle,
+    shopifyId: product.id.toString(),
     description: product.body_html,
-    images: product.images?.map((img) => img.src),
+    vendor: product.vendor,
+    tags: product.tags?.split(',').map((t) => t.trim()) || [],
+    images: product.images?.map((img) => img.src) || [],
     variants: product.variants.map((v) => ({
       id: v.id.toString(),
       title: v.title,
@@ -20,6 +22,12 @@ export function normalizeShopifyProduct(product) {
       createdAt: v.created_at,
       updatedAt: v.updated_at,
     })),
+    options: product.options.map((opt) => ({
+      name: opt.name,
+      values: opt.values,
+    })),
+    createdAt: product.created_at,
+    updatedAt: product.updated_at,
     source: 'shopify',
     integrations: {
       shopify: {
@@ -27,7 +35,5 @@ export function normalizeShopifyProduct(product) {
         updated_at: product.updated_at,
       },
     },
-    createdAt: product.created_at,
-    updatedAt: product.updated_at,
   };
 }
