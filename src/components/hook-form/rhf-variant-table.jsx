@@ -1,8 +1,7 @@
-
 'use client';
 
 import { useFieldArray, useFormContext, Controller } from 'react-hook-form';
-import { useMemo } from 'react';
+// import { useMemo } from 'react';
 import {
   Table,
   TableRow,
@@ -18,8 +17,9 @@ import {
   CardHeader,
   Divider,
 } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
+import { Iconify } from '../../components/iconify';
+// import DeleteIcon from '@mui/icons-material/Delete';
+// import AddIcon from '@mui/icons-material/Add';
 
 // ----------------------------------------------------------------------
 
@@ -52,7 +52,7 @@ export default function RHFVariantTable({ name = 'variants', optionNames = ['Siz
       <Stack spacing={2} sx={{ p: 3 }}>
         <Button
           variant="outlined"
-          startIcon={<AddIcon />}
+          startIcon={<Iconify icon="eva:arrow-ios-back-fill" width={16} />}
           onClick={handleAdd}
           sx={{ alignSelf: 'flex-start' }}
         >
@@ -118,7 +118,8 @@ export default function RHFVariantTable({ name = 'variants', optionNames = ['Siz
                 </TableCell>
                 <TableCell>
                   <IconButton color="error" onClick={() => remove(index)}>
-                    <DeleteIcon />
+                    {/* <DeleteIcon /> */}
+                    <Iconify icon="eva:arrow-ios-back-fill" width={16} />
                   </IconButton>
                 </TableCell>
               </TableRow>
