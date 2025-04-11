@@ -40,10 +40,18 @@ export const NewProductSchema = zod.object({
   description: schemaHelper.editor({ message: { required_error: 'Description is required!' } }),
   images: schemaHelper.files({ message: { required_error: 'Images is required!' } }),
   code: zod.string().min(1, { message: 'Product code is required!' }),
-  sku: zod.string().min(1, { message: 'Product sku is required!' }),
-  quantity: zod.number().min(1, { message: 'Quantity is required!' }),
-  colors: zod.string().array().nonempty({ message: 'Choose at least one option!' }),
-  sizes: zod.string().array().nonempty({ message: 'Choose at least one option!' }),
+  variants: zod
+    .array(
+      zod.object({
+        title: zod.string().min(1),
+        sku: zod.string().min(1),
+        price: zod.number().min(0),
+        quantity: zod.number().min(0),
+        options: zod.record(zod.string(), zod.string()), // { Size: 'M', Color: 'Red' }
+      })
+    )
+    .nonempty('At least one variant is required.'),
+  options: zod.string().array().nonempty('At least one option is required.'), // ['Size', 'Color']
   tags: zod.string().array().min(2, { message: 'Must have at least 2 items!' }),
   gender: zod.string().array().nonempty({ message: 'Choose at least one option!' }),
   price: zod.number().min(1, { message: 'Price should not be $0.00' }),
