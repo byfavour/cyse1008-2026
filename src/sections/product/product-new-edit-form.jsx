@@ -155,7 +155,7 @@ export function ProductNewEditForm({ currentProduct }) {
         ...data,
         images,
       };
-      console.log({ productData });
+
       if (currentProduct) {
         await updateProduct(currentProduct.id, productData);
         toast.success('Update successful!');
