@@ -340,6 +340,14 @@ export function ProductNewEditForm({ currentProduct }) {
           <Field.MultiCheckbox row name="gender" options={PRODUCT_GENDER_OPTIONS} sx={{ gap: 2 }} />
         </Stack>
 
+        <Stack spacing={3}>
+          <Field.VariantTable
+            name="variants"
+            optionNames={values.options}
+            defaultPrice={values.price}
+          />
+        </Stack>
+
         <Divider sx={{ borderStyle: 'dashed' }} />
 
         <Stack direction="row" alignItems="center" spacing={3}>
@@ -454,9 +462,9 @@ export function ProductNewEditForm({ currentProduct }) {
       <Stack spacing={{ xs: 3, md: 5 }} sx={{ mx: 'auto', maxWidth: { xs: 720, xl: 880 } }}>
         {renderDetails}
 
-        {renderProperties}
-
         {renderPricing}
+
+        {renderProperties}
 
         {renderActions}
       </Stack>

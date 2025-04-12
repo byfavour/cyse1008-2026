@@ -1,141 +1,230 @@
 'use client';
 
-import { useFieldArray, useFormContext, Controller } from 'react-hook-form';
-// import { useMemo } from 'react';
 import {
+  Box,
+  Stack,
+  Button,
+  TextField,
+  IconButton,
+  Typography,
   Table,
   TableRow,
   TableBody,
   TableCell,
   TableHead,
-  IconButton,
-  TextField,
-  Stack,
-  Typography,
-  Button,
-  Card,
-  CardHeader,
+  TableContainer,
+  Paper,
   Divider,
+  Chip,
 } from '@mui/material';
-import { Iconify } from '../../components/iconify';
-// import DeleteIcon from '@mui/icons-material/Delete';
-// import AddIcon from '@mui/icons-material/Add';
 
-// ----------------------------------------------------------------------
+import { useFieldArray, useFormContext, Controller } from 'react-hook-form';
+import { Autocomplete } from '@mui/material';
+import { useEffect, useRef, useState } from 'react';
+import { Iconify } from 'src/components/iconify';
 
-export default function RHFVariantTable({ name = 'variants', optionNames = ['Size', 'Color'] }) {
+// ------------------------------
+// Suggested option values
+const OPTION_PRESETS = {
+  Size: ['XS', 'Small', 'Medium', 'Large', 'XL', 'XXL'],
+  Color: ['Red', 'Green', 'Blue', 'Black', 'White'],
+  Material: ['Cotton', 'Polyester', 'Wool', 'Silk'],
+};
+
+// Utility: cartesian product of option values
+function cartesianProduct(arrays) {
+  return arrays.reduce((a, b) => a.flatMap((d) => b.map((e) => [...d, e])), [[]]);
+}
+
+export function RHFVariantTable({ defaultPrice = 0 }) {
   const { control, watch, setValue } = useFormContext();
-  const { fields, append, remove } = useFieldArray({ control, name });
 
-  const handleAdd = () => {
-    const defaultOptions = Object.fromEntries(optionNames.map((key) => [key, '']));
-    append({
-      id: Date.now().toString(),
-      title: '',
-      sku: '',
-      price: '',
-      quantity: '',
-      options: defaultOptions,
-    });
-  };
+  const {
+    fields: optionFields,
+    append: appendOption,
+    remove: removeOption,
+    update: updateOption,
+  } = useFieldArray({ control, name: 'options' });
 
-  const handleOptionChange = (index, key, value) => {
-    const current = [...watch(name)];
-    current[index].options[key] = value;
-    setValue(name, current, { shouldDirty: true });
-  };
+  const { fields: variantFields, replace: replaceVariants } = useFieldArray({
+    control,
+    name: 'variants',
+  });
+
+  const options = watch('options');
+
+  const lastOptionsRef = useRef([]);
+
+  // On option update, regenerate variants if structure changed
+  useEffect(() => {
+    const hasValidOptions = Array.isArray(options) && options.every((o) => o?.values?.length);
+
+    if (!hasValidOptions) return;
+
+    const optionValues = options?.map((o) => o.values.join(',')).join('|');
+    const lastOptionValues = lastOptionsRef.current?.map((o) => o.values.join(',')).join('|');
+
+    if (optionValues !== lastOptionValues) {
+      lastOptionsRef.current = options.map((o) => ({
+        ...o,
+        values: [...o.values], // deep copy array
+      }));
+
+      const valueArrays = options.map((opt) => (Array.isArray(opt.values) ? opt.values : []));
+      const permutations = cartesianProduct(valueArrays);
+
+      const newVariants = permutations.map((combo) => {
+        const optionsMap = {};
+        combo.forEach((value, idx) => {
+          const key = options[idx]?.name || `Option${idx + 1}`;
+          optionsMap[key] = value;
+        });
+
+        return {
+          title: Object.values(optionsMap).join(' / '),
+          sku: '',
+          price: defaultPrice,
+          quantity: 0,
+          options: optionsMap,
+        };
+      });
+
+      replaceVariants(newVariants);
+    }
+  }, [options, replaceVariants]);
 
   return (
-    <Card>
-      <CardHeader title="Variants" subheader="Define multiple options for this product" />
-      <Divider />
-      <Stack spacing={2} sx={{ p: 3 }}>
+    <Stack spacing={3}>
+      <Typography variant="h6">Variants</Typography>
+
+      {/* Option UI */}
+      <Stack spacing={2}>
+        {optionFields.map((field, index) => (
+          <Box key={field.id} sx={{ p: 2, border: '1px solid #ccc', borderRadius: 1 }}>
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              {/* Autocomplete for option name */}
+              <Controller
+                name={`options.${index}.name`}
+                control={control}
+                render={({ field: nameField }) => (
+                  <Autocomplete
+                    freeSolo
+                    options={Object.keys(OPTION_PRESETS)}
+                    value={nameField.value}
+                    onChange={(_, newValue) => {
+                      nameField.onChange(newValue);
+                      const suggestedValues = OPTION_PRESETS[newValue] || [];
+                      updateOption(index, {
+                        ...optionFields[index],
+                        name: newValue,
+                        values: suggestedValues,
+                      });
+                    }}
+                    onInputChange={(_, val) => nameField.onChange(val)}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Option name" fullWidth />
+                    )}
+                    sx={{ width: '100%' }}
+                  />
+                )}
+              />
+
+              <IconButton onClick={() => removeOption(index)} color="error">
+                <Iconify icon="solar:trash-bin-trash-bold" />
+              </IconButton>
+            </Stack>
+
+            {/* Autocomplete for option values */}
+            <Controller
+              name={`options.${index}.values`}
+              control={control}
+              defaultValue={[]}
+              render={({ field: valuesField }) => (
+                <Autocomplete
+                  multiple
+                  freeSolo
+                  options={OPTION_PRESETS[optionFields[index]?.name] || []}
+                  value={valuesField.value || []}
+                  onChange={(_, newValues) => {
+                    valuesField.onChange(newValues);
+                    updateOption(index, {
+                      ...optionFields[index],
+                      values: newValues,
+                    });
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Option values"
+                      placeholder="Add a value and press enter"
+                      sx={{ mt: 2 }}
+                    />
+                  )}
+                  renderTags={(selected, getTagProps) =>
+                    selected.map((option, idx) => (
+                      <Chip
+                        {...getTagProps({ index: idx })}
+                        key={option}
+                        label={option}
+                        size="small"
+                        color="info"
+                        variant="soft"
+                      />
+                    ))
+                  }
+                />
+              )}
+            />
+          </Box>
+        ))}
+
         <Button
           variant="outlined"
-          startIcon={<Iconify icon="eva:arrow-ios-back-fill" width={16} />}
-          onClick={handleAdd}
-          sx={{ alignSelf: 'flex-start' }}
+          startIcon={<Iconify icon="solar:add-circle-bold" />}
+          onClick={() => appendOption({ name: '', values: [] })}
         >
-          Add Variant
+          Add another option
         </Button>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Title</TableCell>
-              {optionNames.map((key) => (
-                <TableCell key={key}>{key}</TableCell>
-              ))}
-              <TableCell>SKU</TableCell>
-              <TableCell>Price</TableCell>
-              <TableCell>Quantity</TableCell>
-              <TableCell />
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {fields.map((item, index) => (
-              <TableRow key={item.id}>
-                <TableCell>
-                  <Controller
-                    name={`${name}.${index}.title`}
-                    control={control}
-                    render={({ field }) => <TextField fullWidth size="small" {...field} />}
-                  />
-                </TableCell>
-                {optionNames.map((key) => (
-                  <TableCell key={key}>
-                    <TextField
-                      fullWidth
-                      size="small"
-                      value={watch(`${name}.${index}.options.${key}`) || ''}
-                      onChange={(e) => handleOptionChange(index, key, e.target.value)}
-                    />
-                  </TableCell>
-                ))}
-                <TableCell>
-                  <Controller
-                    name={`${name}.${index}.sku`}
-                    control={control}
-                    render={({ field }) => <TextField fullWidth size="small" {...field} />}
-                  />
-                </TableCell>
-                <TableCell>
-                  <Controller
-                    name={`${name}.${index}.price`}
-                    control={control}
-                    render={({ field }) => (
-                      <TextField fullWidth size="small" type="number" {...field} />
-                    )}
-                  />
-                </TableCell>
-                <TableCell>
-                  <Controller
-                    name={`${name}.${index}.quantity`}
-                    control={control}
-                    render={({ field }) => (
-                      <TextField fullWidth size="small" type="number" {...field} />
-                    )}
-                  />
-                </TableCell>
-                <TableCell>
-                  <IconButton color="error" onClick={() => remove(index)}>
-                    {/* <DeleteIcon /> */}
-                    <Iconify icon="eva:arrow-ios-back-fill" width={16} />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-            {fields.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={6}>
-                  <Typography variant="body2" sx={{ py: 2, color: 'text.secondary' }}>
-                    No variants added yet.
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
       </Stack>
-    </Card>
+
+      {/* Variant table */}
+      {variantFields.length > 0 && (
+        <>
+          <Divider />
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Variant</TableCell>
+                  <TableCell>Price</TableCell>
+                  <TableCell>Available</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {variantFields.map((variant, i) => (
+                  <TableRow key={variant.id}>
+                    <TableCell>{variant.title}</TableCell>
+                    <TableCell>
+                      <Controller
+                        name={`variants.${i}.price`}
+                        control={control}
+                        render={({ field }) => <TextField type="number" size="small" {...field} />}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Controller
+                        name={`variants.${i}.quantity`}
+                        control={control}
+                        render={({ field }) => <TextField type="number" size="small" {...field} />}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </>
+      )}
+    </Stack>
   );
 }
