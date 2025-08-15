@@ -48,6 +48,7 @@ export const NewProductSchema = zod.object({
         price: zod.number().min(0),
         quantity: zod.number().min(0),
         options: zod.record(zod.string(), zod.string()), // { Size: 'M', Color: 'Red' }
+        image: schemaHelper.files({ message: { required_error: 'Images is required!' } }),
       })
     )
     .nonempty('At least one variant is required.'),
@@ -345,6 +346,7 @@ export function ProductNewEditForm({ currentProduct }) {
             name="variants"
             optionNames={values.options}
             defaultPrice={values.price}
+            user={user}
           />
         </Stack>
 

@@ -28,6 +28,8 @@ export function Upload({
   onRemoveAll,
   className,
   multiple = false,
+  uploadPlaceholderIcon,
+  uploadPlaceholderLabel,
   ...other
 }) {
   const { getRootProps, getInputProps, isDragActive, isDragReject, fileRejections } = useDropzone({
@@ -146,7 +148,11 @@ export function Upload({
         <input {...getInputProps()} />
 
         {/* Single file */}
-        {hasFile ? <SingleFilePreview file={value} /> : <UploadPlaceholder />}
+        {hasFile ? (
+          <SingleFilePreview file={value} />
+        ) : (
+          <UploadPlaceholder icon={uploadPlaceholderIcon} label={uploadPlaceholderLabel} />
+        )}
       </Box>
 
       {/* Single file */}

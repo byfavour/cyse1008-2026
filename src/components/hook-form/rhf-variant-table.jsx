@@ -20,8 +20,10 @@ import {
 
 import { useFieldArray, useFormContext, Controller } from 'react-hook-form';
 import { Autocomplete } from '@mui/material';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { Iconify } from 'src/components/iconify';
+import { uploadImagesToLibrary } from 'src/lib/firebase/storage';
+import { Field } from 'src/components/hook-form';
 
 // ------------------------------
 // Suggested option values
@@ -36,7 +38,7 @@ function cartesianProduct(arrays) {
   return arrays.reduce((a, b) => a.flatMap((d) => b.map((e) => [...d, e])), [[]]);
 }
 
-export function RHFVariantTable({ defaultPrice = 0 }) {
+export function RHFVariantTable({ user, defaultPrice = 0 }) {
   const { control, watch, setValue } = useFormContext();
 
   const {
@@ -92,6 +94,45 @@ export function RHFVariantTable({ defaultPrice = 0 }) {
       replaceVariants(newVariants);
     }
   }, [options, replaceVariants]);
+
+  const handleOnUpload = useCallback(
+    async (event) => {
+      let files = [];
+
+      if (Array.isArray(event)) {
+        files = event;
+      } else if (event?.files) {
+        files = Array.from(event.files);
+      } else if (event?.target?.files) {
+        files = Array.from(event.target.files);
+      } else if (event?.dataTransfer?.files) {
+        files = Array.from(event.dataTransfer.files);
+      }
+
+      if (!files.length) {
+        console.warn('No files to upload');
+        return;
+      }
+
+      try {
+        const uploadedUrls = await uploadImagesToLibrary(user.id, files);
+        setValue('images', uploadedUrls, {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
+      } catch (error) {
+        console.error('Upload failed:', error);
+      }
+    },
+    [user.id, setValue]
+  );
+
+  const handleRemoveImage = useCallback(
+    (i) => () => {
+      setValue(`variants.${i}.image`, '', { shouldValidate: true, shouldDirty: true });
+    },
+    [setValue]
+  );
 
   return (
     <Stack spacing={3}>
@@ -196,6 +237,7 @@ export function RHFVariantTable({ defaultPrice = 0 }) {
               <TableHead>
                 <TableRow>
                   <TableCell>Variant</TableCell>
+                  <TableCell>Image</TableCell>
                   <TableCell>Price</TableCell>
                   <TableCell>Available</TableCell>
                 </TableRow>
@@ -204,6 +246,18 @@ export function RHFVariantTable({ defaultPrice = 0 }) {
                 {variantFields.map((variant, i) => (
                   <TableRow key={variant.id}>
                     <TableCell>{variant.title}</TableCell>
+                    <TableCell sx={{ width: 64 }}>
+                      <Field.Upload
+                        thumbnail
+                        // value={field.value}
+                        name="images"
+                        onUpload={handleOnUpload(i)}
+                        onDelete={handleRemoveImage(i)}
+                        uploadPlaceholderIcon="solar:image-add-bold"
+                        uploadPlaceholderLabel=""
+                      />
+                    </TableCell>
+
                     <TableCell>
                       <Controller
                         name={`variants.${i}.price`}
