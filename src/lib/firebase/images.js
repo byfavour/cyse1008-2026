@@ -1,50 +1,36 @@
-// src/lib/firebase/images.js
+import admin, { db, bucket } from 'src/lib/firebase/firebase-admin';
 
-import { collection, addDoc, getDocs, query, orderBy, serverTimestamp } from 'firebase/firestore';
-import { db } from './firebase';
-
-// top‑level “images” collection
-const imagesCollectionRef = collection(db, 'images');
-
-/**
- * Save one image‑metadata record to Firestore.
- *
- * @param {{
- *   imageUrl: string,
- *   filePath: string,
- *   uploadedBy: string,
- *   associatedEntityId?: string | null
- * }} imageData
- * @returns {Promise<string>} the new document’s ID
- */
-export async function saveImageMeta(imageData) {
-  try {
-    const payload = {
-      ...imageData,
-      createdAt: serverTimestamp(),
-    };
-    const docRef = await addDoc(imagesCollectionRef, payload);
-    return docRef.id;
-  } catch (error) {
-    console.error('Error saving image metadata:', error);
-    throw error;
-  }
+export async function saveImageMeta({
+  ownerId,
+  filePath,
+  contentType,
+  visibility = 'private',
+  extra = {},
+}) {
+  const docRef = await db.collection('images').add({
+    ownerId,
+    filePath,
+    contentType,
+    visibility,
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    ...extra,
+  });
+  return docRef.id;
 }
 
-/**
- * List all image‑metadata records, newest first.
- * @returns {Promise<Array<{ id: string, imageUrl: string, filePath: string, uploadedBy: string, associatedEntityId?: string, createdAt: any }>>}
- */
-export async function listImageMeta() {
-  try {
-    const q = query(imagesCollectionRef, orderBy('createdAt', 'desc'));
-    const snap = await getDocs(q);
-    return snap.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-  } catch (error) {
-    console.error('Error listing image metadata:', error);
-    throw error;
-  }
+export async function listImagesByOwner(ownerId) {
+  const snap = await db
+    .collection('images')
+    .where('ownerId', '==', ownerId)
+    .orderBy('createdAt', 'desc')
+    .get();
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export async function getImageSignedUrl(filePath, expiresInSeconds = 3600) {
+  const [url] = await bucket.file(filePath).getSignedUrl({
+    action: 'read',
+    expires: Date.now() + expiresInSeconds * 1000,
+  });
+  return url;
 }
