@@ -1,30 +1,65 @@
-import { uploadImageToLibrary } from 'src/lib/firebase/storage';
-import { saveImageMeta, listImageMeta } from 'src/lib/firebase/images';
+// src/app/api/images/route.js
+import { NextResponse } from 'next/server';
+import admin, { bucket } from 'src/lib/firebase/firebase-admin';
+import { saveImageMeta, listImagesByOwner, getImageSignedUrl } from 'src/lib/firebase/images';
+
+export const runtime = 'nodejs';
+
+async function getAuthUid(request) {
+  const auth = request.headers.get('authorization') || '';
+  if (!auth.toLowerCase().startsWith('bearer ')) return null;
+  const token = auth.slice(7);
+  try {
+    const decoded = await admin.auth().verifyIdToken(token);
+    return decoded.uid;
+  } catch (e) {
+    return null;
+  }
+}
 
 export async function POST(request) {
+  const uid = await getAuthUid(request);
+  if (!uid) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const form = await request.formData();
   const files = form.getAll('files');
-  const results = [];
+  if (!files || files.length === 0) {
+    return NextResponse.json({ error: 'No files' }, { status: 400 });
+  }
 
+  const results = [];
   for (const file of files) {
-    const arr = await file.arrayBuffer();
-    // 1) do the actual upload+per‑user Firestore write:
-    const downloadURL = await uploadImageToLibrary(userId, file);
-    // uploadImageToLibrary already writes under users/{userId}/images,
-    // but if you also want a global index, save here:
-    const docId = await saveImageMeta({
-      imageUrl: downloadURL,
-      filePath: `images/library/${userId}/${file.name}`,
-      uploadedBy: userId,
-      associatedEntityId: null,
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const contentType = file.type || 'application/octet-stream';
+    const safeName = (file.name || `upload_${Date.now()}`).replace(/[^\w.\-]+/g, '_');
+    const filePath = `images/library/${uid}/${Date.now()}_${safeName}`;
+
+    const gcsFile = bucket.file(filePath);
+    await gcsFile.save(buffer, {
+      resumable: false,
+      contentType,
+      metadata: {
+        metadata: { ownerId: uid, visibility: 'private' },
+        cacheControl: 'public, max-age=31536000, immutable',
+      },
     });
-    results.push({ id: docId, url: downloadURL });
+
+    const id = await saveImageMeta({ ownerId: uid, filePath, contentType, visibility: 'private' });
+    const url = await getImageSignedUrl(filePath, 3600);
+    results.push({ id, filePath, url });
   }
 
   return NextResponse.json({ images: results }, { status: 201 });
 }
 
-export async function GET() {
-  const images = await listImageMeta();
-  return NextResponse.json({ images });
+export async function GET(request) {
+  const uid = await getAuthUid(request);
+  if (!uid) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const images = await listImagesByOwner(uid);
+  const withUrls = await Promise.all(
+    images.map(async (img) => ({ ...img, url: await getImageSignedUrl(img.filePath, 3600) }))
+  );
+  return NextResponse.json({ images: withUrls });
 }
