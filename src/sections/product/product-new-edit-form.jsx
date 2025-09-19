@@ -38,7 +38,7 @@ import { useAuthContext } from 'src/auth/hooks';
 export const NewProductSchema = zod.object({
   name: zod.string().min(1, { message: 'Name is required!' }),
   description: schemaHelper.editor({ message: { required_error: 'Description is required!' } }),
-  images: schemaHelper.files({ message: { required_error: 'Images is required!' } }),
+  images: schemaHelper.files({ minFiles: 1, message: { required_error: 'Images is required!' } }),
   code: zod.string().min(1, { message: 'Product code is required!' }),
   variants: zod
     .array(
@@ -53,7 +53,7 @@ export const NewProductSchema = zod.object({
     )
     .nonempty('At least one variant is required.'),
   options: zod.string().array().nonempty('At least one option is required.'), // ['Size', 'Color']
-  tags: zod.string().array().min(2, { message: 'Must have at least 2 items!' }),
+  //  tags: zod.string().array().min(2, { message: 'Must have at least 2 items!' }),
   gender: zod.string().array().nonempty({ message: 'Choose at least one option!' }),
   price: zod.number().min(1, { message: 'Price should not be $0.00' }),
   category: zod.string(),
@@ -106,6 +106,11 @@ export function ProductNewEditForm({ currentProduct }) {
     defaultValues,
   });
 
+  const onInvalid = (errors) => {
+    console.log('❌ Validation errors:', errors);
+    toast.error('Please fix the highlighted fields.');
+  };
+
   const {
     reset,
     watch,
@@ -137,6 +142,7 @@ export function ProductNewEditForm({ currentProduct }) {
   }, [currentProduct?.taxes, includeTaxes, setValue]);
 
   const onSubmit = handleSubmit(async (data) => {
+    console.log({ data });
     try {
       await trigger('images'); // Ensure images field is up-to-date
       let images = [];
@@ -158,6 +164,7 @@ export function ProductNewEditForm({ currentProduct }) {
       };
 
       if (currentProduct) {
+        console.log({ currentProduct });
         await updateProduct(currentProduct.id, productData);
         toast.success('Update successful!');
       } else {
@@ -180,7 +187,6 @@ export function ProductNewEditForm({ currentProduct }) {
       let files = [];
 
       if (Array.isArray(event)) {
-        // 🔥 Your case: Event itself is an array of files
         files = event;
       } else if (event.files) {
         files = Array.from(event.files);
@@ -454,13 +460,13 @@ export function ProductNewEditForm({ currentProduct }) {
       />
 
       <LoadingButton type="submit" variant="contained" size="large" loading={isSubmitting}>
-        {!currentProduct ? 'Create product' : 'Save changes'}
+        {!currentProduct ? 'Create product!!' : 'Save changes'}
       </LoadingButton>
     </Stack>
   );
 
   return (
-    <Form methods={methods} onSubmit={onSubmit}>
+    <Form methods={methods} onSubmit={methods.handleSubmit(onSubmit, onInvalid)}>
       <Stack spacing={{ xs: 3, md: 5 }} sx={{ mx: 'auto', maxWidth: { xs: 720, xl: 880 } }}>
         {renderDetails}
 
