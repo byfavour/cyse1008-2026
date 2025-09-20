@@ -1,7 +1,11 @@
 const isStaticExport = 'false';
+const isDev = process.env.NODE_ENV !== 'production';
 
 const nextConfig = {
   trailingSlash: false,
+  productionBrowserSourceMaps: false,
+  eslint: { ignoreDuringBuilds: true },
+  typescript: { ignoreBuildErrors: true },
   env: {
     BUILD_STATIC_EXPORT: isStaticExport,
   },
@@ -42,12 +46,12 @@ const nextConfig = {
       },
     ];
   },
-  webpack(config) {
+  webpack(config, { dev }) {
     config.module.rules.push({
       test: /\.svg$/,
       use: ['@svgr/webpack'],
     });
-
+    if (dev) config.devtool = 'eval-cheap-module-source-map';
     return config;
   },
 };

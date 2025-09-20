@@ -124,7 +124,10 @@ export function ProductNewEditForm({ currentProduct }) {
     formState: { isSubmitting },
   } = methods;
 
-  const values = watch();
+  // const values = watch();
+  // const values = watch(); // ❌ causes re-render on every keystroke for ALL fields
+  const options = watch('options'); // ✅ just what VariantTable needs
+  const price = watch('price'); // ✅ if VariantTable needs default price
 
   useEffect(() => {
     if (currentProduct) {
@@ -133,12 +136,8 @@ export function ProductNewEditForm({ currentProduct }) {
   }, [currentProduct, defaultValues, reset]);
 
   useEffect(() => {
-    if (includeTaxes) {
-      setValue('taxes', 0);
-    } else {
-      setValue('taxes', currentProduct?.taxes || 0);
-    }
-  }, [currentProduct?.taxes, includeTaxes, setValue]);
+    setValue('taxes', includeTaxes ? 0 : (currentProduct?.taxes ?? 0));
+  }, [includeTaxes, setValue]);
 
   useEffect(() => {
     if (methods.formState.isSubmitted) {
@@ -174,6 +173,7 @@ export function ProductNewEditForm({ currentProduct }) {
       const productData = {
         ...data,
         images,
+        ownerId: user.id || user.uid,
         variants: normalizedVariants,
       };
 
@@ -363,8 +363,8 @@ export function ProductNewEditForm({ currentProduct }) {
         <Stack spacing={3}>
           <Field.VariantTable
             name="variants"
-            optionNames={values.options}
-            defaultPrice={values.price}
+            optionNames={options}
+            defaultPrice={price}
             user={user}
           />
         </Stack>
