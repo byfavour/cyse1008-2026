@@ -45,6 +45,7 @@ import {
 } from '../product-table-row';
 
 import { fetchShopifyProducts } from 'src/lib/shopify/fetch-products';
+import { toDate } from 'src/utils/dates';
 
 // ----------------------------------------------------------------------
 
@@ -58,6 +59,16 @@ const HIDE_COLUMNS = { category: false };
 const HIDE_COLUMNS_TOGGLABLE = ['category', 'actions'];
 
 // ----------------------------------------------------------------------
+
+function normalizeProduct(p) {
+  // Prefer your field, fall back to Shopify’s created_at
+  const raw = p.createdAt ?? p.created_at ?? p.createdAtMs ?? null;
+  const d = toDate(raw);
+  return {
+    ...p,
+    createdAtMs: d ? d.getTime() : null,
+  };
+}
 
 export function ProductListView() {
   const confirmRows = useBoolean();
@@ -77,7 +88,7 @@ export function ProductListView() {
 
   useEffect(() => {
     if (products.length) {
-      setTableData(products);
+      setTableData(products.map(normalizeProduct));
     }
   }, [products]);
 
@@ -129,11 +140,11 @@ export function ProductListView() {
     }
     setTableData((prev) => {
       const existingIds = new Set(prev.map((p) => p.id));
-      console.log({ productsFromShopify });
-      const unique = productsFromShopify.filter((p) => !existingIds.has(p.id));
+      const unique = productsFromShopify
+        .filter((p) => !existingIds.has(p.id))
+        .map(normalizeProduct);
       return [...prev, ...unique];
     });
-
     toast.success(`Imported ${productsFromShopify.length} products from Shopify`);
   }, []);
 

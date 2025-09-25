@@ -77,7 +77,7 @@
     "aws-amplify": "^6.5.1",
     "axios": "^1.7.4",
     "cross-env": "^7.0.3",
-    "dayjs": "^1.11.13",
+    "dayjs": "^1.11.18",
     "embla-carousel": "^8.2.0",
     "embla-carousel-auto-height": "^8.2.0",
     "embla-carousel-auto-scroll": "^8.2.0",
