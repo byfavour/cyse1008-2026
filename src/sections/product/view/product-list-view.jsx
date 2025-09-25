@@ -166,7 +166,7 @@ export function ProductListView() {
     },
     {
       field: 'createdAt',
-      headerName: 'Create at',
+      headerName: 'Created at',
       width: 160,
       renderCell: (params) => <RenderCellCreatedAt params={params} />,
     },
