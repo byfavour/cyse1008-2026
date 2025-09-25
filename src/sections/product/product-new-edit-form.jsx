@@ -128,6 +128,9 @@ export function ProductNewEditForm({ currentProduct }) {
   // const values = watch(); // ❌ causes re-render on every keystroke for ALL fields
   const options = watch('options'); // ✅ just what VariantTable needs
   const price = watch('price'); // ✅ if VariantTable needs default price
+  const images = watch('images') || [];
+  const saleLabelEnabled = watch('saleLabel.enabled');
+  const newLabelEnabled = watch('newLabel.enabled');
 
   useEffect(() => {
     if (currentProduct) {
@@ -149,6 +152,8 @@ export function ProductNewEditForm({ currentProduct }) {
     try {
       await trigger('images');
       const images = getValues('images') || [];
+      const saleLabelEnabled = watch('saleLabel.enabled') || false;
+      const newLabelEnabled = watch('newLabel.enabled') || false;
 
       if (!Array.isArray(images) || images.length === 0) {
         toast.error('Please upload at least one image.');
@@ -230,14 +235,14 @@ export function ProductNewEditForm({ currentProduct }) {
 
   const handleRemoveFile = useCallback(
     (fileUrl) => {
-      const filtered = values.images && values.images?.filter((url) => url !== fileUrl);
-      setValue('images', filtered);
+      const filtered = images.filter((url) => url !== fileUrl);
+      setValue('images', filtered, { shouldValidate: true, shouldDirty: true });
     },
-    [setValue, values.images]
+    [images, setValue]
   );
 
   const handleRemoveAllFiles = useCallback(() => {
-    setValue('images', [], { shouldValidate: true });
+    setValue('images', [], { shouldValidate: true, shouldDirty: true });
   }, [setValue]);
 
   const handleChangeIncludeTaxes = useCallback((event) => {
@@ -377,7 +382,7 @@ export function ProductNewEditForm({ currentProduct }) {
             name="saleLabel.content"
             label="Sale label"
             fullWidth
-            disabled={!values.saleLabel.enabled}
+            disabled={!saleLabelEnabled}
           />
         </Stack>
 
@@ -387,7 +392,7 @@ export function ProductNewEditForm({ currentProduct }) {
             name="newLabel.content"
             label="New label"
             fullWidth
-            disabled={!values.newLabel.enabled}
+            disabled={!newLabelEnabled}
           />
         </Stack>
       </Stack>
