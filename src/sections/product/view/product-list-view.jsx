@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import dayjs from 'dayjs';
 
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
@@ -176,10 +177,15 @@ export function ProductListView() {
       ),
     },
     {
-      field: 'createdAt',
+      field: 'createdAtMs',
       headerName: 'Created at',
       width: 160,
-      renderCell: (params) => <RenderCellCreatedAt params={params} />,
+      type: 'number',
+      sortComparator: (a, b) => (a ?? 0) - (b ?? 0),
+      valueFormatter: ({ value }) =>
+        typeof value === 'number' && !Number.isNaN(value)
+          ? dayjs(value).format('YYYY-MM-DD HH:mm')
+          : '',
     },
     {
       field: 'inventoryType',
