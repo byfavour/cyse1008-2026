@@ -65,6 +65,7 @@ function normalizeProduct(p) {
   // Prefer your field, fall back to Shopify’s created_at
   const raw = p.createdAt ?? p.created_at ?? p.createdAtMs ?? null;
   const d = toDate(raw);
+  console.log({ d });
   return {
     ...p,
     createdAtMs: d ? d.getTime() : null,
@@ -126,6 +127,17 @@ export function ProductListView() {
     [router]
   );
 
+  const getMs = (raw) => {
+    if (!raw) return null;
+    if (typeof raw?.toDate === 'function') return raw.toDate().getTime(); // Firestore Timestamp
+    if (typeof raw?.seconds === 'number')
+      return raw.seconds * 1000 + Math.floor((raw.nanoseconds || 0) / 1e6); // POJO
+    if (typeof raw?._seconds === 'number')
+      return raw._seconds * 1000 + Math.floor((raw._nanoseconds || 0) / 1e6);
+    const d = new Date(raw); // Date | ISO | epoch
+    return Number.isNaN(d.getTime()) ? null : d.getTime();
+  };
+
   const handleViewRow = useCallback(
     (id) => {
       router.push(paths.dashboard.product.details(id));
@@ -179,13 +191,25 @@ export function ProductListView() {
     {
       field: 'createdAtMs',
       headerName: 'Created at',
-      width: 160,
-      type: 'number',
-      sortComparator: (a, b) => (a ?? 0) - (b ?? 0),
-      valueFormatter: ({ value }) =>
-        typeof value === 'number' && !Number.isNaN(value)
-          ? dayjs(value).format('YYYY-MM-DD HH:mm')
-          : '',
+      width: 180,
+
+      // let sorting work even if the field is missing on some rows
+      valueGetter: (params) => {
+        const v = params?.row?.createdAtMs;
+        if (v != null) return Number(v);
+        const raw = params?.row?.createdAt ?? params?.row?.created_at;
+        const ms = getMs(raw);
+        return ms ?? null;
+      },
+
+      sortComparator: (a, b) => (Number(a) || 0) - (Number(b) || 0),
+
+      // force what’s displayed (don’t rely on value/formatter)
+      renderCell: (params) => {
+        const ms =
+          params?.row?.createdAtMs ?? getMs(params?.row?.createdAt ?? params?.row?.created_at);
+        return ms ? dayjs(Number(ms)).format('YYYY-MM-DD HH:mm') : '';
+      },
     },
     {
       field: 'inventoryType',
@@ -251,6 +275,9 @@ export function ProductListView() {
     columns
       .filter((column) => !HIDE_COLUMNS_TOGGLABLE.includes(column.field))
       .map((column) => column.field);
+
+  console.log('sample row', dataFiltered[0]);
+  console.log('createdAtMs sample:', dataFiltered[0]?.createdAtMs, dataFiltered[0]?.createdAt);
 
   return (
     <>
