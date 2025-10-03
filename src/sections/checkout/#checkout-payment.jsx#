@@ -19,8 +19,8 @@ import { CheckoutPaymentMethods } from './checkout-payment-methods';
 
 import { useState } from 'react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { AUTH, db } from 'src/lib/firebase/firebase';
-
+import { getAuth } from 'firebase/auth';
+import { db } from 'src/lib/firebase/firebase';
 /* ------------------------------------------------------------------ */
 
 const DELIVERY_OPTIONS = [
@@ -104,7 +104,6 @@ export function CheckoutPayment() {
       }));
 
       // 2) Resolve email (billing first, then auth)
-      const auth = getAuth();
       const email = checkout?.billing?.email ?? auth.currentUser?.email ?? 'test@example.com';
 
       // 3) Create a pending order in Firestore
