@@ -99,7 +99,7 @@ export const _fullAddress = [
 
 export const _emails = [
   `nannie.abernathy70@yahoo.com`,
-  `ashlynn.ohara62@gmail.com`,
+  `dunderjeep@gmail.com`,
   `milo.farrell@hotmail.com`,
   `violet.ratke86@yahoo.com`,
   `letha.lubowitz24@yahoo.com`,

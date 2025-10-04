@@ -20,6 +20,7 @@ import { CheckoutPaymentMethods } from './checkout-payment-methods';
 import { useState } from 'react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { AUTH, db } from 'src/lib/firebase/firebase';
+import { getAuth } from 'firebase/auth';
 
 /* ------------------------------------------------------------------ */
 

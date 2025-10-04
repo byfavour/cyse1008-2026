@@ -10,6 +10,16 @@ allow create: if isSignedIn() && request.resource.data.ownerId == request.auth.u
 allow read, update, delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
 }
 
+match /orders/{orderId} {
+  allow create:
+    if request.auth != null
+    && request.resource.data.userId == request.auth.uid;
+
+  allow read, update, delete:
+    if request.auth != null && request.auth.uid == resource.data.userId;
+}
+
+
 
 // Example products collection with owner control
     match /products/{id} {
