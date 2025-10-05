@@ -16,11 +16,15 @@ import { Iconify } from 'src/components/iconify';
 import { ColorPreview } from 'src/components/color-utils';
 
 import { useCheckoutContext } from '../checkout/context';
+import { getProductStockCount, isProductAvailable } from 'src/utils/inventory';
 
 // ----------------------------------------------------------------------
 
 export function ProductItem({ product }) {
   const checkout = useCheckoutContext();
+
+  const availableCount = getProductStockCount(product);
+  const available = availableCount > 0;
 
   const {
     id,
@@ -53,16 +57,25 @@ export function ProductItem({ product }) {
   });
 
   const handleAddCart = async () => {
+    // Optional: pick first color/size only if they exist:
+    const color = Array.isArray(product.colors) && product.colors.length ? product.colors[0] : null;
+    const size = Array.isArray(product.sizes) && product.sizes.length ? product.sizes[0] : null;
+
+    // Don’t add if nothing left
+    if (!available) return;
+
     const newProduct = {
-      id,
-      name,
-      coverUrl,
-      available,
-      price,
-      colors: [colors[0]],
-      size: sizes[0],
+      id: product.id,
+      name: product.name,
+      coverUrl: product.coverUrl,
+      price: product.price,
+      colors: color ? [color] : [],
+      size,
       quantity: 1,
+      // You can also pass availableCount if your cart wants to cap later
+      available: availableCount,
     };
+
     try {
       checkout.onAddToCart(newProduct);
     } catch (error) {
