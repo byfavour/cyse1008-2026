@@ -4,12 +4,8 @@ export function getVariantStock(variant) {
 }
 
 export function getProductStockCount(product) {
-  // If you ever store product.quantity for single-variant items:
-  const base = Number(product?.stock ?? product?.quantity ?? 0);
   const hasVariants = Array.isArray(product?.variants) && product.variants.length > 0;
-
-  if (!hasVariants) return Number.isFinite(base) ? base : 0;
-
+  if (!hasVariants) return getVariantStock(product);
   return product.variants.reduce((sum, v) => sum + getVariantStock(v), 0);
 }
 

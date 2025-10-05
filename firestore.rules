@@ -21,15 +21,15 @@ match /orders/{orderId} {
 
 
 
-// Example products collection with owner control
     match /products/{id} {
-      allow create: if request.auth != null
-        && request.resource.data.ownerId == request.auth.uid;
+      allow read: if true;
 
-      allow update, delete: if request.auth != null
-        && resource.data.ownerId == request.auth.uid;
+      allow create: if signedIn();
+      allow update: if isOwner(resource.data);
 
-      allow read: if true; // or tighten as needed
+      // Optional: prevent ownerId hijack on update
+      allow update: if isOwner(resource.data)
+                    && request.resource.data.ownerId == resource.data.ownerId;
     }
 
 
