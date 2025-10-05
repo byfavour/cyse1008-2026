@@ -39,18 +39,22 @@ export const NewProductSchema = zod.object({
   description: schemaHelper.editor({ message: { required_error: 'Description is required!' } }),
   images: schemaHelper.files({ minFiles: 1, message: { required_error: 'Images is required!' } }),
   code: zod.string().min(1, { message: 'Product code is required!' }),
+  stock: zod.coerce.number().min(0).default(0),
   variants: zod
     .array(
-      zod.object({
-        title: zod.string().min(1),
-        sku: zod.string().min(1),
-        price: zod.coerce.number().min(0),
-        quantity: zod.coerce.number().min(0),
-        options: zod.record(zod.string(), zod.string()).optional(),
-        image: schemaHelper
-          .files({ message: { required_error: 'Images is required!' } })
-          .optional(), // <-- allow missing; we’ll fill from product images
-      })
+      zod
+        .object({
+          title: zod.string().min(1),
+          sku: zod.string().min(1),
+          price: zod.coerce.number().min(0),
+          stock: zod.coerce.number().min(0).optional(),
+          quantity: zod.coerce.number().min(0).optional(),
+          options: zod.record(zod.string(), zod.string()).optional(),
+          image: schemaHelper
+            .files({ message: { required_error: 'Images is required!' } })
+            .optional(), // <-- allow missing; we’ll fill from product images
+        })
+        .transform((v) => ({ ...v, stock: Number(v.stock ?? v.quantity ?? 0) }))
     )
     .optional()
     .default([]),
@@ -86,7 +90,7 @@ export function ProductNewEditForm({ currentProduct }) {
       code: currentProduct?.code || '',
       sku: currentProduct?.sku || '',
       price: currentProduct?.price ?? 0,
-      quantity: currentProduct?.quantity ?? 0,
+      stock: currentProduct?.stock ?? 0,
       priceSale: currentProduct?.priceSale ?? 0,
       tags: currentProduct?.tags || [],
       taxes: currentProduct?.taxes ?? 0,
@@ -165,22 +169,19 @@ export function ProductNewEditForm({ currentProduct }) {
       const normalizedVariants = hasVariants
         ? data.variants.map((v) => ({
             ...v,
-            stock: Number(v.quantity ?? v.stock ?? 0), // write as stock
+            stock: Number(v.stock ?? 0), // schema transform already normalized
           }))
-        : [
-            {
-              title: data.name,
-              sku: data.sku || data.code || 'SKU-DEFAULT',
-              price: data.price,
-              stock: Number(data.quantity ?? 0), // write as stock
-              options: {},
-              image: images,
-            },
-          ];
+        : [{
+            title: data.name,
+            sku: data.sku || data.code || 'SKU-DEFAULT',
+            price: data.price,
+            stock: Number(data.stock ?? 0), // use top-level stock for single-variant
+                                +            options: {},
+            image: images,
+          }];
 
-      const productLevelStock = hasVariants
-        ? normalizedVariants.reduce((s, v) => s + Number(v.stock ?? 0), 0)
-        : Number(data.quantity ?? 0);
+  const productLevelStock = normalizedVariants.reduce((s, v) => s + Number(v.stock ?? 0), 0);
+
 
       const productData = {
         ...data,
@@ -322,8 +323,8 @@ export function ProductNewEditForm({ currentProduct }) {
           <Field.Text name="sku" label="Product SKU" />
 
           <Field.Text
-            name="quantity"
-            label="Quantity"
+            name="stock"
+            label="Stock on hand"
             placeholder="0"
             type="number"
             InputLabelProps={{ shrink: true }}
