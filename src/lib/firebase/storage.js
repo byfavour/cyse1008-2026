@@ -64,16 +64,15 @@ export async function uploadImageToLibrary(userId, image) {
   }
 }
 
-export async function uploadImagesToLibrary(userId, images) {
-  const uploadedImageUrls = await Promise.all(
-    images.map(async (image) => {
-      try {
-        return await uploadImageToLibrary(userId, image);
-      } catch (error) {
-        console.error('Error uploading one of the images:', error);
-        throw error;
-      }
-    })
-  );
-  return uploadedImageUrls;
+export async function uploadImagesToLibrary(uid, files) {
+  if (!uid) throw new Error('Missing uid for upload');
+  const uploads = files.map(async (file) => {
+    const key = `users/${uid}/library/${Date.now()}_${Math.random()
+      .toString(36)
+      .slice(2)}_${file.name}`;
+    const fileRef = ref(storage, key);
+    await uploadBytesResumable(fileRef, file, { contentType: file.type });
+    return await getDownloadURL(fileRef);
+  });
+  return Promise.all(uploads);
 }

@@ -115,7 +115,7 @@ export function RHFVariantTable({ user, defaultPrice = 0 }) {
       }
 
       try {
-        const uploadedUrls = await uploadImagesToLibrary(user.id, files);
+        const uploadedUrls = await uploadImagesToLibrary(user.uid, files);
         const firstUrl = uploadedUrls?.[0] ?? '';
         setValue(`variants.${variantIndex}.image`, firstUrl, {
           shouldValidate: true,

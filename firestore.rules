@@ -1,39 +1,34 @@
 rules_version = '2';
 service cloud.firestore {
-match /databases/{database}/documents {
-function isSignedIn() { return request.auth != null; }
+  match /databases/{database}/documents {
 
+    // ----- helpers -----
+    function signedIn() { return request.auth != null; }
+    function isOwnerOnCreate() { return signedIn() && request.resource.data.ownerId == request.auth.uid; }
+    function isOwnerOnExisting() { return signedIn() && resource.data.ownerId == request.auth.uid; }
 
-// Image metadata stored at /images/{imageId}
-match /images/{imageId} {
-allow create: if isSignedIn() && request.resource.data.ownerId == request.auth.uid;
-allow read, update, delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
-}
+    // Public, read-only app config (adjust the collection name you use; "config" or "settings" are common)
+    match /config/{doc=**} {
+      allow read: if true;
+    }
 
-match /orders/{orderId} {
-  allow create:
-    if request.auth != null
-    && request.resource.data.userId == request.auth.uid;
+    // Each user can read/write their own user doc (common during sign-in bootstrap)
+    match /users/{uid} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
 
-  allow read, update, delete:
-    if request.auth != null && request.auth.uid == resource.data.userId;
-}
-
+    // Products (what we already had)
     match /products/{id} {
       allow read: if true;
 
-      allow create: if signedIn();
-      allow update: if isOwner(resource.data);
+      // Create must include ownerId equal to the caller's uid
+      allow create: if isOwnerOnCreate();
 
-      // Optional: prevent ownerId hijack on update
-      allow update: if isOwner(resource.data)
-                    && request.resource.data.ownerId == resource.data.ownerId;
+      // Owner can update/delete; ownerId must not change
+      allow update, delete: if isOwnerOnExisting()
+                            && request.resource.data.ownerId == resource.data.ownerId;
     }
 
-
-// User subcollections private to owner
-match /users/{uid}/{document=**} {
-allow read, write: if isSignedIn() && request.auth.uid == uid;
-}
-}
+    // (add other collections you touch, e.g. carts/orders, similarly)
+  }
 }

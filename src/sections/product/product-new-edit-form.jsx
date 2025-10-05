@@ -39,7 +39,11 @@ export const NewProductSchema = zod.object({
   description: schemaHelper.editor({ message: { required_error: 'Description is required!' } }),
   images: schemaHelper.files({ minFiles: 1, message: { required_error: 'Images is required!' } }),
   code: zod.string().min(1, { message: 'Product code is required!' }),
+
+  // Product-level stock (used for single-variant products; ignored when variants exist)
   stock: zod.coerce.number().min(0).default(0),
+
+  // Variants written with `stock`; we still accept legacy `quantity` and normalize it
   variants: zod
     .array(
       zod
@@ -48,8 +52,10 @@ export const NewProductSchema = zod.object({
           sku: zod.string().min(1),
           price: zod.coerce.number().min(0),
           stock: zod.coerce.number().min(0).optional(),
-          quantity: zod.coerce.number().min(0).optional(), // legacy allowance
+          quantity: zod.coerce.number().min(0).optional(), // legacy
+          // Per-variant selected options (e.g., { Size: "M", Color: "Red" })
           options: zod.record(zod.string(), zod.string()).optional(),
+          // Allow a single URL (string) or omit entirely
           image: zod.union([zod.string(), zod.any()]).optional(),
         })
         .transform((v) => ({ ...v, stock: Number(v.stock ?? v.quantity ?? 0) }))
@@ -57,6 +63,8 @@ export const NewProductSchema = zod.object({
     .optional()
     .default([]),
 
+  // Product-level option definitions edited by the variant table
+  // [{ name: "Size", values: ["S","M","L"] }, ...]
   options: zod
     .array(
       zod.object({
@@ -104,8 +112,8 @@ export function ProductNewEditForm({ currentProduct }) {
       category: currentProduct?.category || PRODUCT_CATEGORY_GROUP_OPTIONS[0].classify[1],
       colors: currentProduct?.colors || [],
       sizes: currentProduct?.sizes || [],
-      options: currentProduct?.options || [], // <-- add this
-      variants: currentProduct?.variants || [], // <-- often useful to include
+      options: currentProduct?.options || [],
+      variants: currentProduct?.variants || [],
       newLabel: currentProduct?.newLabel || { enabled: false, content: '' },
       saleLabel: currentProduct?.saleLabel || { enabled: false, content: '' },
     }),
@@ -134,10 +142,9 @@ export function ProductNewEditForm({ currentProduct }) {
     formState: { isSubmitting },
   } = methods;
 
-  // const values = watch();
-  // const values = watch(); // ❌ causes re-render on every keystroke for ALL fields
-  const options = watch('options'); // ✅ just what VariantTable needs
-  const price = watch('price'); // ✅ if VariantTable needs default price
+  // only watch what sub-components need
+  const options = watch('options');
+  const price = watch('price');
   const images = watch('images') || [];
   const saleLabelEnabled = watch('saleLabel.enabled');
   const newLabelEnabled = watch('newLabel.enabled');
@@ -148,9 +155,11 @@ export function ProductNewEditForm({ currentProduct }) {
     }
   }, [currentProduct, defaultValues, reset]);
 
+  const productTaxes = useMemo(() => currentProduct?.taxes ?? 0, [currentProduct?.taxes]);
+
   useEffect(() => {
-    setValue('taxes', includeTaxes ? 0 : (currentProduct?.taxes ?? 0));
-  }, [includeTaxes, setValue]);
+    setValue('taxes', includeTaxes ? 0 : productTaxes);
+  }, [includeTaxes, productTaxes, setValue]);
 
   useEffect(() => {
     if (methods.formState.isSubmitted) {
@@ -161,44 +170,43 @@ export function ProductNewEditForm({ currentProduct }) {
   const onSubmit = handleSubmit(async (data) => {
     try {
       await trigger('images');
-      const images = getValues('images') || [];
-      const saleLabelEnabled = watch('saleLabel.enabled') || false;
-      const newLabelEnabled = watch('newLabel.enabled') || false;
+      const uploaded = getValues('images') || [];
 
-      if (!Array.isArray(images) || images.length === 0) {
+      if (!Array.isArray(uploaded) || uploaded.length === 0) {
         toast.error('Please upload at least one image.');
         return;
       }
 
-      const hasVariants = data.variants && data.variants.length > 0;
+      const hasVariants = Array.isArray(data.variants) && data.variants.length > 0;
 
       const normalizedVariants = hasVariants
         ? data.variants.map((v) => ({
             ...v,
-            stock: Number(v.stock ?? 0), // already normalized by schema
+            stock: Number(v.stock ?? 0), // normalized by schema
           }))
         : [
             {
               title: data.name,
               sku: data.sku || data.code || 'SKU-DEFAULT',
               price: data.price,
-              stock: Number(data.stock ?? 0), // use top-level stock for single-variant
+              stock: Number(data.stock ?? 0),
               options: {},
-              image: images,
+              image: uploaded,
             },
           ];
 
       const productLevelStock = normalizedVariants.reduce((s, v) => s + Number(v.stock ?? 0), 0);
 
-      delete productData.quantity;
-      productData.variants = productData.variants.map(({ quantity, ...rest }) => rest);
-
-      const productData = {
+      let productData = {
         ...data,
-        images,
-        ownerId: user.id || user.uid,
+        images: uploaded,
+        ownerId: user.uid,
         variants: normalizedVariants,
+        stock: productLevelStock, // aggregate for quick reads
       };
+
+      if ('quantity' in productData) delete productData.quantity;
+      productData.variants = productData.variants.map(({ quantity, ...rest }) => rest);
 
       if (currentProduct) {
         await updateProduct(currentProduct.id, productData);
@@ -211,24 +219,22 @@ export function ProductNewEditForm({ currentProduct }) {
       reset();
       router.push(paths.dashboard.product.root);
     } catch (error) {
-      console.error('Error creating product:', error);
+      console.error('Error creating/updating product:', error);
       toast.error('Something went wrong, please try again!');
     }
   });
 
   const handleOnUpload = useCallback(
     async (event) => {
-      console.log('Event:', event); // Debugging: check what exactly is received
-
       let files = [];
 
       if (Array.isArray(event)) {
         files = event;
-      } else if (event.files) {
+      } else if (event?.files) {
         files = Array.from(event.files);
-      } else if (event.target?.files) {
+      } else if (event?.target?.files) {
         files = Array.from(event.target.files);
-      } else if (event.dataTransfer?.files) {
+      } else if (event?.dataTransfer?.files) {
         files = Array.from(event.dataTransfer.files);
       }
 
@@ -237,15 +243,12 @@ export function ProductNewEditForm({ currentProduct }) {
         return;
       }
 
-      console.log('✅ Files selected:', files);
-
       try {
-        const uploadedUrls = await uploadImagesToLibrary(user.id, files);
-        console.log('✅ Uploaded image URLs:', uploadedUrls);
-
+        const uploadedUrls = await uploadImagesToLibrary(user.uid, files);
         setValue('images', uploadedUrls, { shouldValidate: true, shouldDirty: true });
       } catch (error) {
         console.error('❌ Error uploading images:', error);
+        toast.error('Image upload failed.');
       }
     },
     [user.id, setValue]
@@ -289,7 +292,6 @@ export function ProductNewEditForm({ currentProduct }) {
             multiple
             thumbnail
             name="images"
-            // maxSize={3145728}
             onRemove={handleRemoveFile}
             onRemoveAll={handleRemoveAllFiles}
             onUpload={handleOnUpload}
@@ -496,7 +498,7 @@ export function ProductNewEditForm({ currentProduct }) {
       />
 
       <LoadingButton type="submit" variant="contained" size="large" loading={isSubmitting}>
-        {!currentProduct ? 'Create product!' : 'Save changes'}
+        {!currentProduct ? 'Create product' : 'Save changes'}
       </LoadingButton>
     </Stack>
   );
