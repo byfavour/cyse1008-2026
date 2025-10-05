@@ -3,25 +3,26 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Box, Button, CircularProgress, Stack, Typography } from '@mui/material';
-import { fCurrency } from 'src/utils/format-number'; // or inline format
 
 export default function CheckoutSuccessPage() {
   const params = useSearchParams();
   const router = useRouter();
   const sessionId = params.get('session_id');
 
-  const [state, setState] = useState<
-    | { status: 'idle' | 'loading' }
-    | { status: 'ok'; orderId: string; amount: number; currency: string }
-    | { status: 'error'; message: string }
-  >({ status: 'idle' });
+  const [state, setState] = useState({
+    status: 'idle', // 'idle' | 'loading' | 'ok' | 'error'
+    orderId: null,
+    amount: null, // cents
+    currency: 'CAD',
+    message: null,
+  });
 
   useEffect(() => {
     if (!sessionId) return;
     let cancelled = false;
 
     (async () => {
-      setState({ status: 'loading' });
+      setState((s) => ({ ...s, status: 'loading' }));
       try {
         const res = await fetch('/api/checkout/finalize', {
           method: 'POST',
@@ -36,11 +37,20 @@ export default function CheckoutSuccessPage() {
             status: 'ok',
             orderId: data.orderId,
             amount: data.amount,
-            currency: (data.currency || 'cad').toUpperCase(),
+            currency: (data.currency || 'CAD').toUpperCase(),
+            message: null,
           });
         }
-      } catch (e: any) {
-        if (!cancelled) setState({ status: 'error', message: e?.message || 'Failed to confirm' });
+      } catch (e) {
+        if (!cancelled) {
+          setState({
+            status: 'error',
+            orderId: null,
+            amount: null,
+            currency: 'CAD',
+            message: e?.message || 'Failed to confirm payment',
+          });
+        }
       }
     })();
 
@@ -49,7 +59,6 @@ export default function CheckoutSuccessPage() {
     };
   }, [sessionId]);
 
-  // --- UI ---
   if (!sessionId) {
     return (
       <Stack spacing={2} alignItems="center" sx={{ py: 8 }}>
@@ -61,7 +70,7 @@ export default function CheckoutSuccessPage() {
     );
   }
 
-  if (state.status === 'loading' || state.status === 'idle') {
+  if (state.status === 'idle' || state.status === 'loading') {
     return (
       <Stack spacing={2} alignItems="center" sx={{ py: 8 }}>
         <CircularProgress />
@@ -74,9 +83,7 @@ export default function CheckoutSuccessPage() {
     return (
       <Stack spacing={2} alignItems="center" sx={{ py: 8 }}>
         <Typography variant="h5">We couldn’t confirm your payment</Typography>
-        <Typography variant="body2" color="text.secondary">
-          {state.message}
-        </Typography>
+        <Typography color="text.secondary">{state.message}</Typography>
         <Button variant="contained" onClick={() => router.push('/checkout')}>
           Try again
         </Button>
@@ -84,19 +91,22 @@ export default function CheckoutSuccessPage() {
     );
   }
 
-  // OK
   const total = typeof state.amount === 'number' ? state.amount / 100 : 0;
+
   return (
     <Stack spacing={3} alignItems="center" sx={{ py: 8 }}>
       <Typography variant="h4">Thanks for your purchase! 🎉</Typography>
       <Typography variant="body1" color="text.secondary">
-        Order <Box component="span" sx={{ fontWeight: 600 }}>{state.orderId}</Box> is paid.
+        Order{' '}
+        <Box component="span" sx={{ fontWeight: 600 }}>
+          {state.orderId}
+        </Box>{' '}
+        is paid.
       </Typography>
       <Typography variant="h6">
-        {Intl.NumberFormat(undefined, {
-          style: 'currency',
-          currency: state.currency || 'CAD',
-        }).format(total)}
+        {Intl.NumberFormat(undefined, { style: 'currency', currency: state.currency }).format(
+          total
+        )}
       </Typography>
       <Stack direction="row" spacing={2}>
         <Button variant="contained" onClick={() => router.push('/orders')}>
