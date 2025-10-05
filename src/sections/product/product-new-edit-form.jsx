@@ -48,18 +48,24 @@ export const NewProductSchema = zod.object({
           sku: zod.string().min(1),
           price: zod.coerce.number().min(0),
           stock: zod.coerce.number().min(0).optional(),
-          quantity: zod.coerce.number().min(0).optional(),
+          quantity: zod.coerce.number().min(0).optional(), // legacy allowance
           options: zod.record(zod.string(), zod.string()).optional(),
-          image: schemaHelper
-            .files({ message: { required_error: 'Images is required!' } })
-            .optional(), // <-- allow missing; we’ll fill from product images
+          image: zod.union([zod.string(), zod.any()]).optional(),
         })
         .transform((v) => ({ ...v, stock: Number(v.stock ?? v.quantity ?? 0) }))
     )
     .optional()
     .default([]),
 
-  options: zod.array(zod.string()).optional().default([]),
+  options: zod
+    .array(
+      zod.object({
+        name: zod.string().min(1),
+        values: zod.array(zod.string().min(1)).min(1),
+      })
+    )
+    .optional()
+    .default([]),
 
   gender: zod.array(zod.string()).nonempty({ message: 'Choose at least one option!' }),
   price: zod.coerce.number().min(1, { message: 'Price should not be $0.00' }),
@@ -169,29 +175,21 @@ export function ProductNewEditForm({ currentProduct }) {
       const normalizedVariants = hasVariants
         ? data.variants.map((v) => ({
             ...v,
-            stock: Number(v.stock ?? 0), // schema transform already normalized
+            stock: Number(v.stock ?? 0), // already normalized by schema
           }))
-        : [{
-            title: data.name,
-            sku: data.sku || data.code || 'SKU-DEFAULT',
-            price: data.price,
-            stock: Number(data.stock ?? 0), // use top-level stock for single-variant
-                                +            options: {},
-            image: images,
-          }];
+        : [
+            {
+              title: data.name,
+              sku: data.sku || data.code || 'SKU-DEFAULT',
+              price: data.price,
+              stock: Number(data.stock ?? 0), // use top-level stock for single-variant
+              options: {},
+              image: images,
+            },
+          ];
 
-  const productLevelStock = normalizedVariants.reduce((s, v) => s + Number(v.stock ?? 0), 0);
+      const productLevelStock = normalizedVariants.reduce((s, v) => s + Number(v.stock ?? 0), 0);
 
-
-      const productData = {
-        ...data,
-        images,
-        ownerId: user.id || user.uid,
-        variants: normalizedVariants,
-        stock: productLevelStock, // <- aggregate for quick reads
-      };
-
-      // Optional: strip create-form-only fields so you don’t carry both names:
       delete productData.quantity;
       productData.variants = productData.variants.map(({ quantity, ...rest }) => rest);
 
