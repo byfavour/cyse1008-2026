@@ -96,9 +96,8 @@ export function RHFVariantTable({ user, defaultPrice = 0 }) {
   }, [options, replaceVariants]);
 
   const handleVariantImageUpload = useCallback(
-    async (variantIndex, event) => {
-  async (event) => {
-    let files = [];
+    (variantIndex) => async (event) => {
+      let files = [];
 
       if (Array.isArray(event)) {
         files = event;
@@ -118,7 +117,10 @@ export function RHFVariantTable({ user, defaultPrice = 0 }) {
       try {
         const uploadedUrls = await uploadImagesToLibrary(user.id, files);
         const firstUrl = uploadedUrls?.[0] ?? '';
-        setValue(`variants.${variantIndex}.image`, firstUrl, { shouldValidate: true, shouldDirty: true });
+        setValue(`variants.${variantIndex}.image`, firstUrl, {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
       } catch (error) {
         console.error('Upload failed:', error);
       }
@@ -128,156 +130,156 @@ export function RHFVariantTable({ user, defaultPrice = 0 }) {
 
   const handleRemoveImage = useCallback(
     (i) => () => {
-+      setValue(`variants.${i}.image`, '', { shouldValidate: true, shouldDirty: true });
-     setValue(`variants.${i}.image`, '', { shouldValidate: true, shouldDirty: true });
+      +setValue(`variants.${i}.image`, '', { shouldValidate: true, shouldDirty: true });
+      setValue(`variants.${i}.image`, '', { shouldValidate: true, shouldDirty: true });
     },
     [setValue]
   );
 
-      return (
-        <Stack spacing={3}>
-          <Typography variant="h6">Variants</Typography>
+  return (
+    <Stack spacing={3}>
+      <Typography variant="h6">Variants</Typography>
 
-          {/* Option UI */}
-          <Stack spacing={2}>
-            {optionFields.map((field, index) => (
-              <Box key={field.id} sx={{ p: 2, border: '1px solid #ccc', borderRadius: 1 }}>
-                <Stack direction="row" spacing={1.5} alignItems="center">
-                  {/* Autocomplete for option name */}
-                  <Controller
-                    name={`options.${index}.name`}
-                    control={control}
-                    render={({ field: nameField }) => (
-                      <Autocomplete
-                        freeSolo
-                        options={Object.keys(OPTION_PRESETS)}
-                        value={nameField.value}
-                        onChange={(_, newValue) => {
-                          nameField.onChange(newValue);
-                          const suggestedValues = OPTION_PRESETS[newValue] || [];
-                          updateOption(index, {
-                            ...optionFields[index],
-                            name: newValue,
-                            values: suggestedValues,
-                          });
-                        }}
-                        onInputChange={(_, val) => nameField.onChange(val)}
-                        renderInput={(params) => (
-                          <TextField {...params} label="Option name" fullWidth />
-                        )}
-                        sx={{ width: '100%' }}
-                      />
+      {/* Option UI */}
+      <Stack spacing={2}>
+        {optionFields.map((field, index) => (
+          <Box key={field.id} sx={{ p: 2, border: '1px solid #ccc', borderRadius: 1 }}>
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              {/* Autocomplete for option name */}
+              <Controller
+                name={`options.${index}.name`}
+                control={control}
+                render={({ field: nameField }) => (
+                  <Autocomplete
+                    freeSolo
+                    options={Object.keys(OPTION_PRESETS)}
+                    value={nameField.value}
+                    onChange={(_, newValue) => {
+                      nameField.onChange(newValue);
+                      const suggestedValues = OPTION_PRESETS[newValue] || [];
+                      updateOption(index, {
+                        ...optionFields[index],
+                        name: newValue,
+                        values: suggestedValues,
+                      });
+                    }}
+                    onInputChange={(_, val) => nameField.onChange(val)}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Option name" fullWidth />
                     )}
+                    sx={{ width: '100%' }}
                   />
+                )}
+              />
 
-                  <IconButton onClick={() => removeOption(index)} color="error">
-                    <Iconify icon="solar:trash-bin-trash-bold" />
-                  </IconButton>
-                </Stack>
+              <IconButton onClick={() => removeOption(index)} color="error">
+                <Iconify icon="solar:trash-bin-trash-bold" />
+              </IconButton>
+            </Stack>
 
-                {/* Autocomplete for option values */}
-                <Controller
-                  name={`options.${index}.values`}
-                  control={control}
-                  defaultValue={[]}
-                  render={({ field: valuesField }) => (
-                    <Autocomplete
-                      multiple
-                      freeSolo
-                      options={OPTION_PRESETS[optionFields[index]?.name] || []}
-                      value={valuesField.value || []}
-                      onChange={(_, newValues) => {
-                        valuesField.onChange(newValues);
-                        updateOption(index, {
-                          ...optionFields[index],
-                          values: newValues,
-                        });
-                      }}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="Option values"
-                          placeholder="Add a value and press enter"
-                          sx={{ mt: 2 }}
-                        />
-                      )}
-                      renderTags={(selected, getTagProps) =>
-                        selected.map((option, idx) => (
-                          <Chip
-                            {...getTagProps({ index: idx })}
-                            key={option}
-                            label={option}
-                            size="small"
-                            color="info"
-                            variant="soft"
-                          />
-                        ))
-                      }
+            {/* Autocomplete for option values */}
+            <Controller
+              name={`options.${index}.values`}
+              control={control}
+              defaultValue={[]}
+              render={({ field: valuesField }) => (
+                <Autocomplete
+                  multiple
+                  freeSolo
+                  options={OPTION_PRESETS[optionFields[index]?.name] || []}
+                  value={valuesField.value || []}
+                  onChange={(_, newValues) => {
+                    valuesField.onChange(newValues);
+                    updateOption(index, {
+                      ...optionFields[index],
+                      values: newValues,
+                    });
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Option values"
+                      placeholder="Add a value and press enter"
+                      sx={{ mt: 2 }}
                     />
                   )}
+                  renderTags={(selected, getTagProps) =>
+                    selected.map((option, idx) => (
+                      <Chip
+                        {...getTagProps({ index: idx })}
+                        key={option}
+                        label={option}
+                        size="small"
+                        color="info"
+                        variant="soft"
+                      />
+                    ))
+                  }
                 />
-              </Box>
-            ))}
+              )}
+            />
+          </Box>
+        ))}
 
-            <Button
-              variant="outlined"
-              startIcon={<Iconify icon="solar:add-circle-bold" />}
-              onClick={() => appendOption({ name: '', values: [] })}
-            >
-              Add another option
-            </Button>
-          </Stack>
+        <Button
+          variant="outlined"
+          startIcon={<Iconify icon="solar:add-circle-bold" />}
+          onClick={() => appendOption({ name: '', values: [] })}
+        >
+          Add another option
+        </Button>
+      </Stack>
 
-          {/* Variant table */}
-          {variantFields.length > 0 && (
-            <>
-              <Divider />
-              <TableContainer component={Paper}>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Variant</TableCell>
-                      <TableCell>Image</TableCell>
-                      <TableCell>Price</TableCell>
-                      <TableCell>Stock</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {variantFields.map((variant, i) => (
-                      <TableRow key={variant.id}>
-                        <TableCell>{variant.title}</TableCell>
-                        <TableCell sx={{ width: 64 }}>
-                          <Field.Upload
-                            thumbnail
-                                                   name={`variants.${i}.image`}                  // variant-specific image
-                                                   onUpload={(e) => handleVariantImageUpload(i, e)}
-                            onDelete={handleRemoveImage(i)}
-                            uploadPlaceholderIcon="solar:image-add-bold"
-                            uploadPlaceholderLabel=""
-                          />
-                        </TableCell>
+      {/* Variant table */}
+      {variantFields.length > 0 && (
+        <>
+          <Divider />
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Variant</TableCell>
+                  <TableCell>Image</TableCell>
+                  <TableCell>Price</TableCell>
+                  <TableCell>Stock</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {variantFields.map((variant, i) => (
+                  <TableRow key={variant.id}>
+                    <TableCell>{variant.title}</TableCell>
+                    <TableCell sx={{ width: 64 }}>
+                      <Field.Upload
+                        thumbnail
+                        name={`variants.${i}.image`}
+                        onUpload={(e) => handleVariantImageUpload(i)}
+                        onDelete={handleRemoveImage(i)}
+                        uploadPlaceholderIcon="solar:image-add-bold"
+                        uploadPlaceholderLabel=""
+                      />
+                    </TableCell>
 
-                        <TableCell>
-                          <Controller
-                            name={`variants.${i}.price`}
-                            control={control}
-                            render={({ field }) => <TextField type="number" size="small" {...field} />}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Controller
-                            name={`variants.${i}.stock`}
-                            control={control}
-                            render={({ field }) => <TextField type="number" size="small" {...field} />}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </>
-          )}
-        </Stack>
-      );
-    }
+                    <TableCell>
+                      <Controller
+                        name={`variants.${i}.price`}
+                        control={control}
+                        render={({ field }) => <TextField type="number" size="small" {...field} />}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Controller
+                        name={`variants.${i}.stock`}
+                        control={control}
+                        render={({ field }) => <TextField type="number" size="small" {...field} />}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </>
+      )}
+    </Stack>
+  );
+}
