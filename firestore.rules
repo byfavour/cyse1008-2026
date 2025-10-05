@@ -27,17 +27,14 @@ service cloud.firestore {
     }
 
     // Orders owned by a user (top-level ‘orders’ collection)
-    match /orders/{id} {
-      // Read your own orders
-      allow read: if isOwnerOnExisting();
+match /orders/{id} {
+  allow read: if request.auth != null && resource.data.ownerId == request.auth.uid;
+  allow create: if request.auth != null && request.resource.data.ownerId == request.auth.uid;
+  allow update, delete: if request.auth != null
+                        && resource.data.ownerId == request.auth.uid
+                        && request.resource.data.ownerId == resource.data.ownerId;
+}
 
-      // Create requires ownerId == caller uid
-      allow create: if isOwnerOnCreate();
-
-      // Update/delete only by owner; ownerId immutable
-      allow update, delete: if isOwnerOnExisting()
-                            && request.resource.data.ownerId == resource.data.ownerId;
-    }
 
     // Stripe extension / typical Elements pattern:
     // customers/{uid}/checkout_sessions/*, payment_methods/*, etc.

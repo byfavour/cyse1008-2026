@@ -1,9 +1,36 @@
 const admin = require('firebase-admin');
-const { onRequest } = require('firebase-functions/v2/https');
+const { onCall, HttpsError, onRequest } = require('firebase-functions/v2/https');
 const { onDocumentWritten } = require('firebase-functions/v2/firestore');
 const Stripe = require('stripe');
 
 admin.initializeApp();
+
+exports.createStripePaymentIntent = onCall({ secrets: ['STRIPE_SECRET_KEY'] }, async (request) => {
+  const uid = request.auth?.uid;
+  if (!uid) throw new HttpsError('unauthenticated', 'Sign in required.');
+
+  // NOTE: In production, compute the amount server-side from Firestore (cart/order).
+  // For now we accept an amount from the client to unblock the flow.
+  const { amount, currency = 'cad', orderId = '' } = request.data || {};
+  if (!Number.isInteger(amount) || amount < 50) {
+    throw new HttpsError('invalid-argument', 'Amount must be an integer (cents) >= 50.');
+  }
+
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' });
+
+  try {
+    const pi = await stripe.paymentIntents.create({
+      amount,
+      currency,
+      automatic_payment_methods: { enabled: true },
+      metadata: { uid, orderId },
+    });
+    return { clientSecret: pi.client_secret };
+  } catch (err) {
+    console.error('createStripePaymentIntent error:', err);
+    throw new HttpsError('internal', err.message);
+  }
+});
 
 exports.handleStripeWebhook = onRequest(
   { secrets: ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET'] },
