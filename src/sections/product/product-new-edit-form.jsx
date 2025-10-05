@@ -163,17 +163,36 @@ export function ProductNewEditForm({ currentProduct }) {
       const hasVariants = data.variants && data.variants.length > 0;
 
       const normalizedVariants = hasVariants
-        ? data.variants
+        ? data.variants.map((v) => ({
+            ...v,
+            stock: Number(v.quantity ?? v.stock ?? 0), // write as stock
+          }))
         : [
             {
               title: data.name,
               sku: data.sku || data.code || 'SKU-DEFAULT',
               price: data.price,
-              quantity: data.quantity ?? 0,
-              options: {}, // no options for single-variant product
-              image: images, // or [images[0]] if you prefer 1 image
+              stock: Number(data.quantity ?? 0), // write as stock
+              options: {},
+              image: images,
             },
           ];
+
+      const productLevelStock = hasVariants
+        ? normalizedVariants.reduce((s, v) => s + Number(v.stock ?? 0), 0)
+        : Number(data.quantity ?? 0);
+
+      const productData = {
+        ...data,
+        images,
+        ownerId: user.id || user.uid,
+        variants: normalizedVariants,
+        stock: productLevelStock, // <- aggregate for quick reads
+      };
+
+      // Optional: strip create-form-only fields so you don’t carry both names:
+      delete productData.quantity;
+      productData.variants = productData.variants.map(({ quantity, ...rest }) => rest);
 
       const productData = {
         ...data,
