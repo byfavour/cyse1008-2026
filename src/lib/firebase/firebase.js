@@ -17,9 +17,6 @@ export const db = getFirestore(firebaseApp);
 export const AUTH = getAuth(firebaseApp);
 export const storage = getStorage(firebaseApp);
 
-// ----------------------------------------------------------------------
-// 3) If we detect "localhost" or "127.0.0.1", connect to local emulators
-// ----------------------------------------------------------------------
 if (typeof window !== 'undefined') {
   const hostname = window.location.hostname;
 

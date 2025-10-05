@@ -2,9 +2,8 @@
 
 import { createContext, useContext, useMemo, useCallback } from 'react';
 import { collection, doc, addDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from 'src/lib/firebase';
+import { db } from 'src/lib/firebase/firebase';
 import { useAuthContext } from 'src/auth/hooks';
-
 const ProductContext = createContext(null);
 
 function sanitizeNumber(n, fallback = 0) {
