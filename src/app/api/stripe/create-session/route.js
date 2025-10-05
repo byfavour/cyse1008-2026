@@ -1,20 +1,22 @@
-// app/api/stripe/create-session/route.ts
+// app/api/stripe/create-session/route.js
 import Stripe from 'stripe';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+export const runtime = 'nodejs'; // ensure Node runtime (not Edge)
+export const dynamic = 'force-dynamic'; // avoid caching
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '', {
   apiVersion: '2023-10-16',
 });
 
-export async function POST(req: NextRequest) {
+export async function POST(req) {
   try {
     const { items, orderId, email } = await req.json();
-
-    if (!Array.isArray(items) || !items.length) {
+    if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'No items' }, { status: 400 });
     }
 
-    const line_items = items.map((i: any) => ({
+    const line_items = items.map((i) => ({
       quantity: Number(i.quantity ?? 1),
       price_data: {
         currency: 'cad',
@@ -26,24 +28,20 @@ export async function POST(req: NextRequest) {
       },
     }));
 
-    const successUrl =
-      `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3032'}/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
-    const cancelUrl =
-      `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3032'}/checkout/cancel`;
+    const base = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3032';
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
-      payment_method_types: ['card'],
       customer_email: email,
       line_items,
       metadata: { orderId },
-      success_url: successUrl,
-      cancel_url: cancelUrl,
+      success_url: `${base}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${base}/checkout/cancel`,
     });
 
     return NextResponse.json({ id: session.id, url: session.url });
-  } catch (err: any) {
+  } catch (err) {
     console.error('create-session error:', err);
-    return NextResponse.json({ error: err.message || 'Stripe error' }, { status: 400 });
+    return NextResponse.json({ error: err?.message || 'Stripe error' }, { status: 400 });
   }
 }
