@@ -1,14 +1,14 @@
 import admin, { db, bucket } from 'src/lib/firebase/firebase-admin';
 
 export async function saveImageMeta({
-  ownerId,
+  userId,
   filePath,
   contentType,
   visibility = 'private',
   extra = {},
 }) {
   const docRef = await db.collection('images').add({
-    ownerId,
+    userId,
     filePath,
     contentType,
     visibility,
@@ -18,10 +18,10 @@ export async function saveImageMeta({
   return docRef.id;
 }
 
-export async function listImagesByOwner(ownerId) {
+export async function listImagesByOwner(userId) {
   const snap = await db
     .collection('images')
-    .where('ownerId', '==', ownerId)
+    .where('userId', '==', userId)
     .orderBy('createdAt', 'desc')
     .get();
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));

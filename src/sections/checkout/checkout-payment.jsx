@@ -119,9 +119,7 @@ export function CheckoutPayment() {
         total: Number(checkout.total ?? 0),
         status: 'pending',
         createdAt: serverTimestamp(),
-        //  userId: auth.currentUser?.uid ?? null,
-        ownerId: auth.currentUser?.uid ?? null,
-        // add anything else useful here (shipping method, notes, etc.)
+        userId: auth.currentUser?.uid ?? null,
       });
 
       // 4) Create Stripe Checkout Session

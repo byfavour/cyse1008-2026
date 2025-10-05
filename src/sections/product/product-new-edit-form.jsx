@@ -200,7 +200,7 @@ export function ProductNewEditForm({ currentProduct }) {
       let productData = {
         ...data,
         images: uploaded,
-        ownerId: user.uid,
+        userId: user.uid,
         variants: normalizedVariants,
         stock: productLevelStock, // aggregate for quick reads
       };

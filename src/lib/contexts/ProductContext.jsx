@@ -41,7 +41,7 @@ function normalizeForWrite(input, { userId }) {
     options: Array.isArray(input?.options) ? input.options : [], // [{name,values}]
     newLabel: input?.newLabel ?? { enabled: false, content: '' },
     saleLabel: input?.saleLabel ?? { enabled: false, content: '' },
-    ownerId: userId,
+    userId: userId,
     source: input?.source ?? 'manual',
     integrations: input?.integrations ?? {},
   };

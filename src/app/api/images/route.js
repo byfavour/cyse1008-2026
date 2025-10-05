@@ -40,16 +40,15 @@ export async function POST(request) {
       resumable: false,
       contentType,
       metadata: {
-        metadata: { ownerId: uid, visibility: 'private' },
+        metadata: { userId: uid, visibility: 'private' },
         cacheControl: 'public, max-age=31536000, immutable',
       },
     });
 
-    const id = await saveImageMeta({ ownerId: uid, filePath, contentType, visibility: 'private' });
+    const id = await saveImageMeta({ userId: uid, filePath, contentType, visibility: 'private' });
     const url = await getImageSignedUrl(filePath, 3600);
     results.push({ id, filePath, url });
   }
-
   return NextResponse.json({ images: results }, { status: 201 });
 }
 
