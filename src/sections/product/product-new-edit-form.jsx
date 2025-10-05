@@ -251,7 +251,7 @@ export function ProductNewEditForm({ currentProduct }) {
         toast.error('Image upload failed.');
       }
     },
-    [user.id, setValue]
+    [user.uid, setValue]
   );
 
   const handleRemoveFile = useCallback(

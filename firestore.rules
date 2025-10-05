@@ -2,33 +2,68 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ----- helpers -----
+    // helpers
     function signedIn() { return request.auth != null; }
-    function isOwnerOnCreate() { return signedIn() && request.resource.data.ownerId == request.auth.uid; }
-    function isOwnerOnExisting() { return signedIn() && resource.data.ownerId == request.auth.uid; }
+    function isOwnerOnCreate() {
+      return signedIn() && request.resource.data.ownerId == request.auth.uid;
+    }
+    function isOwnerOnExisting() {
+      return signedIn() && resource.data.ownerId == request.auth.uid;
+    }
 
-    // Public, read-only app config (adjust the collection name you use; "config" or "settings" are common)
+    // Public read-only app config (rename if yours is different)
     match /config/{doc=**} {
       allow read: if true;
     }
 
-    // Each user can read/write their own user doc (common during sign-in bootstrap)
-    match /users/{uid} {
+    // Each user can read/write ONLY their own user doc and any subcollections
+    match /users/{uid}/{rest=**} {
       allow read, write: if signedIn() && request.auth.uid == uid;
     }
 
-    // Products (what we already had)
-    match /products/{id} {
-      allow read: if true;
+    // Cart stored by uid (top-level or nested)
+    match /carts/{uid}/{rest=**} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
 
-      // Create must include ownerId equal to the caller's uid
+    // Orders owned by a user (top-level ‘orders’ collection)
+    match /orders/{id} {
+      // Read your own orders
+      allow read: if isOwnerOnExisting();
+
+      // Create requires ownerId == caller uid
       allow create: if isOwnerOnCreate();
 
-      // Owner can update/delete; ownerId must not change
+      // Update/delete only by owner; ownerId immutable
       allow update, delete: if isOwnerOnExisting()
                             && request.resource.data.ownerId == resource.data.ownerId;
     }
 
-    // (add other collections you touch, e.g. carts/orders, similarly)
+    // Stripe extension / typical Elements pattern:
+    // customers/{uid}/checkout_sessions/*, payment_methods/*, etc.
+    match /customers/{uid}/{any=**} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
+
+    // If you store a UID -> Stripe customer mapping here
+    match /stripe_customers/{uid} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
+
+    // If you store generic payments with ownerId
+    match /payments/{id} {
+      allow read: if isOwnerOnExisting();
+      allow create: if isOwnerOnCreate();
+      allow update, delete: if isOwnerOnExisting()
+                            && request.resource.data.ownerId == resource.data.ownerId;
+    }
+
+    // Products (what you already had)
+    match /products/{id} {
+      allow read: if true;
+      allow create: if isOwnerOnCreate();
+      allow update, delete: if isOwnerOnExisting()
+                            && request.resource.data.ownerId == resource.data.ownerId;
+    }
   }
 }

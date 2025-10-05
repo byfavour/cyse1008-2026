@@ -125,7 +125,7 @@ export function RHFVariantTable({ user, defaultPrice = 0 }) {
         console.error('Upload failed:', error);
       }
     },
-    [user.id, setValue]
+    [user.uid, setValue]
   );
 
   const handleRemoveImage = useCallback(
