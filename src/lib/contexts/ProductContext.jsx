@@ -1,3 +1,5 @@
+'use client';
+
 import { createContext, useContext, useMemo, useCallback } from 'react';
 import { collection, doc, addDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from 'src/lib/firebase';

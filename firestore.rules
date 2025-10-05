@@ -19,8 +19,6 @@ match /orders/{orderId} {
     if request.auth != null && request.auth.uid == resource.data.userId;
 }
 
-
-
     match /products/{id} {
       allow read: if true;
 
