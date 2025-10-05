@@ -10,6 +10,7 @@ import Divider from '@mui/material/Divider';
 import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
+import TextField from '@mui/material/TextField';
 
 import { formHelperTextClasses } from '@mui/material/FormHelperText';
 
@@ -17,6 +18,7 @@ import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 
 import { fCurrency, fShortenNumber } from 'src/utils/format-number';
+import { getProductStockCount } from 'src/utils/inventory';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
@@ -44,21 +46,21 @@ export function ProductDetailsSummary({
     price,
     coverUrl,
     colors = [],
-    newLabel,
-    available,
+    newLabel = { enabled: false, content: '' },
     priceSale,
-    saleLabel,
+    saleLabel = { enabled: false, content: '' },
     totalRatings,
     totalReviews,
     inventoryType,
     subDescription,
   } = product;
 
-  const existProduct = !!items?.length && items.map((item) => item.id).includes(id);
+  // Derive availability from stock (sum of variants or product stock_on_hand)
+  const availableCount = getProductStockCount(product);
 
-  const isMaxQuantity =
-    !!items?.length &&
-    items.filter((item) => item.id === id).map((item) => item.quantity)[0] >= available;
+  const existProduct = Array.isArray(items) ? items.some((item) => item.id === id) : false;
+  const cartLine = Array.isArray(items) ? items.find((item) => item.id === id) : null;
+  const isMaxQuantity = cartLine ? cartLine.quantity >= availableCount : false;
 
   const hasColors = Array.isArray(colors) && colors.length > 0;
   const hasSizes = Array.isArray(sizes) && sizes.length > 0;
@@ -67,11 +69,11 @@ export function ProductDetailsSummary({
     id,
     name,
     coverUrl,
-    available,
+    available: availableCount,
     price,
     colors: hasColors ? colors[0] : '',
     size: hasSizes ? sizes[0] : '',
-    quantity: available < 1 ? 0 : 1,
+    quantity: availableCount < 1 ? 0 : 1,
   };
 
   const methods = useForm({ defaultValues });
@@ -90,8 +92,15 @@ export function ProductDetailsSummary({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
+      const clampedQty = Math.max(0, Math.min(data.quantity, availableCount));
+      const payload = {
+        ...data,
+        quantity: clampedQty,
+        colors: [values.colors],
+        subtotal: data.price * clampedQty,
+      };
       if (!existProduct) {
-        onAddCart?.({ ...data, colors: [values.colors], subtotal: data.price * data.quantity });
+        onAddCart?.(payload);
       }
       onGotoStep?.(0);
       router.push(paths.product.checkout);
@@ -102,11 +111,19 @@ export function ProductDetailsSummary({
 
   const handleAddCart = useCallback(() => {
     try {
-      onAddCart?.({ ...values, colors: [values.colors], subtotal: values.price * values.quantity });
+      const clampedQty = Math.max(0, Math.min(values.quantity, availableCount));
+      onAddCart?.({
+        ...values,
+        quantity: clampedQty,
+        colors: [values.colors],
+        subtotal: values.price * clampedQty,
+        // pass available so cart can cap increments later too
+        available: availableCount,
+      });
     } catch (error) {
       console.error(error);
     }
-  }, [onAddCart, values]);
+  }, [onAddCart, values, availableCount]);
 
   const renderPrice = (
     <Box sx={{ typography: 'h5' }}>
@@ -224,13 +241,13 @@ export function ProductDetailsSummary({
           name="quantity"
           quantity={values.quantity}
           disabledDecrease={values.quantity <= 1}
-          disabledIncrease={values.quantity >= available}
+          disabledIncrease={values.quantity >= availableCount}
           onIncrease={() => setValue('quantity', values.quantity + 1)}
           onDecrease={() => setValue('quantity', values.quantity - 1)}
         />
 
         <Typography variant="caption" component="div" sx={{ textAlign: 'right' }}>
-          Available: {available}
+          Available: {availableCount}
         </Typography>
       </Stack>
     </Stack>
@@ -238,7 +255,8 @@ export function ProductDetailsSummary({
 
   const mustChooseColor = hasColors && !values.colors;
   const mustChooseSize = hasSizes && !values.size;
-  const disablePurchase = mustChooseColor || mustChooseSize || values.quantity < 1 || available < 1;
+  const disablePurchase =
+    mustChooseColor || mustChooseSize || values.quantity < 1 || availableCount < 1;
 
   const renderActions = (
     <Stack direction="row" spacing={2}>
