@@ -1,9 +1,8 @@
-// app/api/stripe/create-session/route.js
 import Stripe from 'stripe';
 import { NextResponse } from 'next/server';
 
-export const runtime = 'nodejs'; // ensure Node runtime (not Edge)
-export const dynamic = 'force-dynamic'; // avoid caching
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '', {
   apiVersion: '2023-10-16',
@@ -20,10 +19,15 @@ export async function POST(req) {
       quantity: Number(i.quantity ?? 1),
       price_data: {
         currency: 'cad',
-        unit_amount: Math.round(Number(i.price ?? 0) * 100), // dollars -> cents
+        unit_amount: Math.round(Number(i.price ?? 0) * 100),
         product_data: {
           name: i.name || 'Item',
-          metadata: { productId: i.id ?? '' },
+          metadata: {
+            productId: i.id ?? '',
+            variantId: i.variantId ?? '',
+            variantSku: i.variantSku ?? '',
+            variantTitle: i.variantTitle ?? '',
+          },
         },
       },
     }));
@@ -34,8 +38,8 @@ export async function POST(req) {
       mode: 'payment',
       customer_email: email,
       line_items,
-      metadata: { orderId },
-      success_url: `${base}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      metadata: { orderId }, // webhook reads this
+      success_url: `${base}/checkout/success?order=${orderId}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${base}/checkout/cancel`,
     });
 

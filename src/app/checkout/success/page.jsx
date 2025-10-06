@@ -2,79 +2,66 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Box, Button, CircularProgress, Stack, Typography } from '@mui/material';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from 'src/lib/firebase/firebase';
+import { Button, CircularProgress, Stack, Typography, Box } from '@mui/material';
 
 export default function CheckoutSuccessPage() {
   const params = useSearchParams();
   const router = useRouter();
+  const orderId = params.get('order');
   const sessionId = params.get('session_id');
 
   const [state, setState] = useState({
-    status: 'idle', // 'idle' | 'loading' | 'ok' | 'error'
-    orderId: null,
-    amount: null, // cents
+    status: 'loading', // loading | pending | paid | error
+    amount: null,
     currency: 'CAD',
     message: null,
   });
 
   useEffect(() => {
-    if (!sessionId) return;
-    let cancelled = false;
+    if (!orderId) {
+      setState({ status: 'error', amount: null, currency: 'CAD', message: 'Missing order id' });
+      return;
+    }
 
-    (async () => {
-      setState((s) => ({ ...s, status: 'loading' }));
-      try {
-        const res = await fetch('/api/checkout/finalize', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ session_id: sessionId }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data?.error || 'Finalize failed');
-
-        if (!cancelled) {
+    const ref = doc(db, 'orders', orderId);
+    const unsub = onSnapshot(
+      ref,
+      (snap) => {
+        const d = snap.data();
+        if (!d) {
+          setState({ status: 'error', amount: null, currency: 'CAD', message: 'Order not found' });
+          return;
+        }
+        if (d.status === 'paid') {
           setState({
-            status: 'ok',
-            orderId: data.orderId,
-            amount: data.amount,
-            currency: (data.currency || 'CAD').toUpperCase(),
+            status: 'paid',
+            amount: d?.stripe?.amountTotal ?? Math.round(Number(d.total ?? 0) * 100),
+            currency: (d?.stripe?.currency || 'CAD').toUpperCase(),
             message: null,
           });
+        } else {
+          setState((s) => ({ ...s, status: 'pending' }));
         }
-      } catch (e) {
-        if (!cancelled) {
-          setState({
-            status: 'error',
-            orderId: null,
-            amount: null,
-            currency: 'CAD',
-            message: e?.message || 'Failed to confirm payment',
-          });
-        }
+      },
+      (err) => {
+        setState({ status: 'error', amount: null, currency: 'CAD', message: err.message });
       }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [sessionId]);
-
-  if (!sessionId) {
-    return (
-      <Stack spacing={2} alignItems="center" sx={{ py: 8 }}>
-        <Typography variant="h5">Missing session ID</Typography>
-        <Button variant="contained" onClick={() => router.push('/')}>
-          Go home
-        </Button>
-      </Stack>
     );
-  }
+    return () => unsub();
+  }, [orderId]);
 
-  if (state.status === 'idle' || state.status === 'loading') {
+  if (state.status === 'loading' || state.status === 'pending') {
     return (
       <Stack spacing={2} alignItems="center" sx={{ py: 8 }}>
         <CircularProgress />
-        <Typography variant="body1">Confirming your payment…</Typography>
+        <Typography>Confirming your payment…</Typography>
+        {sessionId && (
+          <Typography variant="caption" color="text.secondary">
+            Session: {sessionId}
+          </Typography>
+        )}
       </Stack>
     );
   }
@@ -96,10 +83,10 @@ export default function CheckoutSuccessPage() {
   return (
     <Stack spacing={3} alignItems="center" sx={{ py: 8 }}>
       <Typography variant="h4">Thanks for your purchase! 🎉</Typography>
-      <Typography variant="body1" color="text.secondary">
+      <Typography color="text.secondary">
         Order{' '}
         <Box component="span" sx={{ fontWeight: 600 }}>
-          {state.orderId}
+          {orderId}
         </Box>{' '}
         is paid.
       </Typography>

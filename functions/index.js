@@ -1,101 +1,187 @@
-const admin = require('firebase-admin');
-const { onCall, HttpsError, onRequest } = require('firebase-functions/v2/https');
+const { onRequest } = require('firebase-functions/v2/https');
 const { onDocumentWritten } = require('firebase-functions/v2/firestore');
+const admin = require('firebase-admin');
 const Stripe = require('stripe');
 
-admin.initializeApp();
+try {
+  admin.app();
+} catch {
+  admin.initializeApp();
+}
+const db = admin.firestore();
 
-exports.createStripePaymentIntent = onCall({ secrets: ['STRIPE_SECRET_KEY'] }, async (request) => {
-  const uid = request.auth?.uid;
-  if (!uid) throw new HttpsError('unauthenticated', 'Sign in required.');
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' });
 
-  // NOTE: In production, compute the amount server-side from Firestore (cart/order).
-  // For now we accept an amount from the client to unblock the flow.
-  const { amount, currency = 'cad', orderId = '' } = request.data || {};
-  if (!Number.isInteger(amount) || amount < 50) {
-    throw new HttpsError('invalid-argument', 'Amount must be an integer (cents) >= 50.');
+/**
+ * Helper: best-effort variant match by id/sku/title/options.
+ */
+function findVariantIndex(variants, item) {
+  if (!Array.isArray(variants) || variants.length === 0) return -1;
+
+  const wantId = item.variantId?.toString?.() || '';
+  const wantSku = (item.variantSku || '').trim();
+  const wantTitle = (item.variantTitle || '').trim();
+
+  // Try id
+  if (wantId) {
+    const idx = variants.findIndex((v) => (v.id?.toString?.() || '') === wantId);
+    if (idx >= 0) return idx;
+  }
+  // Try SKU
+  if (wantSku) {
+    const idx = variants.findIndex((v) => (v.sku || '').trim() === wantSku);
+    if (idx >= 0) return idx;
+  }
+  // Try title
+  if (wantTitle) {
+    const idx = variants.findIndex((v) => (v.title || '').trim() === wantTitle);
+    if (idx >= 0) return idx;
   }
 
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' });
-
-  try {
-    const pi = await stripe.paymentIntents.create({
-      amount,
-      currency,
-      automatic_payment_methods: { enabled: true },
-      metadata: { uid, orderId },
-    });
-    return { clientSecret: pi.client_secret };
-  } catch (err) {
-    console.error('createStripePaymentIntent error:', err);
-    throw new HttpsError('internal', err.message);
+  // Try building title from options map if provided: "Size / Color"
+  if (item.options && typeof item.options === 'object') {
+    const built = Object.values(item.options).join(' / ');
+    if (built) {
+      const idx = variants.findIndex((v) => (v.title || '').trim() === built.trim());
+      if (idx >= 0) return idx;
+    }
   }
-});
 
-exports.handleStripeWebhook = onRequest(
+  return -1;
+}
+
+exports.stripeWebhook = onRequest(
   { secrets: ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET'] },
   async (req, res) => {
+    // Verify signature
+    let event;
     try {
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-        apiVersion: '2023-10-16',
-      });
-
       const sig = req.headers['stripe-signature'];
-      const event = stripe.webhooks.constructEvent(
-        req.rawBody,
-        sig,
-        process.env.STRIPE_WEBHOOK_SECRET
-      );
+      event = stripe.webhooks.constructEvent(req.rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    } catch (err) {
+      console.error('❌ Bad signature:', err.message);
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
 
-      if (event.type === 'payment_intent.succeeded') {
-        const intent = event.data.object;
+    // Idempotency: skip if we already saw this event
+    const evtRef = db.collection('stripe_events').doc(event.id);
+    const seen = await evtRef.get();
+    if (seen.exists) return res.json({ received: true });
 
-        // Example split transfers (replace with your logic)
-        const vendorSplits = [
-          { id: 'acct_vendor1', amount: 400 },
-          { id: 'acct_vendor2', amount: 300 },
-        ];
+    try {
+      if (event.type === 'checkout.session.completed') {
+        const session = event.data.object;
+        const orderId = session.metadata?.orderId;
+        if (!orderId) {
+          console.warn('⚠️ session has no orderId metadata');
+        } else {
+          // 1) Mark order paid (merge-in stripe details)
+          const orderRef = db.collection('orders').doc(orderId);
+          await orderRef.set(
+            {
+              status: 'paid',
+              paidAt: admin.firestore.FieldValue.serverTimestamp(),
+              stripe: {
+                sessionId: session.id,
+                paymentIntentId:
+                  typeof session.payment_intent === 'string'
+                    ? session.payment_intent
+                    : session.payment_intent?.id || null,
+                amountTotal: session.amount_total,
+                currency: session.currency,
+              },
+            },
+            { merge: true }
+          );
 
-        await Promise.all(
-          vendorSplits.map((split) =>
-            stripe.transfers.create({
-              amount: split.amount,
-              currency: 'cad',
-              destination: split.id,
-              transfer_group: intent?.metadata?.transfer_group,
-            })
-          )
-        );
+          // 2) Decrement stock using the items saved on the order
+          const orderSnap = await orderRef.get();
+          const order = orderSnap.data() || {};
+          const items = Array.isArray(order.items) ? order.items : [];
+
+          // Atomic updates per product
+          await db.runTransaction(async (tx) => {
+            for (const it of items) {
+              const pid = it.id;
+              const qty = Math.max(0, Number(it.quantity ?? 0));
+              if (!pid || !qty) continue;
+
+              const prodRef = db.collection('products').doc(pid);
+              const prodSnap = await tx.get(prodRef);
+              if (!prodSnap.exists) continue;
+
+              const data = prodSnap.data() || {};
+              const variants = Array.isArray(data.variants) ? [...data.variants] : null;
+
+              if (variants && variants.length) {
+                // Variant product
+                const idx = findVariantIndex(variants, it);
+                if (idx >= 0) {
+                  const v = { ...variants[idx] };
+                  const current = Math.max(0, Number(v.stock ?? 0));
+                  v.stock = Math.max(0, current - qty);
+                  variants[idx] = v;
+
+                  // Recompute product stock as sum of variants
+                  const newTotal = variants.reduce(
+                    (s, vv) => s + Math.max(0, Number(vv.stock ?? 0)),
+                    0
+                  );
+
+                  tx.update(prodRef, {
+                    variants,
+                    stock: newTotal,
+                    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                  });
+                } else {
+                  // Couldn’t match variant — fall back to product-level stock only
+                  const productCurrent = Math.max(0, Number(data.stock ?? 0));
+                  const newTotal = Math.max(0, productCurrent - qty);
+                  tx.update(prodRef, {
+                    stock: newTotal,
+                    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                  });
+                }
+              } else {
+                // Single-variant / no-variants product
+                const productCurrent = Math.max(0, Number(data.stock ?? 0));
+                const newTotal = Math.max(0, productCurrent - qty);
+                tx.update(prodRef, {
+                  stock: newTotal,
+                  updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                });
+              }
+            }
+          });
+        }
       }
 
-      res.sendStatus(200);
+      // Mark event processed
+      await evtRef.set({
+        type: event.type,
+        created: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      return res.json({ received: true });
     } catch (err) {
-      console.error('Stripe webhook error:', err);
-      res.status(400).send(`Webhook Error: ${err.message}`);
+      console.error('❌ Webhook handler error:', err);
+      return res.status(500).send('Webhook handler error');
     }
   }
 );
 
-/**
- * Keep product.stock in sync with sum(variants[].stock).
- * Tolerates legacy `quantity` on variants.
- */
+// (Optional) keep your stock-enforcement trigger if you like the double-check.
 exports.enforceProductStock = onDocumentWritten('products/{productId}', async (event) => {
-  const afterSnap = event.data?.after;
-  if (!afterSnap) return; // deleted
+  const after = event.data?.after;
+  if (!after) return;
+  const d = after.data() || {};
+  const variants = Array.isArray(d.variants) ? d.variants : null;
+  if (!variants || variants.length === 0) return;
 
-  const data = afterSnap.data() || {};
-  const variants = Array.isArray(data.variants) ? data.variants : [];
-
-  const computed = variants.reduce((sum, v) => {
-    const val = Number(v?.stock ?? v?.quantity ?? 0);
-    return sum + (Number.isFinite(val) ? Math.max(0, val) : 0);
-  }, 0);
-
-  const current = Number(data.stock ?? 0);
-  if (current !== computed) {
-    await afterSnap.ref.update({
-      stock: computed,
+  const sum = variants.reduce((s, v) => s + Math.max(0, Number(v.stock ?? 0)), 0);
+  if (Number(d.stock ?? 0) !== sum) {
+    await after.ref.update({
+      stock: sum,
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
   }

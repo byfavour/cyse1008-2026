@@ -97,11 +97,18 @@ export function CheckoutPayment() {
       // 1) Build items array from checkout context (supporting a few possible keys)
       const products = checkout?.cart ?? checkout?.items ?? checkout?.products ?? [];
 
+      // in CheckoutPayment onSubmit when building items[]
       const items = products.map((p) => ({
         id: p.id,
         name: p.name ?? p.title ?? 'Item',
-        price: Number(p.price ?? 0), // dollars
+        price: Number(p.price ?? 0),
         quantity: Number(p.quantity ?? 1),
+        // optional, helps variant match:
+        variantId: p.variantId ?? null,
+        variantSku: p.variantSku ?? null,
+        variantTitle:
+          p.variantTitle ?? (p.size && p.colors?.[0] ? `${p.size} / ${p.colors[0]}` : null),
+        options: p.options ?? null, // { Size: "M", Color: "Red" }
       }));
 
       // 2) Resolve email (billing first, then auth)
