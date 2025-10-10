@@ -8,6 +8,10 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '', {
   apiVersion: '2023-10-16',
 });
 
+// in /app/api/stripe/create-session/route.(ts|js)
+const acct = await stripe.accounts.retrieve();
+console.log('CREATE-SESSION using account:', acct.id);
+
 export async function POST(req) {
   try {
     const { items, orderId, email } = await req.json();
