@@ -27,13 +27,19 @@ service cloud.firestore {
     }
 
     // Orders owned by a user (top-level ‘orders’ collection)
-match /orders/{id} {
-  allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-  allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-  allow update, delete: if request.auth != null
-                        && resource.data.userId  == request.auth.uid
-                        && request.resource.data.userId == resource.data.userId;
-}
+    match /orders/{id} {
+      allow read: if request.auth != null &&
+                   resource.data.userId == request.auth.uid;
+
+      allow create: if request.auth != null &&
+                     request.resource.data.userId == request.auth.uid &&
+                     request.resource.data.status == 'pending';
+
+      // Client updates allowed only if they DON'T flip to 'paid'
+      allow update: if request.auth != null &&
+                     resource.data.userId == request.auth.uid &&
+                     request.resource.data.status != 'paid';
+    }
 
 
     // Stripe extension / typical Elements pattern:

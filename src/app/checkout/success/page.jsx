@@ -1,108 +1,105 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from 'src/lib/firebase/firebase';
-import { Button, CircularProgress, Stack, Typography, Box } from '@mui/material';
 
 export default function CheckoutSuccessPage() {
-  const params = useSearchParams();
-  const router = useRouter();
-  const orderId = params.get('order');
-  const sessionId = params.get('session_id');
-
-  const [state, setState] = useState({
-    status: 'loading', // loading | pending | paid | error
-    amount: null,
-    currency: 'CAD',
-    message: null,
-  });
+  const [state, setState] = useState({ phase: 'loading', msg: '', result: null });
 
   useEffect(() => {
-    if (!orderId) {
-      setState({ status: 'error', amount: null, currency: 'CAD', message: 'Missing order id' });
+    const url = new URL(window.location.href);
+    const sessionId = url.searchParams.get('session_id');
+
+    if (!sessionId) {
+      setState({ phase: 'error', msg: 'Missing session_id in URL', result: null });
       return;
     }
 
-    const ref = doc(db, 'orders', orderId);
-    const unsub = onSnapshot(
-      ref,
-      (snap) => {
-        const d = snap.data();
-        if (!d) {
-          setState({ status: 'error', amount: null, currency: 'CAD', message: 'Order not found' });
+    let cancelled = false;
+    const start = Date.now();
+
+    async function poll() {
+      try {
+        const resp = await fetch(
+          `/api/stripe/confirm-session?session_id=${encodeURIComponent(sessionId)}`,
+          {
+            method: 'GET',
+            headers: { Accept: 'application/json' },
+          }
+        );
+
+        if (!resp.ok) {
+          const text = await resp.text();
+          console.warn('confirm-session non-200:', resp.status, text);
+          if (!cancelled)
+            setState({ phase: 'error', msg: `Confirm failed: ${text}`, result: null });
           return;
         }
-        if (d.status === 'paid') {
-          setState({
-            status: 'paid',
-            amount: d?.stripe?.amountTotal ?? Math.round(Number(d.total ?? 0) * 100),
-            currency: (d?.stripe?.currency || 'CAD').toUpperCase(),
-            message: null,
-          });
-        } else {
-          setState((s) => ({ ...s, status: 'pending' }));
+
+        const data = await resp.json();
+        console.log('confirm-session data:', data);
+
+        if (cancelled) return;
+
+        if (data.paid) {
+          setState({ phase: 'ok', msg: 'Payment confirmed!', result: data });
+          return;
         }
-      },
-      (err) => {
-        setState({ status: 'error', amount: null, currency: 'CAD', message: err.message });
+
+        // Not paid yet – keep polling up to ~60s
+        if (Date.now() - start < 60000) {
+          setState({ phase: 'loading', msg: 'Waiting for confirmation…', result: data });
+          setTimeout(poll, 1500);
+        } else {
+          setState({
+            phase: 'error',
+            msg: 'Timed out waiting for payment confirmation.',
+            result: data,
+          });
+        }
+      } catch (err) {
+        console.error('confirm-session fetch error', err);
+        if (!cancelled)
+          setState({ phase: 'error', msg: err.message || 'Network error', result: null });
       }
-    );
-    return () => unsub();
-  }, [orderId]);
+    }
 
-  if (state.status === 'loading' || state.status === 'pending') {
+    poll();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (state.phase === 'loading') {
     return (
-      <Stack spacing={2} alignItems="center" sx={{ py: 8 }}>
-        <CircularProgress />
-        <Typography>Confirming your payment…</Typography>
-        {sessionId && (
-          <Typography variant="caption" color="text.secondary">
-            Session: {sessionId}
-          </Typography>
-        )}
-      </Stack>
+      <div style={{ padding: 24 }}>
+        <h2>Confirming your payment…</h2>
+        <p>{state.msg || 'Please wait a moment.'}</p>
+      </div>
     );
   }
 
-  if (state.status === 'error') {
+  if (state.phase === 'ok') {
     return (
-      <Stack spacing={2} alignItems="center" sx={{ py: 8 }}>
-        <Typography variant="h5">We couldn’t confirm your payment</Typography>
-        <Typography color="text.secondary">{state.message}</Typography>
-        <Button variant="contained" onClick={() => router.push('/checkout')}>
-          Try again
-        </Button>
-      </Stack>
+      <div style={{ padding: 24 }}>
+        <h2>🎉 Payment confirmed!</h2>
+        <pre style={{ background: '#111', color: '#0f0', padding: 12 }}>
+          {JSON.stringify(state.result, null, 2)}
+        </pre>
+      </div>
     );
   }
 
-  const total = typeof state.amount === 'number' ? state.amount / 100 : 0;
-
+  // error
   return (
-    <Stack spacing={3} alignItems="center" sx={{ py: 8 }}>
-      <Typography variant="h4">Thanks for your purchase! 🎉</Typography>
-      <Typography color="text.secondary">
-        Order{' '}
-        <Box component="span" sx={{ fontWeight: 600 }}>
-          {orderId}
-        </Box>{' '}
-        is paid.
-      </Typography>
-      <Typography variant="h6">
-        {Intl.NumberFormat(undefined, { style: 'currency', currency: state.currency }).format(
-          total
-        )}
-      </Typography>
-      <Stack direction="row" spacing={2}>
-        <Button variant="contained" onClick={() => router.push('/orders')}>
-          View orders
-        </Button>
-        <Button variant="outlined" onClick={() => router.push('/')}>
-          Continue shopping
-        </Button>
-      </Stack>
-    </Stack>
+    <div style={{ padding: 24 }}>
+      <h2>We couldn’t confirm your payment</h2>
+      <p style={{ color: 'crimson' }}>{state.msg}</p>
+      {state.result && (
+        <pre style={{ background: '#111', color: '#f88', padding: 12 }}>
+          {JSON.stringify(state.result, null, 2)}
+        </pre>
+      )}
+      <button onClick={() => window.location.assign('/product/checkout?step=2')}>Try again</button>
+    </div>
   );
 }
