@@ -1,15 +1,7 @@
-// /app/api/stripe/confirm-session/route.ts (or .js)
 import Stripe from 'stripe';
 import { NextResponse } from 'next/server';
 
-// --- Firebase Admin (server-side, bypasses rules)
-import admin from 'firebase-admin';
-if (!admin.apps.length) admin.initializeApp();
-const db = admin.firestore();
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
-});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' });
 
 export async function GET(req) {
   try {
@@ -19,51 +11,16 @@ export async function GET(req) {
       return NextResponse.json({ error: 'Missing session_id' }, { status: 400 });
     }
 
-    // 1) Retrieve the session
+    // Read the session from Stripe
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ['payment_intent', 'line_items.data.price.product'],
+      expand: ['payment_intent'],
     });
 
     const paid =
       session.status === 'complete' &&
-      (session.payment_status === 'paid' || session.payment_intent?.status === 'succeeded');
-
-    // 2) Reconcile order as a fallback (webhook is the source of truth)
-    const orderId = session.metadata?.orderId ?? null;
-    if (orderId) {
-      const ref = db.collection('orders').doc(orderId);
-      const snap = await ref.get();
-
-      if (!snap.exists) {
-        // dev fallback — create a minimal record
-        await ref.set({
-          status: paid ? 'paid' : 'pending',
-          email: session.customer_details?.email ?? session.customer_email ?? null,
-          currency: session.currency,
-          amountTotal: session.amount_total,
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
-          stripe: {
-            sessionId: session.id,
-            paymentIntentId:
-              typeof session.payment_intent === 'string'
-                ? session.payment_intent
-                : (session.payment_intent?.id ?? null),
-          },
-        });
-      } else if (paid && snap.data()?.status !== 'paid') {
-        await ref.update({
-          status: 'paid',
-          paidAt: admin.firestore.FieldValue.serverTimestamp(),
-          stripe: {
-            sessionId: session.id,
-            paymentIntentId:
-              typeof session.payment_intent === 'string'
-                ? session.payment_intent
-                : (session.payment_intent?.id ?? null),
-          },
-        });
-      }
-    }
+      (session.payment_status === 'paid' ||
+        (typeof session.payment_intent === 'object' &&
+          session.payment_intent?.status === 'succeeded'));
 
     return NextResponse.json({
       ok: true,
@@ -72,10 +29,9 @@ export async function GET(req) {
       payment_status: session.payment_status,
       amount_total: session.amount_total,
       currency: session.currency,
-      orderId,
+      orderId: session.metadata?.orderId ?? null,
     });
   } catch (err) {
-    console.error('confirm-session error', err);
-    return NextResponse.json({ error: err.message ?? 'Stripe error' }, { status: 400 });
+    return NextResponse.json({ error: err.message || 'Stripe error' }, { status: 400 });
   }
 }
