@@ -4,14 +4,8 @@ import { NextResponse } from 'next/server';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-import admin from 'firebase-admin';
-try {
-  admin.app();
-} catch {
-  admin.initializeApp();
-}
+import admin, { db } from 'src/lib/firebase/firebase-admin';
 
-const db = admin.firestore();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '', { apiVersion: '2023-10-16' });
 
 export async function POST(req) {
