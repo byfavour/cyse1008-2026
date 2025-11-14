@@ -2,6 +2,7 @@
 const { onRequest } = require('firebase-functions/v2/https');
 const { onDocumentWritten } = require('firebase-functions/v2/firestore');
 const admin = require('firebase-admin');
+const { FieldValue } = require('firebase-admin/firestore');
 
 // --- Firebase init (safe on emulator and prod)
 if (!admin.apps.length) admin.initializeApp();
@@ -82,6 +83,7 @@ exports.stripeWebhook = onRequest(
     let event;
     try {
       const sig = req.headers['stripe-signature'];
+      console.log('stripeWebhook secret:', process.env.STRIPE_WEBHOOK_SECRET?.slice(0, 20));
       event = stripe.webhooks.constructEvent(req.rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET);
     } catch (err) {
       console.error('Webhook signature verification failed:', err && err.message);
@@ -106,7 +108,7 @@ exports.stripeWebhook = onRequest(
           await orderRef.set(
             {
               status: 'paid',
-              paidAt: admin.firestore.FieldValue.serverTimestamp(),
+              paidAt: FieldValue.serverTimestamp(),
               stripe: {
                 sessionId: session.id || null,
                 paymentIntentId:
@@ -155,14 +157,14 @@ exports.stripeWebhook = onRequest(
                   tx.update(prodRef, {
                     variants,
                     stock: sum,
-                    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: FieldValue.serverTimestamp(),
                   });
                 } else {
                   // Fallback: just adjust product-level stock
                   const current = Math.max(0, Number(data.stock || 0));
                   tx.update(prodRef, {
                     stock: Math.max(0, current - qty),
-                    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: FieldValue.serverTimestamp(),
                   });
                 }
               } else {
@@ -170,7 +172,7 @@ exports.stripeWebhook = onRequest(
                 const current = Math.max(0, Number(data.stock || 0));
                 tx.update(prodRef, {
                   stock: Math.max(0, current - qty),
-                  updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                  updatedAt: FieldValue.serverTimestamp(),
                 });
               }
             }
@@ -183,7 +185,7 @@ exports.stripeWebhook = onRequest(
       // 4) Mark Stripe event processed
       await evtRef.set({
         type: event.type,
-        created: admin.firestore.FieldValue.serverTimestamp(),
+        created: FieldValue.serverTimestamp(),
       });
 
       return res.json({ received: true });
@@ -208,7 +210,7 @@ exports.enforceProductStock = onDocumentWritten('products/{productId}', async (e
   if (Number(d.stock || 0) !== sum) {
     await after.ref.update({
       stock: sum,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
     });
   }
 });

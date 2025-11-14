@@ -7,8 +7,7 @@
   "scripts": {
     "dev:web": "next dev -p 3032",
     "dev:emulators": "firebase emulators:start --import ./.firebase-data --export-on-exit",
-    "dev:stripe": "node scripts/dev-stripe-listen.js",
-    "dev": "npm-run-all -p dev:emulators dev:web dev:stripe",
+    "dev": "npm-run-all -p dev:emulators dev:web",
     "start": "next start -p 3032",
     "build": "cross-env NEXT_PUBLIC_SKIP_ESLINT=true NEXT_PUBLIC_DEBUG=true npx next build",
     "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
