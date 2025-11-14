@@ -1,16 +1,33 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+
+import Container from '@mui/material/Container';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Divider from '@mui/material/Divider';
+import Alert from '@mui/material/Alert';
+import CircularProgress from '@mui/material/CircularProgress';
+
+const currencyFormatter = new Intl.NumberFormat('en-CA', {
+  style: 'currency',
+  currency: 'CAD',
+});
 
 export default function CheckoutSuccessPage() {
   const [state, setState] = useState({ phase: 'loading', msg: '', result: null });
+  const router = useRouter();
 
   useEffect(() => {
     const url = new URL(window.location.href);
     const sessionId = url.searchParams.get('session_id');
 
     if (!sessionId) {
-      setState({ phase: 'error', msg: 'Missing session_id in URL', result: null });
+      setState({ phase: 'error', msg: 'Missing session id in the URL.', result: null });
       return;
     }
 
@@ -21,45 +38,36 @@ export default function CheckoutSuccessPage() {
       try {
         const resp = await fetch(
           `/api/stripe/confirm-session?session_id=${encodeURIComponent(sessionId)}`,
-          {
-            method: 'GET',
-            headers: { Accept: 'application/json' },
-          }
+          { method: 'GET', headers: { Accept: 'application/json' } }
         );
 
         if (!resp.ok) {
           const text = await resp.text();
-          console.warn('confirm-session non-200:', resp.status, text);
           if (!cancelled)
-            setState({ phase: 'error', msg: `Confirm failed: ${text}`, result: null });
+            setState({ phase: 'error', msg: `Could not confirm payment: ${text}`, result: null });
           return;
         }
 
         const data = await resp.json();
-        console.log('confirm-session data:', data);
-
         if (cancelled) return;
-
         if (data.paid) {
           setState({ phase: 'ok', msg: 'Payment confirmed!', result: data });
           return;
         }
 
-        // Not paid yet – keep polling up to ~60s
         if (Date.now() - start < 60000) {
-          setState({ phase: 'loading', msg: 'Waiting for confirmation…', result: data });
           setTimeout(poll, 1500);
         } else {
           setState({
             phase: 'error',
-            msg: 'Timed out waiting for payment confirmation.',
+            msg: 'Timed out while waiting for confirmation. Please try again.',
             result: data,
           });
         }
       } catch (err) {
-        console.error('confirm-session fetch error', err);
-        if (!cancelled)
+        if (!cancelled) {
           setState({ phase: 'error', msg: err.message || 'Network error', result: null });
+        }
       }
     }
 
@@ -69,37 +77,89 @@ export default function CheckoutSuccessPage() {
     };
   }, []);
 
+  const orderSummary = useMemo(() => {
+    const result = state.result || {};
+    const amount = typeof result.amount_total === 'number' ? result.amount_total / 100 : null;
+    return [
+      { label: 'Order ID', value: result.orderId || '—' },
+      { label: 'Stripe status', value: result.status || 'pending' },
+      { label: 'Payment status', value: result.payment_status || 'processing' },
+      {
+        label: 'Amount',
+        value: amount !== null ? currencyFormatter.format(amount) : '—',
+      },
+      { label: 'Currency', value: (result.currency || 'cad').toUpperCase() },
+    ];
+  }, [state.result]);
+
+  const goToStore = () => router.push('/product');
+  const goToOrders = () => router.push('/dashboard/order');
+  const retryCheckout = () => router.push('/product/checkout?step=2');
+
   if (state.phase === 'loading') {
     return (
-      <div style={{ padding: 24 }}>
-        <h2>Confirming your payment…</h2>
-        <p>{state.msg || 'Please wait a moment.'}</p>
-      </div>
+      <Container maxWidth="sm" sx={{ py: 8 }}>
+        <Stack spacing={3} alignItems="center">
+          <CircularProgress />
+          <Typography variant="h5">Confirming your payment…</Typography>
+          <Typography color="text.secondary">Hold tight while we verify things with Stripe.</Typography>
+        </Stack>
+      </Container>
     );
   }
 
   if (state.phase === 'ok') {
     return (
-      <div style={{ padding: 24 }}>
-        <h2>🎉 Payment confirmed!</h2>
-        <pre style={{ background: '#111', color: '#0f0', padding: 12 }}>
-          {JSON.stringify(state.result, null, 2)}
-        </pre>
-      </div>
+      <Container maxWidth="sm" sx={{ py: 8 }}>
+        <Stack spacing={3} textAlign="center">
+          <Typography variant="h3">🎉 Payment confirmed!</Typography>
+          <Typography color="text.secondary">
+            Your order is ready. We’ll email you a confirmation and shipping updates.
+          </Typography>
+          <Card variant="outlined">
+            <CardContent>
+              <Stack spacing={1.5}>
+                {orderSummary.map((item) => (
+                  <Stack
+                    key={item.label}
+                    direction="row"
+                    justifyContent="space-between"
+                    sx={{ textAlign: 'left' }}
+                  >
+                    <Typography color="text.secondary">{item.label}</Typography>
+                    <Typography fontWeight={600}>{item.value}</Typography>
+                  </Stack>
+                ))}
+              </Stack>
+            </CardContent>
+            <Divider />
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ p: 2 }}>
+              <Button fullWidth variant="contained" onClick={goToStore}>
+                Continue shopping
+              </Button>
+              <Button fullWidth variant="outlined" onClick={goToOrders}>
+                View orders
+              </Button>
+            </Stack>
+          </Card>
+        </Stack>
+      </Container>
     );
   }
 
-  // error
   return (
-    <div style={{ padding: 24 }}>
-      <h2>We couldn’t confirm your payment</h2>
-      <p style={{ color: 'crimson' }}>{state.msg}</p>
-      {state.result && (
-        <pre style={{ background: '#111', color: '#f88', padding: 12 }}>
-          {JSON.stringify(state.result, null, 2)}
-        </pre>
-      )}
-      <button onClick={() => window.location.assign('/product/checkout?step=2')}>Try again</button>
-    </div>
+    <Container maxWidth="sm" sx={{ py: 8 }}>
+      <Stack spacing={3}>
+        <Alert severity="error" variant="filled">
+          {state.msg || 'We could not confirm your payment.'}
+        </Alert>
+        <Typography color="text.secondary">
+          If this keeps happening, refresh the page or return to checkout to try again.
+        </Typography>
+        <Button variant="contained" onClick={retryCheckout}>
+          Return to checkout
+        </Button>
+      </Stack>
+    </Container>
   );
 }
