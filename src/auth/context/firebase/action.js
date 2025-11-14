@@ -13,7 +13,7 @@ import {
   createUserWithEmailAndPassword as _createUserWithEmailAndPassword,
 } from 'firebase/auth';
 
-import { AUTH, FIRESTORE } from 'src/lib/firebase';
+import { db, AUTH } from 'src/lib/firebase/firebase';
 
 /** **************************************
  * Sign in
@@ -61,7 +61,7 @@ export const signUp = async ({ email, password, firstName, lastName }) => {
      */
     await _sendEmailVerification(newUser.user);
 
-    const userProfile = doc(collection(FIRESTORE, 'users'), newUser.user?.uid);
+    const userProfile = doc(collection(db, 'users'), newUser.user?.uid);
 
     await setDoc(userProfile, {
       uid: newUser.user?.uid,

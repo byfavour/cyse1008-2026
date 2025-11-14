@@ -23,6 +23,7 @@ dist
 build
 
 # environment variables
+.env~
 .env
 .env.local
 .env.development.local
@@ -40,3 +41,18 @@ keys
 .unimportedrc.json
 tsconfig.tsbuildinfo
 setAdmin.js
+keys/
+
+apphosting.local.yaml
+emu
+seed
+service-account.json
+service-account.json
+
+# secrets
+keys/
+*.pem
+*.p12
+*.key
+*.json
+!package.json

@@ -76,9 +76,9 @@ export function HomeHero({ sx, ...other }) {
         }}
       >
         <Box component="span" sx={{ width: 1, opacity: 0.24 }}>
-          Boost your building
+          Sell more, 
         </Box>
-        process with
+        save more with
         <Box
           component={m.span}
           animate={{ backgroundPosition: '200% center' }}
@@ -112,7 +112,7 @@ export function HomeHero({ sx, ...other }) {
           [theme.breakpoints.up(lgKey)]: { fontSize: 20, lineHeight: '36px' },
         }}
       >
-        {`The starting point for your next project is based on MUI. \nEasy customization helps you build apps faster and better.`}
+      {`Discover local goods and services with Quilt. \nSmart regular routing saves everyone time and money.`}
       </Typography>
     </AnimatedDiv>
   );

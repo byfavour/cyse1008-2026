@@ -10,7 +10,7 @@ import { usePathname } from 'src/routes/hooks';
 
 import { useBoolean } from 'src/hooks/use-boolean';
 
-import { Logo } from 'src/components/logo';
+import { Logo } from 'src/components/logo-quilt';
 
 import { Main } from './main';
 import { NavMobile } from './nav/mobile';

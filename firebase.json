@@ -1,41 +1,17 @@
 {
-  "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
+  "functions": {
+    "source": "functions",
+    "runtime": "nodejs20"
   },
- "hosting": {
-   "hosting": {
-    "source": ".next",
+  "emulators": {
+    "functions": { "port": 5001 },
+    "firestore": { "port": 8080 },
+    "auth": { "port": 9099 },
+    "ui": { "enabled": true, "port": 4000 }
+  },
+  "hosting": {
+    "public": "public",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    "frameworksBackend": {
-      "region": "us-central1"
-    },
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ]
-  }
-  },
-  "functions": [
-    {
-      "runtime": "nodejs18",
-      "source": "functions",
-      "codebase": "default",
-      "ignore": [
-        "node_modules",
-        ".git",
-        "firebase-debug.log",
-        "firebase-debug.*.log",
-        "*.local"
-      ],
-      "predeploy": [
-        "npm run lint || exit 0"
-      ]
-    }
-  ],
-  "storage": {
-    "rules": "storage.rules"
+    "rewrites": [{ "source": "**", "function": "nextjsServer" }]
   }
 }

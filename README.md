@@ -1,54 +1,62 @@
-## Prerequisites
+TODO:
 
-- Node.js 20.x (Recommended) hello class of 2025
+- checkout process integrated with stripe
+- improve efficiency - seems slow - make it faster
+- cart is holding onto items; maybe because the order isn't flipping to paid
+- simplify addresses in checkout
+- streamline payment options in checkout
+  checkout
+  zomato
+  blinkit zip 560029
+  smmlite payments email address confirmation
+  UBI
+  razorpay indian payments
 
-## Installation
+## Stripe CLI Install (host machine)
+1. Download the latest Linux tarball from GitHub.
+2. Unzip: `tar -xvf stripe_X.X.X_linux_x86_64.tar.gz`.
+3. Move the `stripe` binary into your PATH:
+   ```
+   sudo mv stripe /usr/local/bin/
+   ```
 
-**Using Yarn (Recommended)**
+## Stripe + Firebase Emulator Troubleshooting Checklist
 
-```sh
-yarn install
-yarn dev
-```
+### 1. Stripe CLI Listener
+- Run from a terminal with internet access (outside VS Code sandbox):
+  ```
+  stripe listen --events checkout.session.completed \
+    --forward-to http://127.0.0.1:5001/quilt-b3dec/us-central1/stripeWebhook
+  ```
+- Leave the CLI session running and watch for `→ checkout.session.completed` / `← 200 POST …`.
+- Every time you start the listener, copy the printed `whsec_…` into `functions/.env` or Firebase Secret Manager (and any local `.env` files). Restart `npm run dev` so the emulator reloads the secret.
 
-**Using Npm**
+### 2. Firebase Functions Emulator
+- Run `npm run dev` from a shell using Node 20 (`node -v` should show 20.x).
+- Confirm the emulator logs `functions[us-central1-stripeWebhook]: http function initialized (http://127.0.0.1:5001/…)`. If the port changes, update the listener `--forward-to` URL.
+- Tail `firebase-debug.log`; look for:
+  - `stripeWebhook: received with signature` (success)
+  - `Webhook signature verification failed` (secret mismatch or stale listener)
 
-```sh
-npm i
-npm run dev
-```
+### 3. Secret Management
+- Secrets come from Firebase Secret Manager (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`). Update them with:
+  ```
+  firebase functions:secrets:set STRIPE_WEBHOOK_SECRET
+  firebase functions:secrets:set STRIPE_SECRET_KEY
+  ```
+  (Paste the current `whsec_…` or `sk_test_…` values.)
+- If you use local `.env` files instead, make sure every copy matches and restart the emulator.
 
-## Build
+### 4. Common Issues & Fixes
+- **Signature mismatch**: listener secret doesn’t match. Update secrets and restart.
+- **404 in Stripe CLI output**: wrong port; copy the URL from the emulator log.
+- **`Cannot read properties of undefined (serverTimestamp)`**: import `FieldValue` from `firebase-admin/firestore`.
+- **No CLI output**: listener crashed or network blocked; restart `stripe listen`.
+- **CLI `socket: operation not permitted`**: run the CLI on the host OS (not inside the restricted shell).
 
-```sh
-yarn build
-# or
-npm run build
-```
+### 5. Verification
+- After checkout, use the Firestore Emulator UI (`http://127.0.0.1:4000/firestore`) to confirm `orders/{orderId}` now shows `status: paid`.
+- Check `stripe_events/{eventId}` for idempotency records.
+- You can simulate events quickly with: `stripe trigger checkout.session.completed`.
 
-## Mock server
-
-By default we provide demo data from : `https://api-dev-minimal-[version].vercel.app`
-
-To set up your local server:
-
-- **Guide:** [https://docs.minimals.cc/mock-server](https://docs.minimals.cc/mock-server).
-
-- **Resource:** [Download](https://www.dropbox.com/sh/6ojn099upi105tf/AACpmlqrNUacwbBfVdtt2t6va?dl=0).
-
-## Full version
-
-- Create React App ([migrate to CRA](https://docs.minimals.cc/migrate-to-cra/)).
-- Next.js
-- Vite.js
-
-## Starter version
-
-- To remove unnecessary components. This is a simplified version ([https://starter.minimals.cc/](https://starter.minimals.cc/))
-- Good to start a new project. You can copy components from the full version.
-- Make sure to install the dependencies exactly as compared to the full version.
-
----
-
-**NOTE:**
-_When copying folders remember to also copy hidden files like .env. This is important because .env files often contain environment variables that are crucial for the application to run correctly._
+Share this checklist with students; walking through each item resolves the “order stuck as pending” flow almost every time.

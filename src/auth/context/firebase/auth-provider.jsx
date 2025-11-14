@@ -1,14 +1,15 @@
 'use client';
 
+import { useMemo, useEffect, useCallback } from 'react';
+
 import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
-import { useMemo, useEffect, useCallback } from 'react';
 
 import { useSetState } from 'src/hooks/use-set-state';
 
 import axios from 'src/utils/axios';
 
-import { AUTH, FIRESTORE } from 'src/lib/firebase';
+import { db, AUTH } from 'src/lib/firebase/firebase';
 
 import { AuthContext } from '../auth-context';
 
@@ -23,20 +24,24 @@ export function AuthProvider({ children }) {
   const checkUserSession = useCallback(async () => {
     try {
       onAuthStateChanged(AUTH, async (user) => {
-        if (user && user.emailVerified) {
+        if (user) {
           /*
            * (1) If skip emailVerified
            * Remove the condition (if/else) : user.emailVerified
            */
-          const userProfile = doc(FIRESTORE, 'users', user.uid);
-
+          const userProfile = doc(db, 'users', user.uid);
           const docSnap = await getDoc(userProfile);
+          const profileData = docSnap.exists() ? docSnap.data() : {};
+          // Get custom claims (role) from Firebase Authentication
+          const tokenResult = await user.getIdTokenResult(true);
+          const roleFromAuth = tokenResult.claims.role || ''; // Extract role from token
 
-          const profileData = docSnap.data();
+          // Final role priority: Firestore role > Auth Claim role > Default empty string
+          const role = profileData?.role ?? roleFromAuth ?? '';
 
           const { accessToken } = user;
 
-          setState({ user: { ...user, ...profileData }, loading: false });
+          setState({ user: { ...user, ...profileData, role }, loading: false });
           axios.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
         } else {
           setState({ user: null, loading: false });
@@ -50,9 +55,9 @@ export function AuthProvider({ children }) {
   }, [setState]);
 
   useEffect(() => {
-    checkUserSession();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const unsubscribe = onAuthStateChanged(AUTH, checkUserSession);
+    return () => unsubscribe(); // Cleanup
+  }, [checkUserSession]);
 
   // ----------------------------------------------------------------------
 
@@ -69,7 +74,7 @@ export function AuthProvider({ children }) {
             accessToken: state.user?.accessToken,
             displayName: state.user?.displayName,
             photoURL: state.user?.photoURL,
-            role: state.user?.role ?? 'admin',
+            role: state.user?.role ?? '', // Ensures role is set
           }
         : null,
       checkUserSession,

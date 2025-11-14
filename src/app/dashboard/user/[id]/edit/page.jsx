@@ -1,29 +1,17 @@
+'use server';
+
 import { CONFIG } from 'src/config-global';
 import { _userList } from 'src/_mock/_user';
 
 import { UserEditView } from 'src/sections/user/view';
 
-// ----------------------------------------------------------------------
-
-export const metadata = { title: `User edit | Dashboard - ${CONFIG.appName}` };
-
-export default function Page({ params }) {
+export default async function Page({ params }) {
   const { id } = params;
 
   const currentUser = _userList.find((user) => user.id === id);
 
   return <UserEditView user={currentUser} />;
 }
-
-// ----------------------------------------------------------------------
-
-/**
- * [1] Default
- * Remove [1] and [2] if not using [2]
- */
-const dynamic = CONFIG.isStaticExport ? 'auto' : 'force-dynamic';
-
-export { dynamic };
 
 /**
  * [2] Static exports

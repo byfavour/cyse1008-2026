@@ -9,6 +9,7 @@ import { detectLanguage } from 'src/locales/server';
 import { schemeConfig } from 'src/theme/scheme-config';
 import { I18nProvider } from 'src/locales/i18n-provider';
 import { ThemeProvider } from 'src/theme/theme-provider';
+import { ProductProvider } from 'src/lib/contexts/ProductContext';
 
 import { Snackbar } from 'src/components/snackbar';
 import { ProgressBar } from 'src/components/progress-bar';
@@ -65,10 +66,12 @@ export default async function RootLayout({ children }) {
                 <ThemeProvider>
                   <MotionLazy>
                     <CheckoutProvider>
-                      <Snackbar />
-                      <ProgressBar />
-                      <SettingsDrawer />
-                      {children}
+                      <ProductProvider>
+                        <Snackbar />
+                        <ProgressBar />
+                        <SettingsDrawer />
+                        {children}
+                      </ProductProvider>
                     </CheckoutProvider>
                   </MotionLazy>
                 </ThemeProvider>

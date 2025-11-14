@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -6,64 +6,51 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
 export function EulerTotientFunction() {
-    const [base, setBase] = useState(0);
-    const [exponent, setExponent] = useState(0);
-    const [modulus, setModulus] = useState(0);
-    const [result, setResult] = useState(null);
+  const [p, setP] = useState(0);
+  const [q, setQ] = useState(0);
+  const [totient, setTotient] = useState(null);
 
-    function modExp(_base, _exponent, _modulus) {
-        if (_modulus === 1) return 0;
-        let _result = 1;
-        _base %= _modulus;
-        while (_exponent > 0) {
-            if (_exponent % 2 === 1) {
-              _result = (_result * _base) % _modulus;
-            }
-            _exponent = Math.floor(_exponent / 2);
-            _base = (_base * _base) % _modulus;
-        }
-        return _result;
+  const calculateTotient = () => {
+    const pInt = parseInt(p, 10);
+    const qInt = parseInt(q, 10);
+
+    if (Number.isNaN(pInt) || Number.isNaN(qInt) || pInt <= 1 || qInt <= 1) {
+      alert('Please enter valid prime numbers greater than 1 for p and q.');
+      return;
     }
 
-    const handleCalculate = () => {
-        setResult(modExp(parseInt(base, 10), parseInt(exponent, 10), parseInt(modulus, 10)));
-    };
+    const totientValue = (pInt - 1) * (qInt - 1);
+    setTotient(totientValue);
+  };
 
-    return (
-          <Box
-            component="form"
-            sx={{ '& > :not(style)': { m: 1, width: '25ch' } }}
-            noValidate
-            autoComplete="off"
-          >
-            <Typography variant="h2">Modular Exponentiation</Typography>
-            <TextField
-              id="base"
-              label="Base"
-              type="number"
-              value={base}
-              onChange={(e) => setBase(e.target.value)}
-            />
-            <TextField
-              id="exponent"
-              label="Exponent"
-              type="number"
-              value={exponent}
-              onChange={(e) => setExponent(e.target.value)}
-            />
-            <TextField
-              id="modulus"
-              label="Modulus"
-              type="number"
-              value={modulus}
-              onChange={(e) => setModulus(e.target.value)}
-            />
-            <Button variant="contained" color="primary" onClick={handleCalculate}>
-              Compute 
-            </Button>
-            {result !== null && (
-                <Box>Result: {result}</Box>
-            )}
-        </Box>
-    );
+  return (
+    <Box
+      component="form"
+      sx={{ '& > :not(style)': { m: 1, width: '25ch' } }}
+      noValidate
+      autoComplete="off"
+    >
+      <Typography variant="h2">Euler&apos;s Totient Function</Typography>
+      <Typography variant="subtitle1">ϕ(N)=(p−1)×(q−1)</Typography>
+      <TextField
+        id="p"
+        label="Prime p"
+        placeholder="Enter prime p"
+        type="number"
+        value={p}
+        onChange={(e) => setP(e.target.value)}
+      />
+      <TextField
+        id="q"
+        label="Prime q"
+        type="number"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+      />
+      <Button variant="contained" color="primary" onClick={calculateTotient}>
+        Compute
+      </Button>
+      {totient !== null && <Box>Result: {totient}</Box>}
+    </Box>
+  );
 }

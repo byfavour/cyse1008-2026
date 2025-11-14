@@ -1,8 +1,7 @@
+import Image from 'next/image';
+
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
-import ListItemText from '@mui/material/ListItemText';
-
-import { fData } from 'src/utils/format-number';
 
 import { varAlpha } from 'src/theme/styles';
 
@@ -11,7 +10,6 @@ import { uploadClasses } from '../classes';
 import { fileData, FileThumbnail } from '../../file-thumbnail';
 
 // ----------------------------------------------------------------------
-
 export function MultiFilePreview({
   sx,
   onRemove,
@@ -66,62 +64,45 @@ export function MultiFilePreview({
     >
       {renderFirstNode}
 
-      {files.map((file) => {
-        const { name, size } = fileData(file);
-
-        if (thumbnail) {
+      {files.map((file, index) => {
+        // If it's a URL (uploaded file)
+        if (typeof file === 'string') {
           return (
-            <Box component="li" key={name} sx={{ display: 'inline-flex' }}>
-              <FileThumbnail
-                tooltip
-                imageView
-                file={file}
-                onRemove={() => onRemove?.(file)}
-                sx={{
-                  width: 80,
-                  height: 80,
-                  border: (theme) =>
-                    `solid 1px ${varAlpha(theme.vars.palette.grey['500Channel'], 0.16)}`,
-                }}
-                slotProps={{ icon: { width: 36, height: 36 } }}
-                {...slotProps?.thumbnail}
+            <Box component="li" key={`${file}-${index}`} sx={{ display: 'inline-flex' }}>
+              <Image
+                src={file}
+                alt={`Uploaded file ${index}`}
+                width={80}
+                height={80}
+                sx={{ objectFit: 'cover', borderRadius: 4 }}
               />
+              {onRemove && (
+                <IconButton size="small" onClick={() => onRemove(file)}>
+                  <Iconify icon="mingcute:close-line" width={16} />
+                </IconButton>
+              )}
             </Box>
           );
         }
 
+        // If it's a File object (local file selected but not yet uploaded)
+        const { name } = fileData(file);
         return (
-          <Box
-            component="li"
-            key={name}
-            sx={{
-              py: 1,
-              pr: 1,
-              pl: 1.5,
-              gap: 1.5,
-              display: 'flex',
-              borderRadius: 1,
-              alignItems: 'center',
-              border: (theme) =>
-                `solid 1px ${varAlpha(theme.vars.palette.grey['500Channel'], 0.16)}`,
-            }}
-          >
-            <FileThumbnail file={file} {...slotProps?.thumbnail} />
-
-            <ListItemText
-              primary={name}
-              secondary={fData(size)}
-              secondaryTypographyProps={{
-                component: 'span',
-                typography: 'caption',
+          <Box component="li" key={`${name}-${index}`} sx={{ display: 'inline-flex' }}>
+            <FileThumbnail
+              tooltip
+              imageView
+              file={file}
+              onRemove={() => onRemove?.(file)}
+              sx={{
+                width: 80,
+                height: 80,
+                border: (theme) =>
+                  `solid 1px ${varAlpha(theme.vars.palette.grey['500Channel'], 0.16)}`,
               }}
+              slotProps={{ icon: { width: 36, height: 36 } }}
+              {...slotProps?.thumbnail}
             />
-
-            {onRemove && (
-              <IconButton size="small" onClick={() => onRemove(file)}>
-                <Iconify icon="mingcute:close-line" width={16} />
-              </IconButton>
-            )}
           </Box>
         );
       })}

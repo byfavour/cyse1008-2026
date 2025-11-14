@@ -25,6 +25,7 @@ const ICONS = {
   kanban: icon('ic-kanban'),
   folder: icon('ic-folder'),
   course: icon('ic-course'),
+  connect: icon('mdi-api'),
   banking: icon('ic-banking'),
   booking: icon('ic-booking'),
   invoice: icon('ic-invoice'),
@@ -48,6 +49,8 @@ export const navData = [
   {
     subheader: 'Overview',
     items: [
+      { title: 'Shop', path: paths.product.root, icon: ICONS.analytics },
+      { title: 'Encryption', path: paths.dashboard.general.encryption, icon: ICONS.analytics },
       { title: 'App', path: paths.dashboard.root, icon: ICONS.dashboard },
       { title: 'Ecommerce', path: paths.dashboard.general.ecommerce, icon: ICONS.ecommerce },
       { title: 'Analytics', path: paths.dashboard.general.analytics, icon: ICONS.analytics },
@@ -62,7 +65,13 @@ export const navData = [
    */
   {
     subheader: 'Management',
+    roles: ['admin'],
     items: [
+      {
+        title: 'Connect',
+        path: paths.dashboard.connect,
+        icon: ICONS.connect,
+      },
       {
         title: 'User',
         path: paths.dashboard.user.root,
@@ -171,7 +180,7 @@ export const navData = [
         title: 'Permission',
         path: paths.dashboard.permission,
         icon: ICONS.lock,
-        roles: ['admin', 'manager'],
+        roles: ['admin'],
         caption: 'Only admin can see this item',
       },
       {

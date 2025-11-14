@@ -286,3 +286,5 @@ function NumberBlock({ data, type, title }) {
     </StyledPaper>
   );
 }
+
+export default MultiLanguageView;
