@@ -10,8 +10,10 @@ export async function POST(req) {
     },
   };
 
+  const API_VERSION = process.env.SHOPIFY_API_VERSION || '2025-01';
+
   const res = await fetch(
-    `https://${process.env.SHOPIFY_STORE_DOMAIN}/admin/api/2025-01/products.json`,
+    `https://${process.env.SHOPIFY_STORE_DOMAIN}/admin/api/${API_VERSION}/products.json`,
     {
       method: 'POST',
       headers: {

@@ -86,7 +86,7 @@ export function RHFVariantTable({ user, defaultPrice = 0 }) {
           title: Object.values(optionsMap).join(' / '),
           sku: '',
           price: defaultPrice,
-          quantity: 0,
+          stock: 0,
           options: optionsMap,
         };
       });
@@ -95,8 +95,8 @@ export function RHFVariantTable({ user, defaultPrice = 0 }) {
     }
   }, [options, replaceVariants]);
 
-  const handleOnUpload = useCallback(
-    async (event) => {
+  const handleVariantImageUpload = useCallback(
+    (variantIndex) => async (event) => {
       let files = [];
 
       if (Array.isArray(event)) {
@@ -115,8 +115,9 @@ export function RHFVariantTable({ user, defaultPrice = 0 }) {
       }
 
       try {
-        const uploadedUrls = await uploadImagesToLibrary(user.id, files);
-        setValue('images', uploadedUrls, {
+        const uploadedUrls = await uploadImagesToLibrary(user.uid, files);
+        const firstUrl = uploadedUrls?.[0] ?? '';
+        setValue(`variants.${variantIndex}.image`, firstUrl, {
           shouldValidate: true,
           shouldDirty: true,
         });
@@ -124,11 +125,12 @@ export function RHFVariantTable({ user, defaultPrice = 0 }) {
         console.error('Upload failed:', error);
       }
     },
-    [user.id, setValue]
+    [user.uid, setValue]
   );
 
   const handleRemoveImage = useCallback(
     (i) => () => {
+      +setValue(`variants.${i}.image`, '', { shouldValidate: true, shouldDirty: true });
       setValue(`variants.${i}.image`, '', { shouldValidate: true, shouldDirty: true });
     },
     [setValue]
@@ -239,7 +241,7 @@ export function RHFVariantTable({ user, defaultPrice = 0 }) {
                   <TableCell>Variant</TableCell>
                   <TableCell>Image</TableCell>
                   <TableCell>Price</TableCell>
-                  <TableCell>Available</TableCell>
+                  <TableCell>Stock</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -249,9 +251,8 @@ export function RHFVariantTable({ user, defaultPrice = 0 }) {
                     <TableCell sx={{ width: 64 }}>
                       <Field.Upload
                         thumbnail
-                        // value={field.value}
-                        name="images"
-                        onUpload={handleOnUpload(i)}
+                        name={`variants.${i}.image`}
+                        onUpload={(e) => handleVariantImageUpload(i)}
                         onDelete={handleRemoveImage(i)}
                         uploadPlaceholderIcon="solar:image-add-bold"
                         uploadPlaceholderLabel=""
@@ -267,7 +268,7 @@ export function RHFVariantTable({ user, defaultPrice = 0 }) {
                     </TableCell>
                     <TableCell>
                       <Controller
-                        name={`variants.${i}.quantity`}
+                        name={`variants.${i}.stock`}
                         control={control}
                         render={({ field }) => <TextField type="number" size="small" {...field} />}
                       />

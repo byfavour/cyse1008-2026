@@ -34,34 +34,55 @@ import { Form, Field, schemaHelper } from 'src/components/hook-form';
 import { useAuthContext } from 'src/auth/hooks';
 
 // ----------------------------------------------------------------------
-
 export const NewProductSchema = zod.object({
   name: zod.string().min(1, { message: 'Name is required!' }),
   description: schemaHelper.editor({ message: { required_error: 'Description is required!' } }),
-  images: schemaHelper.files({ message: { required_error: 'Images is required!' } }),
+  images: schemaHelper.files({ minFiles: 1, message: { required_error: 'Images is required!' } }),
   code: zod.string().min(1, { message: 'Product code is required!' }),
+
+  // Product-level stock (used for single-variant products; ignored when variants exist)
+  stock: zod.coerce.number().min(0).default(0),
+
+  // Variants written with `stock`; we still accept legacy `quantity` and normalize it
   variants: zod
     .array(
+      zod
+        .object({
+          title: zod.string().min(1),
+          sku: zod.string().min(1),
+          price: zod.coerce.number().min(0),
+          stock: zod.coerce.number().min(0).optional(),
+          quantity: zod.coerce.number().min(0).optional(), // legacy
+          // Per-variant selected options (e.g., { Size: "M", Color: "Red" })
+          options: zod.record(zod.string(), zod.string()).optional(),
+          // Allow a single URL (string) or omit entirely
+          image: zod.union([zod.string(), zod.any()]).optional(),
+        })
+        .transform((v) => ({ ...v, stock: Number(v.stock ?? v.quantity ?? 0) }))
+    )
+    .optional()
+    .default([]),
+
+  // Product-level option definitions edited by the variant table
+  // [{ name: "Size", values: ["S","M","L"] }, ...]
+  options: zod
+    .array(
       zod.object({
-        title: zod.string().min(1),
-        sku: zod.string().min(1),
-        price: zod.number().min(0),
-        quantity: zod.number().min(0),
-        options: zod.record(zod.string(), zod.string()), // { Size: 'M', Color: 'Red' }
-        image: schemaHelper.files({ message: { required_error: 'Images is required!' } }),
+        name: zod.string().min(1),
+        values: zod.array(zod.string().min(1)).min(1),
       })
     )
-    .nonempty('At least one variant is required.'),
-  options: zod.string().array().nonempty('At least one option is required.'), // ['Size', 'Color']
-  tags: zod.string().array().min(2, { message: 'Must have at least 2 items!' }),
-  gender: zod.string().array().nonempty({ message: 'Choose at least one option!' }),
-  price: zod.number().min(1, { message: 'Price should not be $0.00' }),
+    .optional()
+    .default([]),
+
+  gender: zod.array(zod.string()).nonempty({ message: 'Choose at least one option!' }),
+  price: zod.coerce.number().min(1, { message: 'Price should not be $0.00' }),
   category: zod.string(),
-  priceSale: zod.number(),
-  subDescription: zod.string(),
-  taxes: zod.number(),
-  saleLabel: zod.object({ enabled: zod.boolean(), content: zod.string() }),
-  newLabel: zod.object({ enabled: zod.boolean(), content: zod.string() }),
+  priceSale: zod.coerce.number().optional().default(0),
+  subDescription: zod.string().optional().default(''),
+  taxes: zod.coerce.number().optional().default(0),
+  saleLabel: zod.object({ enabled: zod.boolean(), content: zod.string().optional().default('') }),
+  newLabel: zod.object({ enabled: zod.boolean(), content: zod.string().optional().default('') }),
 });
 
 // ----------------------------------------------------------------------
@@ -79,22 +100,20 @@ export function ProductNewEditForm({ currentProduct }) {
       name: currentProduct?.name || '',
       description: currentProduct?.description || '',
       subDescription: currentProduct?.subDescription || '',
-      // images: currentProduct?.images || [
-      //   `${CONFIG.assetsDir}/assets/images/mock/m-product/product-1.webp`,
-      // ],
-      //
       images: currentProduct?.images || [],
       code: currentProduct?.code || '',
       sku: currentProduct?.sku || '',
-      price: currentProduct?.price || 0,
-      quantity: currentProduct?.quantity || 0,
-      priceSale: currentProduct?.priceSale || 0,
+      price: currentProduct?.price ?? 0,
+      stock: currentProduct?.stock ?? 0,
+      priceSale: currentProduct?.priceSale ?? 0,
       tags: currentProduct?.tags || [],
-      taxes: currentProduct?.taxes || 0,
+      taxes: currentProduct?.taxes ?? 0,
       gender: currentProduct?.gender || [],
       category: currentProduct?.category || PRODUCT_CATEGORY_GROUP_OPTIONS[0].classify[1],
       colors: currentProduct?.colors || [],
       sizes: currentProduct?.sizes || [],
+      options: currentProduct?.options || [],
+      variants: currentProduct?.variants || [],
       newLabel: currentProduct?.newLabel || { enabled: false, content: '' },
       saleLabel: currentProduct?.saleLabel || { enabled: false, content: '' },
     }),
@@ -104,7 +123,14 @@ export function ProductNewEditForm({ currentProduct }) {
   const methods = useForm({
     resolver: zodResolver(NewProductSchema),
     defaultValues,
+    shouldFocusError: true,
+    criteriaMode: 'firstError',
   });
+
+  const onInvalid = (errors) => {
+    console.log('❌ Validation errors:', errors);
+    toast.error('Please fix the highlighted fields.');
+  };
 
   const {
     reset,
@@ -116,7 +142,12 @@ export function ProductNewEditForm({ currentProduct }) {
     formState: { isSubmitting },
   } = methods;
 
-  const values = watch();
+  // only watch what sub-components need
+  const options = watch('options');
+  const price = watch('price');
+  const images = watch('images') || [];
+  const saleLabelEnabled = watch('saleLabel.enabled');
+  const newLabelEnabled = watch('newLabel.enabled');
 
   useEffect(() => {
     if (currentProduct) {
@@ -124,38 +155,58 @@ export function ProductNewEditForm({ currentProduct }) {
     }
   }, [currentProduct, defaultValues, reset]);
 
-  useEffect(() => {
-    methods.register('images', { required: true });
-  }, [methods]);
+  const productTaxes = useMemo(() => currentProduct?.taxes ?? 0, [currentProduct?.taxes]);
 
   useEffect(() => {
-    if (includeTaxes) {
-      setValue('taxes', 0);
-    } else {
-      setValue('taxes', currentProduct?.taxes || 0);
+    setValue('taxes', includeTaxes ? 0 : productTaxes);
+  }, [includeTaxes, productTaxes, setValue]);
+
+  useEffect(() => {
+    if (methods.formState.isSubmitted) {
+      console.log('RHF errors:', methods.formState.errors);
     }
-  }, [currentProduct?.taxes, includeTaxes, setValue]);
+  }, [methods.formState.errors, methods.formState.isSubmitted]);
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      await trigger('images'); // Ensure images field is up-to-date
-      let images = [];
-      try {
-        images = getValues('images')();
-      } catch (_e) {
-        images = getValues('images');
-      }
+      await trigger('images');
+      const uploaded = getValues('images') || [];
 
-      if (!Array.isArray(images) || images.length === 0) {
-        console.error('Error: No images found!');
+      if (!Array.isArray(uploaded) || uploaded.length === 0) {
         toast.error('Please upload at least one image.');
         return;
       }
 
-      const productData = {
+      const hasVariants = Array.isArray(data.variants) && data.variants.length > 0;
+
+      const normalizedVariants = hasVariants
+        ? data.variants.map((v) => ({
+            ...v,
+            stock: Number(v.stock ?? 0), // normalized by schema
+          }))
+        : [
+            {
+              title: data.name,
+              sku: data.sku || data.code || 'SKU-DEFAULT',
+              price: data.price,
+              stock: Number(data.stock ?? 0),
+              options: {},
+              image: uploaded,
+            },
+          ];
+
+      const productLevelStock = normalizedVariants.reduce((s, v) => s + Number(v.stock ?? 0), 0);
+
+      let productData = {
         ...data,
-        images,
+        images: uploaded,
+        userId: user.uid,
+        variants: normalizedVariants,
+        stock: productLevelStock, // aggregate for quick reads
       };
+
+      if ('quantity' in productData) delete productData.quantity;
+      productData.variants = productData.variants.map(({ quantity, ...rest }) => rest);
 
       if (currentProduct) {
         await updateProduct(currentProduct.id, productData);
@@ -164,29 +215,26 @@ export function ProductNewEditForm({ currentProduct }) {
         await createProduct(productData);
         toast.success('Product created!');
       }
+
       reset();
-      toast.success(currentProduct ? 'Update success!' : 'Create success!');
       router.push(paths.dashboard.product.root);
     } catch (error) {
-      console.error('Error creating product:', error);
+      console.error('Error creating/updating product:', error);
       toast.error('Something went wrong, please try again!');
     }
   });
 
   const handleOnUpload = useCallback(
     async (event) => {
-      console.log('Event:', event); // Debugging: check what exactly is received
-
       let files = [];
 
       if (Array.isArray(event)) {
-        // 🔥 Your case: Event itself is an array of files
         files = event;
-      } else if (event.files) {
+      } else if (event?.files) {
         files = Array.from(event.files);
-      } else if (event.target?.files) {
+      } else if (event?.target?.files) {
         files = Array.from(event.target.files);
-      } else if (event.dataTransfer?.files) {
+      } else if (event?.dataTransfer?.files) {
         files = Array.from(event.dataTransfer.files);
       }
 
@@ -195,30 +243,27 @@ export function ProductNewEditForm({ currentProduct }) {
         return;
       }
 
-      console.log('✅ Files selected:', files);
-
       try {
-        const uploadedUrls = await uploadImagesToLibrary(user.id, files);
-        console.log('✅ Uploaded image URLs:', uploadedUrls);
-
+        const uploadedUrls = await uploadImagesToLibrary(user.uid, files);
         setValue('images', uploadedUrls, { shouldValidate: true, shouldDirty: true });
       } catch (error) {
         console.error('❌ Error uploading images:', error);
+        toast.error('Image upload failed.');
       }
     },
-    [user.id, setValue]
+    [user.uid, setValue]
   );
 
   const handleRemoveFile = useCallback(
     (fileUrl) => {
-      const filtered = values.images && values.images?.filter((url) => url !== fileUrl);
-      setValue('images', filtered);
+      const filtered = images.filter((url) => url !== fileUrl);
+      setValue('images', filtered, { shouldValidate: true, shouldDirty: true });
     },
-    [setValue, values.images]
+    [images, setValue]
   );
 
   const handleRemoveAllFiles = useCallback(() => {
-    setValue('images', [], { shouldValidate: true });
+    setValue('images', [], { shouldValidate: true, shouldDirty: true });
   }, [setValue]);
 
   const handleChangeIncludeTaxes = useCallback((event) => {
@@ -247,7 +292,6 @@ export function ProductNewEditForm({ currentProduct }) {
             multiple
             thumbnail
             name="images"
-            // maxSize={3145728}
             onRemove={handleRemoveFile}
             onRemoveAll={handleRemoveAllFiles}
             onUpload={handleOnUpload}
@@ -279,8 +323,8 @@ export function ProductNewEditForm({ currentProduct }) {
           <Field.Text name="sku" label="Product SKU" />
 
           <Field.Text
-            name="quantity"
-            label="Quantity"
+            name="stock"
+            label="Stock on hand"
             placeholder="0"
             type="number"
             InputLabelProps={{ shrink: true }}
@@ -344,8 +388,8 @@ export function ProductNewEditForm({ currentProduct }) {
         <Stack spacing={3}>
           <Field.VariantTable
             name="variants"
-            optionNames={values.options}
-            defaultPrice={values.price}
+            optionNames={options}
+            defaultPrice={price}
             user={user}
           />
         </Stack>
@@ -358,7 +402,7 @@ export function ProductNewEditForm({ currentProduct }) {
             name="saleLabel.content"
             label="Sale label"
             fullWidth
-            disabled={!values.saleLabel.enabled}
+            disabled={!saleLabelEnabled}
           />
         </Stack>
 
@@ -368,7 +412,7 @@ export function ProductNewEditForm({ currentProduct }) {
             name="newLabel.content"
             label="New label"
             fullWidth
-            disabled={!values.newLabel.enabled}
+            disabled={!newLabelEnabled}
           />
         </Stack>
       </Stack>
@@ -460,7 +504,7 @@ export function ProductNewEditForm({ currentProduct }) {
   );
 
   return (
-    <Form methods={methods} onSubmit={onSubmit}>
+    <Form methods={methods} noValidate onSubmit={methods.handleSubmit(onSubmit, onInvalid)}>
       <Stack spacing={{ xs: 3, md: 5 }} sx={{ mx: 'auto', maxWidth: { xs: 720, xl: 880 } }}>
         {renderDetails}
 

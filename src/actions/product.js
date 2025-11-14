@@ -3,7 +3,7 @@ import { useMemo, useState, useEffect } from 'react';
 
 import { fetcher, endpoints } from 'src/utils/axios';
 
-import { getProducts } from 'src/lib/firebase/products';
+import { getProducts } from 'src/lib/firebase/products.js';
 // ----------------------------------------------------------------------
 
 const swrOptions = {
@@ -48,7 +48,7 @@ export function useGetProducts() {
         setProducts(fetchedProducts);
         setProductsError(null);
       } catch (error) {
-        console.error("Error fetching products:", error);
+        console.error('Error fetching products:', error);
         setProductsError(error);
       } finally {
         setProductsLoading(false);
@@ -93,8 +93,6 @@ export function useGetProduct(productId) {
   return memoizedValue;
 }
 // src/actions/product.js
-
-
 
 // ----------------------------------------------------------------------
 

@@ -16,11 +16,15 @@ import { Iconify } from 'src/components/iconify';
 import { ColorPreview } from 'src/components/color-utils';
 
 import { useCheckoutContext } from '../checkout/context';
+import { getProductStockCount, isProductAvailable } from 'src/utils/inventory';
 
 // ----------------------------------------------------------------------
 
 export function ProductItem({ product }) {
   const checkout = useCheckoutContext();
+
+  const availableCount = getProductStockCount(product); // sum of variant stock
+  const inStock = isProductAvailable(product);
 
   const {
     id,
@@ -29,11 +33,10 @@ export function ProductItem({ product }) {
     images = [],
     price,
     colors = [],
-    available,
     sizes = [],
     priceSale,
-    newLabel,
-    saleLabel,
+    newLabel = { enabled: false, content: '' },
+    saleLabel = { enabled: false, content: '' },
   } = product;
 
   const linkTo = paths.product.details(id);
@@ -44,7 +47,8 @@ export function ProductItem({ product }) {
     coverUrl,
     price,
     colors,
-    available,
+    inStock,
+    availableCount,
     sizes,
     priceSale,
     newLabel,
@@ -53,16 +57,25 @@ export function ProductItem({ product }) {
   });
 
   const handleAddCart = async () => {
+    // Optional: pick first color/size only if they exist:
+    const color = Array.isArray(product.colors) && product.colors.length ? product.colors[0] : null;
+    const size = Array.isArray(product.sizes) && product.sizes.length ? product.sizes[0] : null;
+
+    // Don’t add if nothing left
+    if (!inStock) return;
+
     const newProduct = {
-      id,
-      name,
-      coverUrl,
-      available,
-      price,
-      colors: [colors[0]],
-      size: sizes[0],
+      id: product.id,
+      name: product.name,
+      coverUrl: product.coverUrl,
+      price: product.price,
+      colors: color ? [color] : [],
+      size,
       quantity: 1,
+      // You can also pass availableCount if your cart wants to cap later
+      available: availableCount,
     };
+
     try {
       checkout.onAddToCart(newProduct);
     } catch (error) {
@@ -97,7 +110,7 @@ export function ProductItem({ product }) {
 
   const renderImg = (
     <Box sx={{ position: 'relative', p: 1 }}>
-      {!!available && (
+      {!!inStock && (
         <Fab
           color="warning"
           size="medium"
@@ -120,12 +133,12 @@ export function ProductItem({ product }) {
         </Fab>
       )}
 
-      <Tooltip title={!available && 'Out of stock'} placement="bottom-end">
+      <Tooltip title={!inStock && 'Out of stock'} placement="bottom-end">
         <Image
           alt={name}
           src={coverUrl || images[0]}
           ratio="1/1"
-          sx={{ borderRadius: 1.5, ...(!available && { opacity: 0.48, filter: 'grayscale(1)' }) }}
+          sx={{ borderRadius: 1.5, ...(!inStock && { opacity: 0.48, filter: 'grayscale(1)' }) }}
         />
       </Tooltip>
     </Box>
