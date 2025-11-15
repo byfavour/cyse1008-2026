@@ -14,12 +14,16 @@ import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
 import InputAdornment from '@mui/material/InputAdornment';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import Alert from '@mui/material/Alert';
+import Button from '@mui/material/Button';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 
 import ProductContext from 'src/lib/contexts/ProductContext';
 import { uploadImagesToLibrary } from 'src/lib/firebase/storage';
+import { useGetVendors } from 'src/actions/vendor';
+import { useGetVendors } from 'src/actions/vendor';
 import {
   _tags,
   PRODUCT_SIZE_OPTIONS,
@@ -83,6 +87,7 @@ export const NewProductSchema = zod.object({
   taxes: zod.coerce.number().optional().default(0),
   saleLabel: zod.object({ enabled: zod.boolean(), content: zod.string().optional().default('') }),
   newLabel: zod.object({ enabled: zod.boolean(), content: zod.string().optional().default('') }),
+  vendorId: zod.string().min(1, { message: 'Vendor is required' }),
 });
 
 // ----------------------------------------------------------------------
@@ -94,6 +99,11 @@ export function ProductNewEditForm({ currentProduct }) {
   const { createProduct, updateProduct } = useContext(ProductContext);
 
   const [includeTaxes, setIncludeTaxes] = useState(false);
+  const { vendors, vendorsLoading } = useGetVendors(user?.uid);
+  const vendorOptions = useMemo(
+    () => (vendors || []).map((v) => ({ label: v.name || 'Untitled vendor', value: v.id, raw: v })),
+    [vendors]
+  );
 
   const defaultValues = useMemo(
     () => ({
@@ -116,6 +126,7 @@ export function ProductNewEditForm({ currentProduct }) {
       variants: currentProduct?.variants || [],
       newLabel: currentProduct?.newLabel || { enabled: false, content: '' },
       saleLabel: currentProduct?.saleLabel || { enabled: false, content: '' },
+      vendorId: currentProduct?.vendorId || '',
     }),
     [currentProduct]
   );
@@ -148,12 +159,19 @@ export function ProductNewEditForm({ currentProduct }) {
   const images = watch('images') || [];
   const saleLabelEnabled = watch('saleLabel.enabled');
   const newLabelEnabled = watch('newLabel.enabled');
+  const vendorId = watch('vendorId');
 
   useEffect(() => {
     if (currentProduct) {
       reset(defaultValues);
     }
   }, [currentProduct, defaultValues, reset]);
+
+  useEffect(() => {
+    if (!currentProduct && vendorOptions.length && !vendorId) {
+      setValue('vendorId', vendorOptions[0].value);
+    }
+  }, [currentProduct, vendorOptions, vendorId, setValue]);
 
   const productTaxes = useMemo(() => currentProduct?.taxes ?? 0, [currentProduct?.taxes]);
 
@@ -174,6 +192,10 @@ export function ProductNewEditForm({ currentProduct }) {
 
       if (!Array.isArray(uploaded) || uploaded.length === 0) {
         toast.error('Please upload at least one image.');
+        return;
+      }
+      if (!vendorId) {
+        toast.error('Select a vendor before saving.');
         return;
       }
 
@@ -197,12 +219,16 @@ export function ProductNewEditForm({ currentProduct }) {
 
       const productLevelStock = normalizedVariants.reduce((s, v) => s + Number(v.stock ?? 0), 0);
 
+      const selectedVendor = vendorOptions.find((opt) => opt.value === vendorId);
+
       let productData = {
         ...data,
         images: uploaded,
         userId: user.uid,
         variants: normalizedVariants,
         stock: productLevelStock, // aggregate for quick reads
+        vendorId,
+        vendorName: selectedVendor?.label || '',
       };
 
       if ('quantity' in productData) delete productData.quantity;
@@ -277,7 +303,37 @@ export function ProductNewEditForm({ currentProduct }) {
       <Divider />
 
       <Stack spacing={3} sx={{ p: 3 }}>
-        <Field.Text name="name" label="Product name" />
+          {!vendorOptions.length && !vendorsLoading && (
+            <Alert
+              severity="warning"
+              action={
+                <Button
+                  color="inherit"
+                  size="small"
+                  onClick={() => router.push(paths.dashboard.vendor.new)}
+                >
+                  Create vendor
+                </Button>
+              }
+            >
+              You need a vendor profile before adding products.
+            </Alert>
+          )}
+
+          <Field.Select
+            name="vendorId"
+            label="Vendor"
+            InputLabelProps={{ shrink: true }}
+            disabled={vendorOptions.length === 0}
+          >
+            {vendorOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </Field.Select>
+
+          <Field.Text name="name" label="Product name" />
 
         <Field.Text name="subDescription" label="Sub description" multiline rows={4} />
 
@@ -497,7 +553,13 @@ export function ProductNewEditForm({ currentProduct }) {
         sx={{ pl: 3, flexGrow: 1 }}
       />
 
-      <LoadingButton type="submit" variant="contained" size="large" loading={isSubmitting}>
+      <LoadingButton
+        type="submit"
+        variant="contained"
+        size="large"
+        loading={isSubmitting}
+        disabled={!vendorOptions.length}
+      >
         {!currentProduct ? 'Create product' : 'Save changes'}
       </LoadingButton>
     </Stack>

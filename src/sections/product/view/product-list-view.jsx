@@ -439,3 +439,9 @@ function applyFilter({ inputData, filters }) {
 
   return inputData;
 }
+    {
+      field: 'vendorName',
+      headerName: 'Vendor',
+      width: 180,
+      valueGetter: (params) => params.row.vendorName || '—',
+    },

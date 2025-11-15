@@ -44,6 +44,8 @@ function normalizeForWrite(input, { userId }) {
     userId: userId,
     source: input?.source ?? 'manual',
     integrations: input?.integrations ?? {},
+    vendorId: (input?.vendorId ?? '').toString(),
+    vendorName: (input?.vendorName ?? '').toString(),
   };
 
   const hasVariants = Array.isArray(input?.variants) && input.variants.length > 0;
