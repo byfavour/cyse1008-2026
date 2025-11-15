@@ -10,6 +10,12 @@ service cloud.firestore {
     function isOwnerOnExisting() {
       return signedIn() && resource.data.userId == request.auth.uid;
     }
+    function isVendorOwnerOnCreate() {
+      return signedIn() && request.resource.data.ownerId == request.auth.uid;
+    }
+    function isVendorOwnerOnExisting() {
+      return signedIn() && resource.data.ownerId == request.auth.uid;
+    }
 
     // Public read-only app config (rename if yours is different)
     match /config/{doc=**} {
@@ -66,6 +72,14 @@ service cloud.firestore {
       allow create: if isOwnerOnCreate();
       allow update, delete: if isOwnerOnExisting()
                             && request.resource.data.userId == resource.data.userId;
+    }
+
+    // Vendors – each vendor doc belongs to an ownerId (auth UID)
+    match /vendors/{id} {
+      allow read: if true;
+      allow create: if isVendorOwnerOnCreate();
+      allow update, delete: if isVendorOwnerOnExisting()
+                            && request.resource.data.ownerId == resource.data.ownerId;
     }
   }
 }
