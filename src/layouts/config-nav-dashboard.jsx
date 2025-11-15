@@ -97,6 +97,17 @@ export const navData = [
         ],
       },
       {
+        title: 'Vendor',
+        path: paths.dashboard.vendor.root,
+        icon: ICONS.job,
+        children: [
+          { title: 'List', path: paths.dashboard.vendor.root },
+          { title: 'Details', path: paths.dashboard.vendor.demo.details },
+          { title: 'Create', path: paths.dashboard.vendor.new },
+          { title: 'Edit', path: paths.dashboard.vendor.demo.edit },
+        ],
+      },
+      {
         title: 'Order',
         path: paths.dashboard.order.root,
         icon: ICONS.order,

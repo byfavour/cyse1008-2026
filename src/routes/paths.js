@@ -135,6 +135,16 @@ export const paths = {
         edit: `${ROOTS.DASHBOARD}/product/${MOCK_ID}/edit`,
       },
     },
+    vendor: {
+      root: `${ROOTS.DASHBOARD}/vendor`,
+      new: `${ROOTS.DASHBOARD}/vendor/new`,
+      details: (id) => `${ROOTS.DASHBOARD}/vendor/${id}`,
+      edit: (id) => `${ROOTS.DASHBOARD}/vendor/${id}/edit`,
+      demo: {
+        details: `${ROOTS.DASHBOARD}/vendor/${MOCK_ID}`,
+        edit: `${ROOTS.DASHBOARD}/vendor/${MOCK_ID}/edit`,
+      },
+    },
     invoice: {
       root: `${ROOTS.DASHBOARD}/invoice`,
       new: `${ROOTS.DASHBOARD}/invoice/new`,
