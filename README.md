@@ -1,3 +1,11 @@
+## Clean-up roadmap
+1. Remove unused dashboard modules (blog, job, tour, invoice, calendar, chat, mail, kanban, general analytics widgets) and their routes/nav entries.
+2. Strip unused mock data, demo components, and sample API routes unrelated to product/vendor/order flows.
+3. Remove extra auth providers and demo flows you won’t use (Amplify/Auth0/Supabase/Auth Demo variants).
+4. Prune front-end pages not part of the public shop experience (landing demos, components gallery, etc.).
+5. Simplify layout/navigation to only show shop, checkout, vendor, product, and orders.
+6. After each slice, run `npm run dev` to verify the remaining flows still work.
+
 TODO:
 
 - checkout process integrated with stripe
