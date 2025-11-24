@@ -42,7 +42,7 @@ export async function GET(request) {
       });
 
     const baseUrl = process.env.BASE_URL || request.nextUrl.origin;
-    const redirectUrl = `${baseUrl}/dashboard/connect?provider=shopify&status=success`;
+    const redirectUrl = `${baseUrl}/dashboard/vendor?provider=shopify&status=success`;
     return NextResponse.redirect(redirectUrl);
   } catch (error) {
     console.error('❌ OAuth callback error:', error);

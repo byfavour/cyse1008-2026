@@ -236,6 +236,12 @@ export function ProductListView() {
       renderCell: (params) => <RenderCellPublish params={params} />,
     },
     {
+      field: 'vendorName',
+      headerName: 'Vendor',
+      width: 180,
+      valueGetter: (params) => params?.row?.vendorName || '—',
+    },
+    {
       type: 'actions',
       field: 'actions',
       headerName: ' ',
@@ -439,9 +445,3 @@ function applyFilter({ inputData, filters }) {
 
   return inputData;
 }
-    {
-      field: 'vendorName',
-      headerName: 'Vendor',
-      width: 180,
-      valueGetter: (params) => params.row.vendorName || '—',
-    },

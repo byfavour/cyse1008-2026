@@ -23,7 +23,6 @@ import { useRouter } from 'src/routes/hooks';
 import ProductContext from 'src/lib/contexts/ProductContext';
 import { uploadImagesToLibrary } from 'src/lib/firebase/storage';
 import { useGetVendors } from 'src/actions/vendor';
-import { useGetVendors } from 'src/actions/vendor';
 import {
   _tags,
   PRODUCT_SIZE_OPTIONS,
