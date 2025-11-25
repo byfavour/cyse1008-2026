@@ -1,15 +1,26 @@
 'use server';
 
-import { _orders } from 'src/_mock/_order';
+import { notFound } from 'next/navigation';
 import { CONFIG } from 'src/config-global';
+import admin from 'src/lib/firebase/firebase-admin';
 
 import { OrderDetailsView } from 'src/sections/order/view';
 
 export default async function Page({ params }) {
   const { id } = params;
 
-  // Ensure this runs on the server and fetches the correct order
-  const currentOrder = _orders.find((order) => order.id === id);
+  const snap = await admin.firestore().collection('orders').doc(id).get();
+
+  if (!snap.exists) {
+    return notFound();
+  }
+
+  const data = snap.data();
+  const currentOrder = {
+    id: snap.id,
+    ...data,
+    createdAt: data?.createdAt?.toDate ? data.createdAt.toDate() : data?.createdAt ?? null,
+  };
 
   return <OrderDetailsView order={currentOrder} />;
 }
@@ -21,8 +32,5 @@ export default async function Page({ params }) {
  * Next.js 15 no longer supports `dynamic`, so we use `generateStaticParams()`
  */
 export async function generateStaticParams() {
-  if (CONFIG.isStaticExport) {
-    return _orders.map((order) => ({ id: order.id }));
-  }
-  return [];
+  return CONFIG.isStaticExport ? [] : [];
 }

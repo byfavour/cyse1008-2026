@@ -60,9 +60,7 @@ export const navData = [
         icon: ICONS.product,
         children: [
           { title: 'List', path: paths.dashboard.product.root },
-          { title: 'Details', path: paths.dashboard.product.demo.details },
           { title: 'Create', path: paths.dashboard.product.new },
-          { title: 'Edit', path: paths.dashboard.product.demo.edit },
         ],
       },
       {
@@ -71,19 +69,14 @@ export const navData = [
         icon: ICONS.job,
         children: [
           { title: 'List', path: paths.dashboard.vendor.root },
-          { title: 'Details', path: paths.dashboard.vendor.demo.details },
           { title: 'Create', path: paths.dashboard.vendor.new },
-          { title: 'Edit', path: paths.dashboard.vendor.demo.edit },
         ],
       },
       {
         title: 'Order',
         path: paths.dashboard.order.root,
         icon: ICONS.order,
-        children: [
-          { title: 'List', path: paths.dashboard.order.root },
-          { title: 'Details', path: paths.dashboard.order.demo.details },
-        ],
+        children: [{ title: 'List', path: paths.dashboard.order.root }],
       },
     ],
   },

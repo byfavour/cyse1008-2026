@@ -49,7 +49,7 @@ export function AuthSplitLayout({ sx, section, children, header }) {
               <Box display="flex" alignItems="center" gap={{ xs: 1, sm: 1.5 }}>
                 {/* -- Help link -- */}
                 <Link
-                  href={paths.faqs}
+                  href={paths.product.root}
                   component={RouterLink}
                   color="inherit"
                   sx={{ typography: 'subtitle2' }}

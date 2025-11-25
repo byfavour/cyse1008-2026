@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'src/routes/hooks';
 
 import { getStorage, useLocalStorage } from 'src/hooks/use-local-storage';
 
-import { PRODUCT_CHECKOUT_STEPS } from 'src/_mock/_product';
+import { PRODUCT_CHECKOUT_STEPS } from 'src/constants/options';
 
 import { SplashScreen } from 'src/components/loading-screen';
 

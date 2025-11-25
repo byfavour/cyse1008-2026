@@ -14,7 +14,7 @@ import { paths } from 'src/routes/paths';
 import { useTabs } from 'src/hooks/use-tabs';
 
 import { varAlpha } from 'src/theme/styles';
-import { PRODUCT_PUBLISH_OPTIONS } from 'src/_mock';
+import { PRODUCT_PUBLISH_OPTIONS } from 'src/constants/options';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';

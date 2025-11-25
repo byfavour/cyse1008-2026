@@ -24,12 +24,12 @@ import ProductContext from 'src/lib/contexts/ProductContext';
 import { uploadImagesToLibrary } from 'src/lib/firebase/storage';
 import { useGetVendors } from 'src/actions/vendor';
 import {
-  _tags,
+  PRODUCT_TAGS,
   PRODUCT_SIZE_OPTIONS,
   PRODUCT_GENDER_OPTIONS,
   PRODUCT_COLOR_NAME_OPTIONS,
   PRODUCT_CATEGORY_GROUP_OPTIONS,
-} from 'src/_mock';
+} from 'src/constants/options';
 
 import { toast } from 'src/components/snackbar';
 import { Form, Field, schemaHelper } from 'src/components/hook-form';
@@ -414,7 +414,7 @@ export function ProductNewEditForm({ currentProduct }) {
           multiple
           freeSolo
           disableCloseOnSelect
-          options={_tags.map((option) => option)}
+          options={PRODUCT_TAGS}
           getOptionLabel={(option) => option}
           renderOption={(props, option) => (
             <li {...props} key={option}>

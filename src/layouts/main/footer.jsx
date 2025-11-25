@@ -11,20 +11,26 @@ import Typography from '@mui/material/Typography';
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
-import { _socials } from 'src/_mock';
 import { TwitterIcon, FacebookIcon, LinkedinIcon, InstagramIcon } from 'src/assets/icons';
 
 import { Logo } from 'src/components/logo';
 
 // ----------------------------------------------------------------------
 
+const SOCIAL_LINKS = [
+  { label: 'Twitter', value: 'twitter', href: 'https://twitter.com/' },
+  { label: 'Instagram', value: 'instagram', href: 'https://www.instagram.com/' },
+  { label: 'LinkedIn', value: 'linkedin', href: 'https://www.linkedin.com/' },
+  { label: 'Facebook', value: 'facebook', href: 'https://www.facebook.com/' },
+];
+
 const LINKS = [
   {
-    headline: 'Minimal',
+    headline: 'Platform',
     children: [
-      { name: 'About us', href: paths.about },
-      { name: 'Contact us', href: paths.contact },
-      { name: 'FAQs', href: paths.faqs },
+      { name: 'Shop', href: paths.product.root },
+      { name: 'Dashboard', href: paths.dashboard.root },
+      { name: 'Checkout', href: paths.product.checkout },
     ],
   },
   {
@@ -86,8 +92,8 @@ export function Footer({ layoutQuery, sx }) {
                 [theme.breakpoints.up(layoutQuery)]: { mb: 0, justifyContent: 'flex-start' },
               }}
             >
-              {_socials.map((social) => (
-                <IconButton key={social.label} color="inherit">
+              {SOCIAL_LINKS.map((social) => (
+                <IconButton key={social.label} color="inherit" component={Link} href={social.href}>
                   {social.value === 'twitter' && <TwitterIcon />}
                   {social.value === 'facebook' && <FacebookIcon />}
                   {social.value === 'instagram' && <InstagramIcon />}

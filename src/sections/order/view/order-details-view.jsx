@@ -7,7 +7,7 @@ import Grid from '@mui/material/Unstable_Grid2';
 
 import { paths } from 'src/routes/paths';
 
-import { ORDER_STATUS_OPTIONS } from 'src/_mock';
+import { ORDER_STATUS_OPTIONS } from 'src/constants/options';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { OrderDetailsInfo } from '../order-details-info';
