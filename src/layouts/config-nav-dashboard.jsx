@@ -21,7 +21,6 @@ const ICONS = {
   tour: icon('ic-tour'),
   order: icon('ic-order'),
   label: icon('ic-label'),
-  blank: icon('ic-blank'),
   kanban: icon('ic-kanban'),
   folder: icon('ic-folder'),
   course: icon('ic-course'),

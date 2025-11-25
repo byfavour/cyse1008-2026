@@ -17,7 +17,7 @@ import { varAlpha } from 'src/theme/styles';
 
 import { Iconify } from 'src/components/iconify';
 
-import { PaymentNewCardForm } from '../payment/payment-new-card-form';
+import { PaymentNewCardForm } from './payment-new-card-form';
 
 // ----------------------------------------------------------------------
 
