@@ -15,9 +15,6 @@ export default function Page() {
     <DashboardContent>
       <Stack spacing={3}>
         <Typography variant="h4">Dashboard</Typography>
-        <Typography variant="body1" color="text.secondary">
-          Jump into the areas that matter: manage products, vendors, or review orders.
-        </Typography>
         <Stack direction="row" spacing={2} flexWrap="wrap">
           <Button variant="contained" href={paths.dashboard.order.root}>
             View orders

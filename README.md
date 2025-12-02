@@ -1,24 +1,19 @@
 ## Clean-up roadmap
-1. Remove unused dashboard modules (blog, job, tour, invoice, calendar, chat, mail, kanban, general analytics widgets) and their routes/nav entries.
-2. Strip unused mock data, demo components, and sample API routes unrelated to product/vendor/order flows.
-3. Remove extra auth providers and demo flows you won’t use (Amplify/Auth0/Supabase/Auth Demo variants).
-4. Prune front-end pages not part of the public shop experience (landing demos, components gallery, etc.).
-5. Simplify layout/navigation to only show shop, checkout, vendor, product, and orders.
-6. After each slice, run `npm run dev` to verify the remaining flows still work.
+1. ✅ Remove unused dashboard modules (blog, job, tour, invoice, calendar, chat, mail, kanban, general analytics widgets) and their routes/nav entries.
+2. ✅ Strip unused mock data, demo components, and sample API routes unrelated to product/vendor/order flows.
+3. ✅ Remove extra auth providers and demo flows you won’t use (Amplify/Auth0/Supabase/Auth Demo variants).
+4. ✅ Prune front-end pages not part of the public shop experience (landing demos, components gallery, etc.).
+5. ✅ Simplify layout/navigation to only show shop, checkout, vendor, product, and orders.
+6. 🔄 After each slice, run `npm run dev` to verify the remaining flows still work.
 
 TODO:
 
-- checkout process integrated with stripe
-- improve efficiency - seems slow - make it faster
-- cart is holding onto items; maybe because the order isn't flipping to paid
-- simplify addresses in checkout
-- streamline payment options in checkout
-  checkout
-  zomato
-  blinkit zip 560029
-  smmlite payments email address confirmation
-  UBI
-  razorpay indian payments
+- Finish Stripe checkout: verify emulator + webhook update orders to `paid`; surface payment status in UI.
+- Fix cart stale items: ensure order creation -> Stripe session -> webhook sets `status: paid` and clears local cart.
+- Simplify checkout addresses: trim fields to essentials; reuse saved address in billing step.
+- Streamline payment options: keep card (Stripe) and hide placeholder options; align copy with new card form.
+- Performance: profile slow pages (shop list, vendor list) and trim heavy client bundles (defer charts/icons, lazy load where possible).
+- Add vendor link to main nav if sellers need quick access.
 
 ## Stripe CLI Install (host machine)
 1. Download the latest Linux tarball from GitHub.
