@@ -13,6 +13,8 @@ import Divider from '@mui/material/Divider';
 import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
 
+import { paths } from 'src/routes/paths';
+
 const currencyFormatter = new Intl.NumberFormat('en-CA', {
   style: 'currency',
   currency: 'CAD',
@@ -92,9 +94,9 @@ export default function CheckoutSuccessPage() {
     ];
   }, [state.result]);
 
-  const goToStore = () => router.push('/product');
-  const goToOrders = () => router.push('/dashboard/order');
-  const retryCheckout = () => router.push('/product/checkout?step=2');
+  const goToStore = () => router.push(paths.product.root);
+  const goToOrders = () => router.push(paths.dashboard.order.root);
+  const retryCheckout = () => router.push(`${paths.product.checkout}?step=2`);
 
   if (state.phase === 'loading') {
     return (

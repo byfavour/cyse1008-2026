@@ -61,7 +61,12 @@ export function Section({
         component="img"
         alt="Dashboard illustration"
         src={imgUrl}
-        sx={{ width: 1, aspectRatio: '4/3', objectFit: 'cover' }}
+        sx={{
+          width: 'min(420px, 100%)',
+          maxHeight: 260,
+          aspectRatio: '4 / 3',
+          objectFit: 'contain',
+        }}
       />
     </Box>
   );

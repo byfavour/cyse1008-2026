@@ -32,27 +32,13 @@ const DELIVERY_OPTIONS = [
 
 const PAYMENT_OPTIONS = [
   {
-    value: 'paypal',
-    label: 'Pay with Paypal',
-    description: 'You will be redirected to PayPal website to complete your purchase securely.',
-  },
-  {
     value: 'creditcard',
-    label: 'Credit / Debit card',
-    description: 'We support Mastercard, Visa, Discover and Stripe.',
-  },
-  {
-    value: 'cash',
-    label: 'Cash',
-    description: 'Pay with cash when your order is delivered.',
+    label: 'Card (Stripe)',
+    description: 'Pay securely with your credit or debit card via Stripe.',
   },
 ];
 
-const CARD_OPTIONS = [
-  { value: 'visa1', label: '**** **** **** 1212 - Jimmy Holland' },
-  { value: 'visa2', label: '**** **** **** 2424 - Shawn Stokes' },
-  { value: 'mastercard', label: '**** **** **** 4545 - Cole Armstrong' },
-];
+const CARD_OPTIONS = [];
 
 export const PaymentSchema = zod.object({
   payment: zod.string().min(1, { message: 'Payment is required!' }),
@@ -66,7 +52,7 @@ export function CheckoutPayment() {
 
   const defaultValues = {
     delivery: checkout.shipping,
-    payment: '',
+    payment: 'creditcard',
   };
 
   const methods = useForm({
@@ -84,14 +70,7 @@ export function CheckoutPayment() {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      // Only Stripe for now if a card-like option is chosen
-      if (data.payment !== 'creditcard') {
-        // Keep the original stepper behaviour for non-Stripe paths
-        checkout.onNextStep();
-        checkout.onReset();
-        return;
-      }
-
+      // Only Stripe card checkout is supported
       setSubmitting(true);
 
       // 1) Build items array from checkout context (supporting a few possible keys)

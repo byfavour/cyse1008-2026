@@ -1,7 +1,7 @@
 // Shared option lists and defaults used across product, checkout, and order flows.
 // These replace the old demo mock data.
 
-export const PRODUCT_CHECKOUT_STEPS = ['Cart', 'Billing & address', 'Payment'];
+export const PRODUCT_CHECKOUT_STEPS = ['Cart', 'Billing (optional)', 'Payment'];
 
 export const PRODUCT_GENDER_OPTIONS = [
   { label: 'Men', value: 'Men' },
@@ -12,6 +12,7 @@ export const PRODUCT_GENDER_OPTIONS = [
 export const PRODUCT_CATEGORY_OPTIONS = ['Shoes', 'Apparel', 'Accessories'];
 
 export const PRODUCT_CATEGORY_GROUP_OPTIONS = [
+  { group: 'Food & Beverage', classify: ['Gelato', 'Sorbet', 'Frozen Desserts', 'Ice Cream'] },
   { group: 'Clothing', classify: ['Shirts', 'T-shirts', 'Jeans', 'Leather', 'Accessories'] },
   { group: 'Tailored', classify: ['Suits', 'Blazers', 'Trousers', 'Waistcoats', 'Apparel'] },
   { group: 'Accessories', classify: ['Shoes', 'Backpacks and bags', 'Bracelets', 'Face masks'] },

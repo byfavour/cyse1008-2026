@@ -30,6 +30,7 @@ import {
   PRODUCT_COLOR_NAME_OPTIONS,
   PRODUCT_CATEGORY_GROUP_OPTIONS,
 } from 'src/constants/options';
+import { getProductOptions } from 'src/lib/firebase/products';
 
 import { toast } from 'src/components/snackbar';
 import { Form, Field, schemaHelper } from 'src/components/hook-form';
@@ -98,6 +99,10 @@ export function ProductNewEditForm({ currentProduct }) {
   const { createProduct, updateProduct } = useContext(ProductContext);
 
   const [includeTaxes, setIncludeTaxes] = useState(false);
+  const [categoryGroups, setCategoryGroups] = useState(PRODUCT_CATEGORY_GROUP_OPTIONS);
+  const [colorOptions, setColorOptions] = useState(PRODUCT_COLOR_NAME_OPTIONS);
+  const [sizeOptions, setSizeOptions] = useState(PRODUCT_SIZE_OPTIONS);
+
   const { vendors, vendorsLoading } = useGetVendors(user?.uid);
   const vendorOptions = useMemo(
     () => (vendors || []).map((v) => ({ label: v.name || 'Untitled vendor', value: v.id, raw: v })),
@@ -249,6 +254,54 @@ export function ProductNewEditForm({ currentProduct }) {
     }
   });
 
+  useEffect(() => {
+    const loadOptions = async () => {
+      try {
+        const [categories, colors, sizes] = await Promise.all([
+          getProductOptions('categories'),
+          getProductOptions('colors'),
+          getProductOptions('sizes'),
+        ]);
+
+        if (categories && Array.isArray(categories)) {
+          const normalized =
+            categories.length && typeof categories[0] === 'string'
+              ? [{ group: 'Categories', classify: categories }]
+              : categories;
+          setCategoryGroups(normalized);
+          const firstGroup = normalized[0];
+          const firstCategory =
+            currentProduct?.category ||
+            (firstGroup && firstGroup.classify && firstGroup.classify[0]) ||
+            '';
+          if (!getValues('category') && firstCategory) {
+            setValue('category', firstCategory);
+          }
+        }
+
+        if (colors && Array.isArray(colors)) {
+          const normalizedColors =
+            colors.length && typeof colors[0] === 'string'
+              ? colors.map((c) => ({ value: c, label: c }))
+              : colors;
+          setColorOptions(normalizedColors);
+        }
+
+        if (sizes && Array.isArray(sizes)) {
+          const normalizedSizes =
+            sizes.length && typeof sizes[0] === 'string'
+              ? sizes.map((s) => ({ value: s, label: s }))
+              : sizes;
+          setSizeOptions(normalizedSizes);
+        }
+      } catch (error) {
+        console.warn('Falling back to default options (Firestore product_options not found)', error);
+      }
+    };
+
+    loadOptions();
+  }, [currentProduct?.category, getValues, setValue]);
+
   const handleOnUpload = useCallback(
     async (event) => {
       let files = [];
@@ -386,7 +439,7 @@ export function ProductNewEditForm({ currentProduct }) {
           />
 
           <Field.Select native name="category" label="Category" InputLabelProps={{ shrink: true }}>
-            {PRODUCT_CATEGORY_GROUP_OPTIONS.map((category) => (
+            {categoryGroups.map((category) => (
               <optgroup key={category.group} label={category.group}>
                 {category.classify.map((classify) => (
                   <option key={classify} value={classify}>
@@ -401,10 +454,10 @@ export function ProductNewEditForm({ currentProduct }) {
             checkbox
             name="colors"
             label="Colors"
-            options={PRODUCT_COLOR_NAME_OPTIONS}
+            options={colorOptions}
           />
 
-          <Field.MultiSelect checkbox name="sizes" label="Sizes" options={PRODUCT_SIZE_OPTIONS} />
+          <Field.MultiSelect checkbox name="sizes" label="Sizes" options={sizeOptions} />
         </Box>
 
         <Field.Autocomplete

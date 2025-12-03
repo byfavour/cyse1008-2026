@@ -88,3 +88,12 @@ export async function deleteProduct(productId) {
     throw error;
   }
 }
+
+// Fetch shared product options (categories/colors/sizes) from Firestore.
+// Expects docs at product_options/{type} with a `values` array (strings or objects).
+export async function getProductOptions(type) {
+  const ref = doc(db, 'product_options', type);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return null;
+  return snap.data().values || null;
+}

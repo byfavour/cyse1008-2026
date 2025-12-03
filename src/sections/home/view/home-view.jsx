@@ -1,27 +1,34 @@
 'use client';
 
-import { BackToTop } from 'src/components/animate/back-to-top';
-import { ScrollProgress, useScrollProgress } from 'src/components/animate/scroll-progress';
-
-// import { useGetProducts } from 'src/actions/product';
-
-import { HomeHeroCYSE1008 } from '../home-hero-cyse1008';
+import Box from '@mui/material/Box';
+import Container from '@mui/material/Container';
 
 // ----------------------------------------------------------------------
 
 export function HomeView() {
-  // ❌ Remove "async"
-  const pageProgress = useScrollProgress(); // ✅ Now correctly used inside a normal function
-
   return (
-    <>
-      <ScrollProgress
-        variant="linear"
-        progress={pageProgress.scrollYProgress}
-        sx={{ position: 'fixed' }}
-      />
-      <BackToTop />
-      <HomeHeroCYSE1008 />
-    </>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'radial-gradient(circle at 20% 20%, #0a2a2f 0, #051014 35%, #03080a 100%)',
+      }}
+    >
+      <Container maxWidth="sm" sx={{ textAlign: 'center' }}>
+        <Box
+          component="img"
+          src="/assets/images/home/black-river-market-logo-large.png"
+          alt="Black River Market"
+          sx={{
+            width: '100%',
+            maxWidth: 360,
+            mx: 'auto',
+            filter: 'drop-shadow(0 10px 25px rgba(0,0,0,0.35))',
+          }}
+        />
+      </Container>
+    </Box>
   );
 }

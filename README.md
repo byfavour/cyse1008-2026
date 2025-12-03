@@ -6,14 +6,43 @@
 5. ✅ Simplify layout/navigation to only show shop, checkout, vendor, product, and orders.
 6. 🔄 After each slice, run `npm run dev` to verify the remaining flows still work.
 
-TODO:
+Launch checklist (target: Friday, single-product Stripe checkout):
 
-- Finish Stripe checkout: verify emulator + webhook update orders to `paid`; surface payment status in UI.
-- Fix cart stale items: ensure order creation -> Stripe session -> webhook sets `status: paid` and clears local cart.
-- Simplify checkout addresses: trim fields to essentials; reuse saved address in billing step.
-- Streamline payment options: keep card (Stripe) and hide placeholder options; align copy with new card form.
-- Performance: profile slow pages (shop list, vendor list) and trim heavy client bundles (defer charts/icons, lazy load where possible).
-- Add vendor link to main nav if sellers need quick access.
+1) Product setup
+ - Seed one live product (name, price, image) and lock creation/edit to owner only.
+ - Add a tiny seeding script for the emulator to avoid empty shop during dev.
+
+2) Payments (Stripe only)
+ - Confirm payment flow uses Stripe card only (no placeholders) and copy matches the card form.
+ - Verify test checkout end-to-end: order creation -> Stripe session -> webhook -> order status paid -> cart cleared.
+ - Configure Stripe webhook endpoints: test (staging) + live; store secrets per env.
+
+3) Environments
+ - Create .env.local (emulators + test keys), .env.test (staging project), .env.production (prod project).
+ - Ensure Firebase SDK picks emulators in dev; staging/prod point to their Firebase projects.
+ - Add an env checklist section documenting required vars (Stripe, Firebase, Shopify if used).
+
+4) Orders and dashboard
+ - Hook “View orders” CTAs to dashboard orders (done).
+ - Show payment status on order detail; ensure refunds/cancellations display correctly (can defer post-launch).
+
+5) QA before launch
+ - Run smoke: add single product -> checkout with Stripe test card -> see paid order in dashboard -> email/notifications optional.
+ - Check Firestore rules for least privilege; storage rules for uploads.
+ - Enable basic logging/alerts for failed functions/webhooks.
+
+Environment setup (staging/prod)
+- [ ] Create Firebase projects: `black-river-market-staging` (staging) and `black-river-market` (prod).
+- [ ] Update `.firebaserc` aliases: set `default` -> staging, add `prod` -> `black-river-market`.
+- [ ] Env files: `.env.local` (emulators + test keys), `.env.test` (staging keys), `.env.production` (prod keys).
+- [ ] Stripe webhooks: create staging endpoint (store secret in `.env.test`/Secrets) and prod endpoint (store secret in `.env.production`/Secrets).
+- [ ] Deploy commands: `firebase use staging && firebase deploy --only functions,hosting`; prod: `firebase use prod && firebase deploy --only functions,hosting`.
+
+### Seed a single product (emulator)
+- Command: `export FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 && SEED_OWNER_UID=<your_uid> node scripts/seed-product.js`
+- What it does: writes one product with `userId=<your_uid>` so it passes the owner-only rules.
+- Defaults: projectId falls back to `demo-emulator` unless `GCLOUD_PROJECT`/`PROJECT_ID` is set.
+- If you must seed a real project, unset `FIRESTORE_EMULATOR_HOST` and provide credentials, but avoid running against prod unless intentional.
 
 ## Stripe CLI Install (host machine)
 1. Download the latest Linux tarball from GitHub.

@@ -72,6 +72,11 @@ function Container({ children }) {
     }
   }, [updateTotalField]);
 
+  // Clear any stale cart persisted before the cleanup (removes old $1 demo items)
+  useEffect(() => {
+    resetState();
+  }, [resetState]);
+
   const initialStep = useCallback(() => {
     if (!activeStep) {
       const href = createUrl('go', 0);
@@ -165,6 +170,11 @@ function Container({ children }) {
     [onNextStep, setField]
   );
 
+  const onSkipBilling = useCallback(() => {
+    setField('billing', null);
+    onNextStep();
+  }, [onNextStep, setField]);
+
   const onApplyDiscount = useCallback(
     (discount) => {
       setField('discount', discount);
@@ -204,6 +214,7 @@ function Container({ children }) {
       onDecreaseQuantity,
       //
       onCreateBilling,
+      onSkipBilling,
       onApplyDiscount,
       onApplyShipping,
       //
@@ -230,6 +241,7 @@ function Container({ children }) {
       onApplyDiscount,
       onApplyShipping,
       onCreateBilling,
+      onSkipBilling,
       onDecreaseQuantity,
       onIncreaseQuantity,
     ]

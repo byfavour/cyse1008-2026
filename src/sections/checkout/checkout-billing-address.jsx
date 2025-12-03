@@ -23,7 +23,7 @@ export function CheckoutBillingAddress() {
     <>
       <Grid container spacing={3}>
         <Grid xs={12} md={8}>
-          {savedAddresses.length > 0 && (
+          {savedAddresses.length > 0 &&
             savedAddresses.map((address) => (
               <AddressItem
                 key={address.id || address.fullAddress}
@@ -46,8 +46,7 @@ export function CheckoutBillingAddress() {
                   boxShadow: (theme) => theme.customShadows.card,
                 }}
               />
-            ))
-          )}
+            ))}
 
           <Stack direction="row" justifyContent="space-between">
             <Button
@@ -66,6 +65,12 @@ export function CheckoutBillingAddress() {
               startIcon={<Iconify icon="mingcute:add-line" />}
             >
               New address
+            </Button>
+          </Stack>
+
+          <Stack direction="row" justifyContent="flex-end" sx={{ mt: 2 }}>
+            <Button color="secondary" onClick={checkout.onSkipBilling}>
+              Skip and continue to payment
             </Button>
           </Stack>
         </Grid>

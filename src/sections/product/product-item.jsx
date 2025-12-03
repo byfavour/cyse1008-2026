@@ -39,6 +39,19 @@ export function ProductItem({ product }) {
     saleLabel = { enabled: false, content: '' },
   } = product;
 
+  const safeColors =
+    Array.isArray(colors) && colors.length
+      ? colors.filter((color) => {
+          if (color == null) return false;
+          const value = String(color).trim();
+          return value !== '' && value !== '0';
+        })
+      : [];
+
+  const priceValue = Number(price ?? 0);
+  const priceSaleValue = Number(priceSale ?? 0);
+  const hasSale = Number.isFinite(priceSaleValue) && priceSaleValue > 0;
+
   const linkTo = paths.product.details(id);
 
   console.log({
@@ -58,8 +71,10 @@ export function ProductItem({ product }) {
 
   const handleAddCart = async () => {
     // Optional: pick first color/size only if they exist:
-    const color = Array.isArray(product.colors) && product.colors.length ? product.colors[0] : null;
+    const color = safeColors.length ? safeColors[0] : null;
     const size = Array.isArray(product.sizes) && product.sizes.length ? product.sizes[0] : null;
+    const mainImage =
+      product.coverUrl || (Array.isArray(product.images) && product.images.length ? product.images[0] : '');
 
     // Don’t add if nothing left
     if (!inStock) return;
@@ -67,7 +82,7 @@ export function ProductItem({ product }) {
     const newProduct = {
       id: product.id,
       name: product.name,
-      coverUrl: product.coverUrl,
+      coverUrl: mainImage,
       price: product.price,
       colors: color ? [color] : [],
       size,
@@ -151,16 +166,16 @@ export function ProductItem({ product }) {
       </Link>
 
       <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <ColorPreview colors={colors} />
+        {safeColors.length ? <ColorPreview colors={safeColors} /> : null}
 
         <Stack direction="row" spacing={0.5} sx={{ typography: 'subtitle1' }}>
-          {priceSale && (
+          {hasSale && (
             <Box component="span" sx={{ color: 'text.disabled', textDecoration: 'line-through' }}>
-              {fCurrency(priceSale)}
+              {fCurrency(priceSaleValue)}
             </Box>
           )}
 
-          <Box component="span">{fCurrency(price)}</Box>
+          <Box component="span">{fCurrency(priceValue)}</Box>
         </Stack>
       </Stack>
     </Stack>

@@ -45,6 +45,7 @@ export function ProductDetailsSummary({
     sizes = [],
     price,
     coverUrl,
+    images = [],
     colors = [],
     newLabel = { enabled: false, content: '' },
     priceSale,
@@ -63,12 +64,14 @@ export function ProductDetailsSummary({
   const isMaxQuantity = cartLine ? cartLine.quantity >= availableCount : false;
 
   const hasColors = Array.isArray(colors) && colors.length > 0;
-  const hasSizes = Array.isArray(sizes) && sizes.length > 0;
+  const hasSizes = false; // temporarily hide sizes for MVP
+
+  const mainImage = coverUrl || (Array.isArray(images) && images.length ? images[0] : '');
 
   const defaultValues = {
     id,
     name,
-    coverUrl,
+    coverUrl: mainImage,
     available: availableCount,
     price,
     colors: hasColors ? colors[0] : '',
@@ -115,6 +118,7 @@ export function ProductDetailsSummary({
       onAddCart?.({
         ...values,
         quantity: clampedQty,
+        coverUrl: mainImage,
         colors: [values.colors],
         subtotal: values.price * clampedQty,
         // pass available so cart can cap increments later too
@@ -199,36 +203,7 @@ export function ProductDetailsSummary({
     </Stack>
   );
 
-  const renderSizeOptions = (
-    <Stack direction="row">
-      <Typography variant="subtitle2" sx={{ flexGrow: 1 }}>
-        Size
-      </Typography>
-
-      {hasSizes && (
-        <Controller
-          name="size"
-          control={control}
-          render={({ field }) => (
-            <TextField
-              {...field}
-              select
-              fullWidth
-              label="Size"
-              value={field.value ?? ''} // keep it defined
-              SelectProps={{ displayEmpty: true }}
-            >
-              {sizes.map((s) => (
-                <MenuItem key={s} value={s}>
-                  {s}
-                </MenuItem>
-              ))}
-            </TextField>
-          )}
-        />
-      )}
-    </Stack>
-  );
+  const renderSizeOptions = null;
 
   const renderQuantity = (
     <Stack direction="row">
@@ -341,8 +316,6 @@ export function ProductDetailsSummary({
         <Divider sx={{ borderStyle: 'dashed' }} />
 
         {renderColorOptions}
-
-        {renderSizeOptions}
 
         {renderQuantity}
 
