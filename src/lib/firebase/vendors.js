@@ -18,6 +18,7 @@ const vendorsCollectionRef = collection(db, 'vendors');
 export async function addVendor(data) {
   const payload = {
     ...data,
+    isActive: typeof data?.isActive === 'boolean' ? data.isActive : true,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   };
