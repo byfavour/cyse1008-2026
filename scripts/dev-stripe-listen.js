@@ -14,7 +14,7 @@ const STRIPE_ARGS = [
   '--events',
   'checkout.session.completed',
   '--forward-to',
-  'http://127.0.0.1:5001/quilt-b3dec/us-central1/stripeWebhook',
+  'http://127.0.0.1:5001/black-river-market-b3dec/us-central1/stripeWebhook',
 ];
 
 const ENV_FILES = ['.env.local', '.env', 'functions/.env'];

@@ -28,7 +28,7 @@ import { Iconify } from 'src/components/iconify';
  */
 function HomeHeroCYSE1008() {
   const theme = useTheme();
-  const [brand, setBrand] = useState('Quilt');
+  const [brand, setBrand] = useState('Black River Market');
 
   return (
     <Box sx={{ minHeight: '100vh', color: '#e5e7eb', bgcolor: '#070b16', position: 'relative' }}>
@@ -65,10 +65,14 @@ function HomeHeroCYSE1008() {
             }}
           >
             <Button
-              onClick={() => setBrand('Quilt')}
-              sx={brand === 'Quilt' ? activePillSx(theme.palette.success.light) : undefined}
+              onClick={() => setBrand('Black River Market')}
+              sx={
+                brand === 'Black River Market'
+                  ? activePillSx(theme.palette.success.light)
+                  : undefined
+              }
             >
-              Quilt
+              Black River Market
             </Button>
             <Button
               onClick={() => setBrand('Patchwork')}
@@ -199,7 +203,7 @@ function HomeHeroCYSE1008() {
               <PillarCard
                 title="Connect"
                 icon="mdi:link-variant"
-                copy="A mesh of local buyers, vendors, and couriers mapped like a living quilt."
+                copy="A mesh of local buyers, vendors, and couriers mapped like a living black river market."
                 glow="cyan"
               />
             </Grid>
@@ -232,7 +236,7 @@ function HomeHeroCYSE1008() {
             </Typography>
           </Grid>
           <Grid xs={12} md={4} sx={{ display: 'flex', justifyContent: { xs: 'start', md: 'end' } }}>
-            <AsciiQuiltBox />
+            <AsciiBlackRiverMarketBox />
           </Grid>
         </Grid>
       </Container>
@@ -479,7 +483,7 @@ function PillarCard({ title, copy, Icon, glow, icon }) {
   );
 }
 
-function AsciiQuiltBox() {
+function AsciiBlackRiverMarketBox() {
   return (
     <Box
       component="pre"

@@ -23,6 +23,9 @@ service cloud.firestore {
     }
 
     // Each user can read/write ONLY their own user doc and any subcollections
+    match /users/{uid} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
     match /users/{uid}/{rest=**} {
       allow read, write: if signedIn() && request.auth.uid == uid;
     }

@@ -34,9 +34,16 @@ Launch checklist (target: Friday, single-product Stripe checkout):
 Environment setup (staging/prod)
 - [ ] Create Firebase projects: `black-river-market-staging` (staging) and `black-river-market` (prod).
 - [ ] Update `.firebaserc` aliases: set `default` -> staging, add `prod` -> `black-river-market`.
-- [ ] Env files: `.env.local` (emulators + test keys), `.env.test` (staging keys), `.env.production` (prod keys).
+- [ ] Env files: `.env.local` (emulators + test keys), `.env.black-river-market-staging` (staging keys), `.env.black-river-market` (prod keys).
 - [ ] Stripe webhooks: create staging endpoint (store secret in `.env.test`/Secrets) and prod endpoint (store secret in `.env.production`/Secrets).
 - [ ] Deploy commands: `firebase use staging && firebase deploy --only functions,hosting`; prod: `firebase use prod && firebase deploy --only functions,hosting`.
+
+### Environment procedures (dev/staging/prod)
+- Dev (emulators): `npm run dev` uses `.env.local`. Keep Stripe/Firebase test keys here. Node 20 recommended.
+- Staging build: `npm run build:staging` (injects `.env.black-river-market-staging`, ignores `.env.local`), then `firebase deploy --only hosting --project black-river-market-staging --force`.
+- Prod build: `NEXT_IGNORE_ENV_FILE=1 env $(grep -v '^#' .env.black-river-market | xargs) npm run build:base`, then `firebase deploy --only hosting,functions --project black-river-market --force`.
+- Functions: keep Stripe secrets in Secret Manager only; do not add them back to env files. For staging: `firebase functions:secrets:set STRIPE_SECRET_KEY/STRIPE_WEBHOOK_SECRET --project black-river-market-staging`. Prod: same with `--project black-river-market`.
+- Switch projects via `firebase use staging` / `firebase use prod` or `--project ...` per command; env files are not auto-swapped—use the scripts above.
 
 ### Seed a single product (emulator)
 - Command: `export FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 && SEED_OWNER_UID=<your_uid> node scripts/seed-product.js`
@@ -58,7 +65,7 @@ Environment setup (staging/prod)
 - Run from a terminal with internet access (outside VS Code sandbox):
   ```
   stripe listen --events checkout.session.completed \
-    --forward-to http://127.0.0.1:5001/quilt-b3dec/us-central1/stripeWebhook
+    --forward-to http://127.0.0.1:5001/black-river-market-b3dec/us-central1/stripeWebhook
   ```
 - Leave the CLI session running and watch for `→ checkout.session.completed` / `← 200 POST …`.
 - Every time you start the listener, copy the printed `whsec_…` into `functions/.env` or Firebase Secret Manager (and any local `.env` files). Restart `npm run dev` so the emulator reloads the secret.

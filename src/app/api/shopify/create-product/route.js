@@ -5,7 +5,7 @@ export async function POST(req) {
     product: {
       title: body.title,
       body_html: body.description,
-      vendor: 'Quilt',
+      vendor: 'Black River Market',
       variants: [{ price: body.price }],
     },
   };

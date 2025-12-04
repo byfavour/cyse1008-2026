@@ -17,7 +17,12 @@ const nextConfig = {
   },
   reactStrictMode: true,
   images: {
-    domains: ['127.0.0.1', 'localhost', 'quilt-b3dec.appspot.com', 'firebasestorage.googleapis.com'],
+    domains: [
+      '127.0.0.1',
+      'localhost',
+      'black-river-market-b3dec.appspot.com',
+      'firebasestorage.googleapis.com',
+    ],
     unoptimized: true,
   },
   async headers() {

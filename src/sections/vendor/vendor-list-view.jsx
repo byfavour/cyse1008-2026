@@ -90,7 +90,7 @@ export function VendorListView() {
       field: 'isActive',
       headerName: 'Status',
       width: 120,
-      valueGetter: (params) => (params.row.isActive ? 'Active' : 'Inactive'),
+      valueGetter: (params) => (params?.row?.isActive ? 'Active' : 'Inactive'),
     },
     {
       field: 'actions',

@@ -3,6 +3,10 @@
     "source": "functions",
     "runtime": "nodejs20"
   },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
   "storage": {
     "rules": "storage.rules"
   },
@@ -14,8 +18,7 @@
     "ui": { "enabled": true, "port": 4000 }
   },
   "hosting": {
-    "public": "public",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    "rewrites": [{ "source": "**", "function": "nextjsServer" }]
+    "source": ".",
+    "frameworksBackend": {}
   }
 }
