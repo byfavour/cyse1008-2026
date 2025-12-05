@@ -10,7 +10,7 @@ import { NavUl } from 'src/components/nav-section';
 import { Scrollbar } from 'src/components/scrollbar';
 
 import { NavList } from './nav-mobile-list';
-import { SignInButton } from '../../../components/sign-in-button';
+import { AuthUserControls } from '../../../components/auth-user-controls';
 
 // ----------------------------------------------------------------------
 
@@ -55,7 +55,7 @@ export function NavMobile({ data, open, onClose, slots, sx }) {
 
       {slots?.bottomArea ?? (
         <Box gap={1.5} display="flex" sx={{ px: 2.5, py: 3 }}>
-          <SignInButton fullWidth />
+          <AuthUserControls layout="column" showName />
         </Box>
       )}
     </Drawer>

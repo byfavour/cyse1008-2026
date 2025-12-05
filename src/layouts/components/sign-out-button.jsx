@@ -15,7 +15,15 @@ const signOut = firebaseSignOut;
 
 // ----------------------------------------------------------------------
 
-export function SignOutButton({ onClose, ...other }) {
+export function SignOutButton({
+  onClose,
+  fullWidth = true,
+  variant = 'soft',
+  size = 'large',
+  color = 'error',
+  children = 'Logout',
+  ...other
+}) {
   const router = useRouter();
 
   const { checkUserSession } = useAuthContext();
@@ -35,14 +43,14 @@ export function SignOutButton({ onClose, ...other }) {
 
   return (
     <Button
-      fullWidth
-      variant="soft"
-      size="large"
-      color="error"
+      fullWidth={fullWidth}
+      variant={variant}
+      size={size}
+      color={color}
       onClick={handleLogout}
       {...other}
     >
-      Logout
+      {children}
     </Button>
   );
 }

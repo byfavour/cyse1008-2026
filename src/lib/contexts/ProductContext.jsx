@@ -25,6 +25,7 @@ function normalizeVariant(v) {
 function normalizeForWrite(input, { userId }) {
   const base = {
     title: (input?.name ?? input?.title ?? '').toString().trim(),
+    name: (input?.name ?? input?.title ?? '').toString().trim(),
     code: (input?.code ?? '').toString().trim(),
     sku: (input?.sku ?? '').toString().trim(),
     description: input?.description ?? '',

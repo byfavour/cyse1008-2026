@@ -48,10 +48,15 @@ export async function updateProduct(productId, updatedData) {
 export async function getProducts() {
   try {
     const querySnapshot = await getDocs(productsCollectionRef);
-    const products = querySnapshot.docs.map((_doc) => ({
-      id: _doc.id,
-      ..._doc.data(),
-    }));
+    const products = querySnapshot.docs.map((_doc) => {
+      const data = _doc.data();
+      const name = data?.name || data?.title || '';
+      return {
+        id: _doc.id,
+        name,
+        ...data,
+      };
+    });
     return products;
   } catch (error) {
     console.error('Error fetching products: ', error);
@@ -66,8 +71,10 @@ export async function getProductById(productId) {
 
     const productSnapshot = await getDoc(productDocRef);
     if (productSnapshot.exists()) {
+      const data = productSnapshot.data();
+      const name = data?.name || data?.title || '';
       return {
-        product: { id: productId, reviews: [], ...productSnapshot.data() },
+        product: { id: productId, name, reviews: [], ...data },
       };
     }
 

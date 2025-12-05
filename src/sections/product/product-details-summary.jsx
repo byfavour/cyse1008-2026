@@ -42,6 +42,7 @@ export function ProductDetailsSummary({
   const {
     id,
     name,
+    title,
     sizes = [],
     price,
     coverUrl,
@@ -70,10 +71,11 @@ export function ProductDetailsSummary({
 
   const defaultValues = {
     id,
-    name,
+    name: name || title || '',
     coverUrl: mainImage,
     available: availableCount,
     price,
+    taxes: product?.taxes ?? 0,
     colors: hasColors ? colors[0] : '',
     size: hasSizes ? sizes[0] : '',
     quantity: availableCount < 1 ? 0 : 1,
@@ -100,6 +102,7 @@ export function ProductDetailsSummary({
         ...data,
         quantity: clampedQty,
         colors: [values.colors],
+        taxes: Number(product?.taxes ?? 0),
         subtotal: data.price * clampedQty,
       };
       if (!existProduct) {
@@ -120,6 +123,7 @@ export function ProductDetailsSummary({
         quantity: clampedQty,
         coverUrl: mainImage,
         colors: [values.colors],
+        taxes: Number(product?.taxes ?? 0),
         subtotal: values.price * clampedQty,
         // pass available so cart can cap increments later too
         available: availableCount,

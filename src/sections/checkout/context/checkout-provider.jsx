@@ -25,6 +25,7 @@ const initialState = {
   total: 0,
   discount: 0,
   shipping: 0,
+  tax: 0,
   billing: null,
   totalItems: 0,
 };
@@ -60,10 +61,17 @@ function Container({ children }) {
 
     const subtotal = state.items.reduce((total, item) => total + item.quantity * item.price, 0);
 
+    const tax = state.items.reduce((acc, item) => {
+      const rate = Number(item?.taxes ?? 0);
+      if (!Number.isFinite(rate) || rate <= 0) return acc;
+      return acc + item.quantity * item.price * (rate / 100);
+    }, 0);
+
     setField('subtotal', subtotal);
+    setField('tax', tax);
     setField('totalItems', totalItems);
-    setField('total', state.subtotal - state.discount + state.shipping);
-  }, [setField, state.discount, state.items, state.shipping, state.subtotal]);
+    setField('total', subtotal - state.discount + state.shipping + tax);
+  }, [setField, state.discount, state.items, state.shipping]);
 
   useEffect(() => {
     const restoredValue = getStorage(STORAGE_KEY);
@@ -71,6 +79,10 @@ function Container({ children }) {
       updateTotalField();
     }
   }, [updateTotalField]);
+
+  useEffect(() => {
+    updateTotalField();
+  }, [state.items, state.discount, state.shipping, updateTotalField]);
 
   // Clear any stale cart persisted before the cleanup (removes old $1 demo items)
   useEffect(() => {
@@ -110,13 +122,19 @@ function Container({ children }) {
 
           const colors = colorsAdded.filter((color, index) => colorsAdded.indexOf(color) === index);
 
-          return { ...item, colors, quantity: item.quantity + 1 };
+          const taxes =
+            Number.isFinite(Number(newItem?.taxes)) && Number(newItem?.taxes) >= 0
+              ? Number(newItem.taxes)
+              : item.taxes;
+
+          return { ...item, colors, taxes, quantity: item.quantity + 1 };
         }
         return item;
       });
 
       if (!updatedItems.some((item) => item.id === newItem.id)) {
-        updatedItems.push(newItem);
+        const taxes = Number.isFinite(Number(newItem?.taxes)) ? Number(newItem.taxes) : 0;
+        updatedItems.push({ ...newItem, taxes });
       }
 
       setField('items', updatedItems);

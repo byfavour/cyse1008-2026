@@ -51,6 +51,7 @@ export function ProductItem({ product }) {
   const priceValue = Number(price ?? 0);
   const priceSaleValue = Number(priceSale ?? 0);
   const hasSale = Number.isFinite(priceSaleValue) && priceSaleValue > 0;
+  const taxes = Number.isFinite(Number(product?.taxes)) ? Number(product?.taxes) : 0;
 
   const linkTo = paths.product.details(id);
 
@@ -81,12 +82,13 @@ export function ProductItem({ product }) {
 
     const newProduct = {
       id: product.id,
-      name: product.name,
+      name: product.name || product.title || '',
       coverUrl: mainImage,
       price: product.price,
       colors: color ? [color] : [],
       size,
       quantity: 1,
+      taxes,
       // You can also pass availableCount if your cart wants to cap later
       available: availableCount,
     };

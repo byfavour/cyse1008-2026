@@ -27,6 +27,7 @@ import { SettingsButton } from '../components/settings-button';
 import { LanguagePopover } from '../components/language-popover';
 import { WorkspacesPopover } from '../components/workspaces-popover';
 import { navData as dashboardNavData } from '../config-nav-dashboard';
+import { AuthUserControls } from '../components/auth-user-controls';
 
 // ----------------------------------------------------------------------
 
@@ -135,13 +136,15 @@ export function DashboardLayout({ sx, children, header, data }) {
               </>
             ),
             rightArea: (
-              <Box display="flex" alignItems="center" gap={{ xs: 0, sm: 0.75 }}>
+              <Box display="flex" alignItems="center" gap={{ xs: 0.5, sm: 1 }}>
                 {/* -- Searchbar -- */}
                 <Searchbar data={navData} />
                 {/* -- Language popover -- */}
                 <LanguagePopover data={allLangs} />
                 {/* -- Settings button -- */}
                 <SettingsButton />
+                {/* -- Account / Sign in -- */}
+                <AuthUserControls />
               </Box>
             ),
           }}

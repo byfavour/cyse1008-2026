@@ -18,8 +18,8 @@ import { MenuButton } from '../components/menu-button';
 import { LayoutSection } from '../core/layout-section';
 import { HeaderSection } from '../core/header-section';
 import { navData as mainNavData } from '../config-nav-main';
-import { SignInButton } from '../components/sign-in-button';
 import { SettingsButton } from '../components/settings-button';
+import { AuthUserControls } from '../components/auth-user-controls';
 
 // ----------------------------------------------------------------------
 
@@ -84,8 +84,8 @@ export function MainLayout({ sx, data, children, header }) {
                 <Box display="flex" alignItems="center" gap={{ xs: 1, sm: 1.5 }}>
                   {/* -- Settings button -- */}
                   <SettingsButton />
-                  {/* -- Sign in button -- */}
-                  <SignInButton />
+                  {/* -- Account / Sign in -- */}
+                  <AuthUserControls />
                 </Box>
               </>
             ),

@@ -80,6 +80,7 @@ export function CheckoutBillingAddress() {
             total={checkout.total}
             subtotal={checkout.subtotal}
             discount={checkout.discount}
+            tax={checkout.tax}
           />
         </Grid>
       </Grid>

@@ -185,7 +185,11 @@ export function ProductListView() {
       minWidth: 360,
       hideable: false,
       renderCell: (params) => (
-        <RenderCellProduct params={params} onViewRow={() => handleViewRow(params.row.id)} />
+        <RenderCellProduct
+          params={params}
+          editHref={paths.dashboard.product.edit(params.row.id)}
+          onEditRow={() => handleEditRow(params.row.id)}
+        />
       ),
     },
     {

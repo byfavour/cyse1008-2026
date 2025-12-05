@@ -72,6 +72,7 @@ export function CheckoutCart() {
           total={checkout.total}
           discount={checkout.discount}
           subtotal={checkout.subtotal}
+          tax={checkout.tax}
           onApplyDiscount={checkout.onApplyDiscount}
         />
 

@@ -46,7 +46,14 @@ export async function getVendors(filter = {}) {
     vendorsQuery = query(vendorsQuery, where('ownerId', '==', filter.ownerId));
   }
   const snapshot = await getDocs(vendorsQuery);
-  return snapshot.docs.map((_doc) => ({ id: _doc.id, ..._doc.data() }));
+  return snapshot.docs.map((_doc) => {
+    const data = _doc.data() || {};
+    return {
+      id: _doc.id,
+      ...data,
+      isActive: typeof data.isActive === 'boolean' ? data.isActive : true,
+    };
+  });
 }
 
 export async function getVendorById(id) {

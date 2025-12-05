@@ -175,6 +175,7 @@ export function CheckoutPayment() {
             subtotal={checkout.subtotal}
             discount={checkout.discount}
             shipping={checkout.shipping}
+            tax={checkout.tax}
             onEdit={() => checkout.onGotoStep(0)}
           />
 
