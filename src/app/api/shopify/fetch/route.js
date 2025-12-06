@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
-import admin from 'src/lib/firebase/firebase-admin';
+import { getAdmin } from 'src/lib/firebase/firebase-admin';
 import { normalizeShopifyProduct } from 'src/lib/shopify/normalize';
 
 export const runtime = 'nodejs';
 
 export async function GET(request) {
+  const admin = getAdmin();
   const { searchParams } = new URL(request.url);
   const userId = searchParams.get('uid');
 

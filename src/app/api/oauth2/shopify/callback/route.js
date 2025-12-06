@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
-import admin from 'src/lib/firebase/firebase-admin';
+import { getAdmin } from 'src/lib/firebase/firebase-admin';
 
 export async function GET(request) {
   try {
+    const admin = getAdmin();
+
     const { searchParams } = new URL(request.url);
     const code = searchParams.get('code');
     const shop = searchParams.get('shop');

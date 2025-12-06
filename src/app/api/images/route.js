@@ -1,11 +1,12 @@
 // src/app/api/images/route.js
 import { NextResponse } from 'next/server';
-import admin, { bucket } from 'src/lib/firebase/firebase-admin';
+import { getAdmin, getBucket } from 'src/lib/firebase/firebase-admin';
 import { saveImageMeta, listImagesByOwner, getImageSignedUrl } from 'src/lib/firebase/images';
 
 export const runtime = 'nodejs';
 
 async function getAuthUid(request) {
+  const admin = getAdmin();
   const auth = request.headers.get('authorization') || '';
   if (!auth.toLowerCase().startsWith('bearer ')) return null;
   const token = auth.slice(7);
@@ -27,6 +28,7 @@ export async function POST(request) {
     return NextResponse.json({ error: 'No files' }, { status: 400 });
   }
 
+  const bucket = getBucket();
   const results = [];
   for (const file of files) {
     const arrayBuffer = await file.arrayBuffer();

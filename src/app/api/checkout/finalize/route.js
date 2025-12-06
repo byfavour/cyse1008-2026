@@ -4,12 +4,15 @@ import { NextResponse } from 'next/server';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-import admin, { db } from 'src/lib/firebase/firebase-admin';
+import { getAdmin, getDb } from 'src/lib/firebase/firebase-admin';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '', { apiVersion: '2023-10-16' });
 
 export async function POST(req) {
   try {
+    const admin = getAdmin();
+    const db = getDb();
+
     const { session_id } = await req.json();
     if (!session_id) {
       return NextResponse.json({ error: 'Missing session_id' }, { status: 400 });

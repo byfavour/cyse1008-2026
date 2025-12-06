@@ -1,4 +1,4 @@
-import admin, { db, bucket } from 'src/lib/firebase/firebase-admin';
+import admin, { getDb, getBucket } from 'src/lib/firebase/firebase-admin';
 
 export async function saveImageMeta({
   userId,
@@ -7,6 +7,7 @@ export async function saveImageMeta({
   visibility = 'private',
   extra = {},
 }) {
+  const db = getDb();
   const docRef = await db.collection('images').add({
     userId,
     filePath,
@@ -19,6 +20,7 @@ export async function saveImageMeta({
 }
 
 export async function listImagesByOwner(userId) {
+  const db = getDb();
   const snap = await db
     .collection('images')
     .where('userId', '==', userId)
@@ -28,6 +30,7 @@ export async function listImagesByOwner(userId) {
 }
 
 export async function getImageSignedUrl(filePath, expiresInSeconds = 3600) {
+  const bucket = getBucket();
   const [url] = await bucket.file(filePath).getSignedUrl({
     action: 'read',
     expires: Date.now() + expiresInSeconds * 1000,

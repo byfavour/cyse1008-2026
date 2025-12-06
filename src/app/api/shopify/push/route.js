@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import admin from 'src/lib/firebase/firebase-admin';
+import { getAdmin } from 'src/lib/firebase/firebase-admin';
 
 export async function POST(request) {
+  const admin = getAdmin();
   const { userId, product } = await request.json();
   if (!userId || !product) {
     return NextResponse.json({ error: 'Missing data' }, { status: 400 });

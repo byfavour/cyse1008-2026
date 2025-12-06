@@ -2,13 +2,14 @@
 
 import { notFound } from 'next/navigation';
 import { CONFIG } from 'src/config-global';
-import admin from 'src/lib/firebase/firebase-admin';
+import { getAdmin } from 'src/lib/firebase/firebase-admin';
 
 import { OrderDetailsView } from 'src/sections/order/view';
 
 export default async function Page({ params }) {
   const { id } = params;
 
+  const admin = getAdmin();
   const snap = await admin.firestore().collection('orders').doc(id).get();
 
   if (!snap.exists) {

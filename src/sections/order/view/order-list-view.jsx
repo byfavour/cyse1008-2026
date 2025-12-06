@@ -42,8 +42,6 @@ import {
   TablePaginationCustom,
 } from 'src/components/table';
 
-import { getOrders } from 'src/lib/firebase/orders';
-
 import { OrderTableRow } from '../order-table-row';
 import { OrderTableToolbar } from '../order-table-toolbar';
 import { OrderTableFiltersResult } from '../order-table-filters-result';
@@ -108,7 +106,9 @@ export function OrderListView() {
     let isMounted = true;
     (async () => {
       try {
-        const orders = await getOrders();
+        const res = await fetch('/api/orders', { cache: 'no-store' });
+        if (!res.ok) throw new Error('Failed to fetch orders');
+        const { orders = [] } = await res.json();
         if (isMounted) {
           setTableData(orders);
         }

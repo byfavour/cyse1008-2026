@@ -16,9 +16,10 @@ const firebaseApp = initializeApp(CONFIG.firebase);
 export const db = getFirestore(firebaseApp);
 export const AUTH = getAuth(firebaseApp);
 export const storage = getStorage(firebaseApp);
-const isLocalhost = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
+const useEmulators = process.env.NEXT_PUBLIC_FIREBASE_EMULATOR === 'true';
+const isBrowser = typeof window !== 'undefined';
 
-if (isLocalhost) {
+if (useEmulators && isBrowser) {
   console.log('Connecting to Firebase emulators...');
 
   // Auth Emulator

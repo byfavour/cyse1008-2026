@@ -1,6 +1,6 @@
 import Stripe from 'stripe';
 import { NextResponse } from 'next/server';
-import admin, { db } from 'src/lib/firebase/firebase-admin';
+import { getAdmin, getDb } from 'src/lib/firebase/firebase-admin';
 
 export const runtime = 'nodejs';
 
@@ -12,6 +12,9 @@ export const config = { api: { bodyParser: false } };
 
 export async function POST(req) {
   try {
+    const admin = getAdmin();
+    const db = getDb();
+
     const sig = req.headers.get('stripe-signature');
     const buf = Buffer.from(await req.arrayBuffer());
 
