@@ -1,5 +1,5 @@
 import { buttonClasses } from '@mui/material/Button';
-import { loadingButtonClasses } from '@mui/lab/LoadingButton';
+import { loadingButtonClasses } from '@mui/lab/LoadingButton/loadingButtonClasses';
 
 import { varAlpha, stylesMode } from '../../styles';
 
