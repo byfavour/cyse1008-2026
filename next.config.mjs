@@ -25,6 +25,10 @@ const nextConfig = {
     ],
     unoptimized: true,
   },
+  turbopack: {
+    // Force correct workspace root for Firebase frameworks builder and silence Turbopack/webpack mismatch warnings.
+    rootDirectory: __dirname,
+  },
   async headers() {
     return [
       {
