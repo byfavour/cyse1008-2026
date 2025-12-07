@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 
 import Stack from '@mui/material/Stack';
-import Grid from '@mui/material/Grid2';
+import Grid from '@mui/material/Grid';
 
 import { paths } from 'src/routes/paths';
 
