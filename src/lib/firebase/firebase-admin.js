@@ -38,6 +38,18 @@ function tryInitializeFirebaseAdmin() {
     // swallow and continue to other fallbacks
   }
 
+  // (2b) Default credentials fallback (GAE/Cloud Functions)
+  try {
+    admin.initializeApp({
+      projectId,
+      storageBucket,
+    });
+    initialized = true;
+    return admin;
+  } catch (error) {
+    // swallow and continue to emulator fallback
+  }
+
   // (3) Emulator fallback (no creds)
   if (process.env.FIRESTORE_EMULATOR_HOST && projectId) {
     admin.initializeApp({ projectId, storageBucket });

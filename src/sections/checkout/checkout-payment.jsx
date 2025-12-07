@@ -36,6 +36,11 @@ const PAYMENT_OPTIONS = [
     label: 'Card (Stripe)',
     description: 'Pay securely with your credit or debit card via Stripe.',
   },
+  {
+    value: 'paymentlink',
+    label: 'Payment link / QR',
+    description: 'Generate a Stripe payment link to share or scan.',
+  },
 ];
 
 const CARD_OPTIONS = [];
@@ -70,7 +75,6 @@ export function CheckoutPayment() {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      // Only Stripe card checkout is supported
       setSubmitting(true);
 
       // 1) Build items array from checkout context (supporting a few possible keys)
@@ -108,7 +112,25 @@ export function CheckoutPayment() {
         userId: auth.currentUser?.uid ?? null,
       });
 
-      // 4) Create Stripe Checkout Session
+      if (data.payment === 'paymentlink') {
+        // Create a Stripe Checkout session URL (payment link) and open it
+        const res = await fetch('/api/payment-link', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId: orderRef.id }),
+        });
+
+        if (!res.ok) {
+          const t = await res.text();
+          throw new Error(`Payment link failed: ${t}`);
+        }
+
+        const { url } = await res.json();
+        window.location.href = url;
+        return;
+      }
+
+      // Default: Stripe card Checkout Session
       const res = await fetch('/api/stripe/create-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -125,8 +147,6 @@ export function CheckoutPayment() {
       }
 
       const { url } = await res.json();
-
-      // 5) Redirect to Stripe Hosted Checkout
       window.location.href = url;
     } catch (error) {
       console.error(error);

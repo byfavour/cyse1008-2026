@@ -106,9 +106,8 @@ export function OrderListView() {
     let isMounted = true;
     (async () => {
       try {
-        const res = await fetch('/api/orders', { cache: 'no-store' });
-        if (!res.ok) throw new Error('Failed to fetch orders');
-        const { orders = [] } = await res.json();
+        const { getOrders } = await import('src/lib/firebase/orders');
+        const orders = await getOrders();
         if (isMounted) {
           setTableData(orders);
         }

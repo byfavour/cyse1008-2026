@@ -22,6 +22,8 @@ export function OrderDetailsToolbar({
   orderNumber,
   statusOptions,
   onChangeStatus,
+  onCreatePaymentLink,
+  paymentLinkLoading,
 }) {
   const popover = usePopover();
 
@@ -62,6 +64,17 @@ export function OrderDetailsToolbar({
           alignItems="center"
           justifyContent="flex-end"
         >
+          <Button
+            color="primary"
+            variant="contained"
+            startIcon={<Iconify icon="solar:qr-code-outline" />}
+            onClick={onCreatePaymentLink}
+            disabled={paymentLinkLoading}
+            sx={{ textTransform: 'capitalize' }}
+          >
+            Payment link
+          </Button>
+
           <Button
             color="inherit"
             variant="outlined"

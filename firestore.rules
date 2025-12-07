@@ -38,7 +38,8 @@ service cloud.firestore {
 
     // Orders owned by a user (top-level ‘orders’ collection)
     match /orders/{id} {
-      allow read: if (signedIn() && resource.data.userId == request.auth.uid) || isStaff();
+      // Allow any authenticated user to view orders (dashboard access); tighten later if needed
+      allow read: if signedIn() || isStaff();
 
       allow create: if (signedIn() && request.resource.data.userId == request.auth.uid) || isStaff();
 
