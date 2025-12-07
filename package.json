@@ -9,7 +9,7 @@
     "dev:emulators": "firebase emulators:start --import ./.firebase-data --export-on-exit",
     "dev": "npm-run-all -p dev:emulators dev:web",
     "start": "dotenv -e .env.black-river-market -- next start -p 3032",
-    "build:base": "cross-env NEXT_PUBLIC_SKIP_ESLINT=true NEXT_PUBLIC_DEBUG=true npx next build",
+    "build:base": "cross-env NEXT_PUBLIC_SKIP_ESLINT=true NEXT_PUBLIC_DEBUG=true npx next build --webpack",
     "build": "npm run build:base",
     "build:staging": "dotenv -e .env.black-river-market-staging -- npm run build:base",
     "build:prod": "dotenv -e .env.black-river-market -- npm run build:base",
