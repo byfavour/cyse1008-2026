@@ -53,6 +53,21 @@ Environment setup (staging/prod)
 - Deploy hosting/functions: set the Firebase alias first (`firebase use staging` or `firebase use prod`), then `firebase deploy` (or the existing `deploy:*` scripts). Env vars for deployed functions still come from Secret Manager, not these `.env` files.
 - Functions secrets: keep Stripe secrets in Secret Manager only. Staging: `firebase functions:secrets:set STRIPE_SECRET_KEY/STRIPE_WEBHOOK_SECRET --project black-river-market-staging`; Prod: same with `--project black-river-market`.
 
+### Hosting deploy commands (Next.js 16 + webpack)
+
+- Staging hosting deploy (forces webpack build):  
+  ```bash
+  FIREBASE_FRAMEWORKS_BUILD_COMMAND="npm run build:staging" firebase deploy --project black-river-market-staging
+  ```
+- Prod hosting deploy (forces webpack build):  
+  ```bash
+  FIREBASE_FRAMEWORKS_BUILD_COMMAND="npm run build:prod" firebase deploy --project black-river-market
+  ```
+- If framework caches get in the way, clear them first:  
+  ```bash
+  rm -rf .firebase/black-river-market-staging .firebase/hosting.cHVibGlj.cache .firebase/hosting.LmZpcmViYXNlL2JsYWNrLXJpdmVyLW1hcmtldC1zdGFnaW5nL2hvc3Rpbmc.cache
+  ```
+
 ### Seed a single product (emulator)
 
 - Command: `export FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 && SEED_OWNER_UID=<your_uid> node scripts/seed-product.js`
