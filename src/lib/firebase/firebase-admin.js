@@ -46,7 +46,10 @@ function tryInitializeFirebaseAdmin() {
 
   // (2) Application default credentials (Cloud env / gcloud auth)
   try {
-    admin.initializeApp({ credential: admin.credential.applicationDefault(), projectId, storageBucket });
+    const opts = { credential: admin.credential.applicationDefault() };
+    if (projectId) opts.projectId = projectId;
+    if (storageBucket) opts.storageBucket = storageBucket;
+    admin.initializeApp(opts);
     initialized = true;
     return admin;
   } catch (error) {
@@ -55,7 +58,10 @@ function tryInitializeFirebaseAdmin() {
 
   // (2b) Default credentials fallback (GAE/Cloud Functions)
   try {
-    admin.initializeApp({ projectId, storageBucket });
+    const opts = {};
+    if (projectId) opts.projectId = projectId;
+    if (storageBucket) opts.storageBucket = storageBucket;
+    admin.initializeApp(opts);
     initialized = true;
     return admin;
   } catch (error) {
@@ -65,6 +71,15 @@ function tryInitializeFirebaseAdmin() {
   // (2c) Framework-provided FIREBASE_CONFIG / automatic detection
   try {
     admin.initializeApp(firebaseConfig || undefined);
+    initialized = true;
+    return admin;
+  } catch (error) {
+    errors.push(error);
+  }
+
+  // (2d) Last-resort default init (let SDK infer everything)
+  try {
+    admin.initializeApp();
     initialized = true;
     return admin;
   } catch (error) {
