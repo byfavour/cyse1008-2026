@@ -1,4 +1,4 @@
-import admin, { getDb, getBucket } from 'src/lib/firebase/firebase-admin';
+import { getDb, getBucket } from 'src/lib/firebase/firebase-admin';
 
 export async function saveImageMeta({
   userId,
