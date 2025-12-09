@@ -28,27 +28,29 @@ function tryInitializeFirebaseAdmin() {
   const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
   const storageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
 
+  const errors = [];
+
   // (1) Explicit service account
-  if (clientEmail && privateKey && projectId) {
-    admin.initializeApp({
-      credential: admin.credential.cert({ projectId, clientEmail, privateKey }),
-      storageBucket,
-    });
-    initialized = true;
-    return admin;
+  try {
+    if (clientEmail && privateKey && projectId) {
+      admin.initializeApp({
+        credential: admin.credential.cert({ projectId, clientEmail, privateKey }),
+        storageBucket,
+      });
+      initialized = true;
+      return admin;
+    }
+  } catch (error) {
+    errors.push(error);
   }
 
   // (2) Application default credentials (Cloud env / gcloud auth)
   try {
-    admin.initializeApp({
-      credential: admin.credential.applicationDefault(),
-      projectId,
-      storageBucket,
-    });
+    admin.initializeApp({ credential: admin.credential.applicationDefault(), projectId, storageBucket });
     initialized = true;
     return admin;
   } catch (error) {
-    // swallow and continue to other fallbacks
+    errors.push(error);
   }
 
   // (2b) Default credentials fallback (GAE/Cloud Functions)
@@ -57,12 +59,25 @@ function tryInitializeFirebaseAdmin() {
     initialized = true;
     return admin;
   } catch (error) {
-    // swallow and continue to emulator fallback
+    errors.push(error);
   }
 
   // (2c) Framework-provided FIREBASE_CONFIG / automatic detection
   try {
     admin.initializeApp(firebaseConfig || undefined);
+    initialized = true;
+    return admin;
+  } catch (error) {
+    errors.push(error);
+  }
+
+  // If all attempts failed, surface the errors to aid debugging.
+  if (errors.length) {
+    throw errors[errors.length - 1];
+  }
+
+  // Not initialized; let caller decide how to handle
+  return null;
     initialized = true;
     return admin;
   } catch (error) {
