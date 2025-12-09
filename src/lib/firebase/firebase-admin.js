@@ -1,15 +1,17 @@
-// src/lib/firebase/firebase-admin.js
-import admin from 'firebase-admin';
+import { initializeApp, applicationDefault, cert, getApps } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+import { getStorage } from 'firebase-admin/storage';
 
-let initialized = false;
+let appInstance = null;
 
-function tryInitializeFirebaseAdmin() {
-  if (initialized || admin.apps.length) {
-    initialized = true;
-    return admin;
+function initAdminApp() {
+  if (appInstance) return appInstance;
+  if (getApps().length) {
+    appInstance = getApps()[0];
+    return appInstance;
   }
 
-  // Prefer explicit env, then framework-provided FIREBASE_CONFIG, then GCP defaults.
+  // Prefer explicit env, then FIREBASE_CONFIG, then ADC.
   const firebaseConfig = (() => {
     try {
       return process.env.FIREBASE_CONFIG ? JSON.parse(process.env.FIREBASE_CONFIG) : null;
@@ -31,91 +33,64 @@ function tryInitializeFirebaseAdmin() {
   const errors = [];
 
   // (1) Explicit service account
-  try {
-    if (clientEmail && privateKey && projectId) {
-      admin.initializeApp({
-        credential: admin.credential.cert({ projectId, clientEmail, privateKey }),
+  if (clientEmail && privateKey && projectId) {
+    try {
+      appInstance = initializeApp({
+        credential: cert({ projectId, clientEmail, privateKey }),
+        projectId,
         storageBucket,
       });
-      initialized = true;
-      return admin;
+      return appInstance;
+    } catch (error) {
+      errors.push(error);
     }
-  } catch (error) {
-    errors.push(error);
   }
 
-  // (2) Application default credentials (Cloud env / gcloud auth)
+  // (2) Application default credentials (ADC)
   try {
-    const opts = { credential: admin.credential.applicationDefault() };
-    if (projectId) opts.projectId = projectId;
-    if (storageBucket) opts.storageBucket = storageBucket;
-    admin.initializeApp(opts);
-    initialized = true;
-    return admin;
+    appInstance = initializeApp({
+      credential: applicationDefault(),
+      projectId,
+      storageBucket,
+    });
+    return appInstance;
   } catch (error) {
     errors.push(error);
   }
 
-  // (2b) Default credentials fallback (GAE/Cloud Functions)
+  // (3) FIREBASE_CONFIG / auto detection
   try {
-    const opts = {};
-    if (projectId) opts.projectId = projectId;
-    if (storageBucket) opts.storageBucket = storageBucket;
-    admin.initializeApp(opts);
-    initialized = true;
-    return admin;
+    appInstance = initializeApp(firebaseConfig || undefined);
+    return appInstance;
   } catch (error) {
     errors.push(error);
   }
 
-  // (2c) Framework-provided FIREBASE_CONFIG / automatic detection
+  // (4) Last-resort default init
   try {
-    admin.initializeApp(firebaseConfig || undefined);
-    initialized = true;
-    return admin;
+    appInstance = initializeApp();
+    return appInstance;
   } catch (error) {
     errors.push(error);
   }
 
-  // (2d) Last-resort default init (let SDK infer everything)
-  try {
-    admin.initializeApp();
-    initialized = true;
-    return admin;
-  } catch (error) {
-    errors.push(error);
-  }
-
-  // If all attempts failed, surface the errors to aid debugging.
   if (errors.length) {
     throw errors[errors.length - 1];
   }
 
-  // Not initialized; let caller decide how to handle
-  return null;
-}
-
-function requireInitialized(message) {
-  const app = tryInitializeFirebaseAdmin();
-  if (!app) {
-    throw new Error(
-      message ||
-        'Firebase Admin not initialized. Set FIREBASE_PRIVATE_KEY/FIREBASE_CLIENT_EMAIL or GOOGLE_APPLICATION_CREDENTIALS.'
-    );
-  }
-  return app;
+  throw new Error(
+    'Firebase Admin not initialized. Set FIREBASE_PRIVATE_KEY/FIREBASE_CLIENT_EMAIL or GOOGLE_APPLICATION_CREDENTIALS.'
+  );
 }
 
 export function getAdmin() {
-  return requireInitialized();
+  return initAdminApp();
 }
 
 export function getDb() {
-  return requireInitialized().firestore();
+  return getFirestore(initAdminApp());
 }
 
 export function getBucket() {
-  return requireInitialized().storage().bucket();
+  return getStorage(initAdminApp()).bucket();
 }
-
-export default admin;
