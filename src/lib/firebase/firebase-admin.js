@@ -78,21 +78,6 @@ function tryInitializeFirebaseAdmin() {
 
   // Not initialized; let caller decide how to handle
   return null;
-    initialized = true;
-    return admin;
-  } catch (error) {
-    // swallow and continue to emulator fallback
-  }
-
-  // (3) Emulator fallback (no creds)
-  if (process.env.FIRESTORE_EMULATOR_HOST && projectId) {
-    admin.initializeApp({ projectId, storageBucket });
-    initialized = true;
-    return admin;
-  }
-
-  // Not initialized; let caller decide how to handle
-  return null;
 }
 
 function requireInitialized(message) {
