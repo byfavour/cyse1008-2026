@@ -7,6 +7,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import LoadingButton from '@mui/lab/LoadingButton';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import TextField from '@mui/material/TextField';
 
 import { Form } from 'src/components/hook-form';
 import { Iconify } from 'src/components/iconify';
@@ -17,9 +25,9 @@ import { CheckoutDelivery } from './checkout-delivery';
 import { CheckoutBillingInfo } from './checkout-billing-info';
 import { CheckoutPaymentMethods } from './checkout-payment-methods';
 
-import { useState } from 'react';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { AUTH, db } from 'src/lib/firebase/firebase';
+import { useEffect, useState } from 'react';
+import { collection, addDoc, serverTimestamp, doc, onSnapshot } from 'firebase/firestore';
+import { db } from 'src/lib/firebase/firebase';
 import { getAuth } from 'firebase/auth';
 
 /* ------------------------------------------------------------------ */
@@ -72,6 +80,29 @@ export function CheckoutPayment() {
   } = methods;
 
   const [submitting, setSubmitting] = useState(false);
+  const [linkResult, setLinkResult] = useState(null); // { url, orderId, status }
+  const paymentChoice = watch('payment');
+  const paymentButtonLabel = paymentChoice === 'creditcard' ? 'Pay with Stripe' : 'Show payment link';
+
+  useEffect(() => {
+    if (!linkResult?.orderId || !linkResult?.url) return;
+    const ref = doc(db, 'orders', linkResult.orderId);
+    const unsubscribe = onSnapshot(ref, (snap) => {
+      if (!snap.exists()) return;
+      const status = snap.data()?.status;
+      setLinkResult((prev) => (prev ? { ...prev, status } : prev));
+    });
+    return unsubscribe;
+  }, [linkResult?.orderId, linkResult?.url]);
+
+  const handleCopyLink = async () => {
+    if (!linkResult?.url) return;
+    try {
+      await navigator.clipboard?.writeText(linkResult.url);
+    } catch (error) {
+      console.error('Copy failed', error);
+    }
+  };
 
   const onSubmit = handleSubmit(async (data) => {
     try {
@@ -126,7 +157,7 @@ export function CheckoutPayment() {
         }
 
         const { url } = await res.json();
-        window.location.href = url;
+        setLinkResult({ url, orderId: orderRef.id, status: 'pending' });
         return;
       }
 
@@ -159,12 +190,13 @@ export function CheckoutPayment() {
   const paying = isSubmitting || submitting;
 
   return (
-    <Form methods={methods} onSubmit={onSubmit}>
-      <Grid container spacing={3}>
-        <Grid xs={12} md={8}>
-          <CheckoutDelivery
-            name="delivery"
-            onApplyShipping={checkout.onApplyShipping}
+    <>
+      <Form methods={methods} onSubmit={onSubmit}>
+        <Grid container spacing={3}>
+          <Grid xs={12} md={8}>
+            <CheckoutDelivery
+              name="delivery"
+              onApplyShipping={checkout.onApplyShipping}
             options={DELIVERY_OPTIONS}
           />
 
@@ -200,10 +232,77 @@ export function CheckoutPayment() {
           />
 
           <LoadingButton fullWidth size="large" type="submit" variant="contained" loading={paying}>
-            {watch('payment') === 'creditcard' ? 'Pay with Stripe' : 'Complete order'}
+            {paymentButtonLabel}
           </LoadingButton>
         </Grid>
       </Grid>
-    </Form>
+      </Form>
+
+    <Dialog
+      open={Boolean(linkResult)}
+      fullWidth
+      maxWidth="sm"
+      onClose={() => setLinkResult(null)}
+    >
+      <DialogTitle>Payment link / QR</DialogTitle>
+      <DialogContent>
+        <Stack spacing={2}>
+          <Typography variant="body2" color="text.secondary">
+            Share this link or let the customer scan the QR to pay on their device.
+          </Typography>
+
+          <Stack direction="row" spacing={2} alignItems="center">
+            <TextField
+              fullWidth
+              size="small"
+              label="Payment link"
+              value={linkResult?.url ?? ''}
+              InputProps={{ readOnly: true }}
+            />
+            <Button onClick={handleCopyLink}>Copy</Button>
+            <Button
+              variant="contained"
+              onClick={() => linkResult?.url && window.open(linkResult.url, '_blank')}
+            >
+              Open
+            </Button>
+          </Stack>
+
+          {linkResult?.url ? (
+            <Box
+              sx={{
+                p: 2,
+                borderRadius: 2,
+                border: (theme) => `1px solid ${theme.palette.divider}`,
+                display: 'inline-flex',
+              }}
+            >
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(
+                  linkResult.url
+                )}`}
+                alt="Payment link QR"
+                width={240}
+                height={240}
+              />
+            </Box>
+          ) : null}
+
+          <Typography variant="body2">
+            Status:{' '}
+            <strong>{linkResult?.status ? linkResult.status : 'pending'}</strong>
+          </Typography>
+          {linkResult?.status === 'paid' && (
+            <Typography variant="body2" color="success.main">
+              Payment received. You can close this dialog.
+            </Typography>
+          )}
+        </Stack>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setLinkResult(null)}>Close</Button>
+      </DialogActions>
+    </Dialog>
+    </>
   );
 }
