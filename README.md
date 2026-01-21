@@ -47,7 +47,7 @@ Environment setup (staging/prod)
 
 ### Environment procedures (dev/staging/prod)
 
-- Dev (emulators): `npm run dev` ⇒ loads `.env.development` via `dotenv-cli`; keep Stripe/Firebase test keys here. Start Functions/Firestore emulators automatically via `dev:emulators`.
+- Dev (emulators): `npm run dev` ⇒ loads `.env.development` via `dotenv-cli`; --keep Stripe/Firebase test keys here. Start Functions/Firestore emulators automatically via `dev:emulators`.
 - Staging build/run: `npm run build:staging` or `npm run start:staging` ⇒ loads `.env.black-river-market-staging`.
 - Prod build/run: `npm run build:prod` or `npm run start:prod` ⇒ loads `.env.black-river-market` (prod).
 - Deploy hosting/functions: set the Firebase alias first (`firebase use staging` or `firebase use prod`), then `firebase deploy` (or the existing `deploy:*` scripts). Env vars for deployed functions still come from Secret Manager, not these `.env` files.
