@@ -55,15 +55,15 @@ Environment setup (staging/prod)
 
 ### Hosting deploy commands (Next.js 16 + webpack)
 
-- Staging hosting deploy (forces webpack build):  
+- Staging hosting deploy (forces webpack build):
   ```bash
   FIREBASE_FRAMEWORKS_BUILD_COMMAND="npm run build:staging" firebase deploy --project black-river-market-staging
   ```
-- Prod hosting deploy (forces webpack build):  
+- Prod hosting deploy (forces webpack build):
   ```bash
   FIREBASE_FRAMEWORKS_BUILD_COMMAND="npm run build:prod" firebase deploy --project black-river-market
   ```
-- If framework caches get in the way, clear them first:  
+- If framework caches get in the way, clear them first:
   ```bash
   rm -rf .firebase/black-river-market-staging .firebase/hosting.cHVibGlj.cache .firebase/hosting.LmZpcmViYXNlL2JsYWNrLXJpdmVyLW1hcmtldC1zdGFnaW5nL2hvc3Rpbmc.cache
   ```
@@ -129,3 +129,5 @@ Environment setup (staging/prod)
 - You can simulate events quickly with: `stripe trigger checkout.session.completed`.
 
 Share this checklist with students; walking through each item resolves the “order stuck as pending” flow almost every time.
+
+git branch --set-upstream-to=https://github.com/ccoulteratloyalist/cyse1008-2026
