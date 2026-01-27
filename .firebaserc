@@ -1,8 +1,8 @@
 {
   "projects": {
-    "default": "cyse1008-2026",
-    "staging": "cyse1008-2026-staging",
-    "prod": "cyse1008-2026-prod"
+    "default": "cyse1008-2026-8490d",
+    "staging": "cyse1008-2026-8490d-staging",
+    "prod": "cyse1008-2026-8490d-prod"
   },
   "targets": {},
   "etags": {}
