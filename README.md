@@ -39,17 +39,22 @@ Launch checklist (target: Friday, single-product Stripe checkout):
 
 Environment setup (staging/prod)
 
+- Student setup reminder:
+  - Update `.firebaserc` with your Firebase project IDs (`default`, `staging`, `prod`).
+  - Create `.env.development`, `.env.staging`, and `.env.production` with your own keys.
+  - `package.json` scripts expect those filenames (see `build:staging`, `build:prod`, `start:staging`, `start:prod`).
+
 - [x] Create Firebase projects: `<your-staging-project-id>` (staging) and `<your-prod-project-id>` (prod).
 - [x] Update `.firebaserc` aliases: set `default` -> staging, add `prod` -> `<your-prod-project-id>`.
-- [x] Env files: `.env.local` (emulators + test keys), `.env.black-river-market-staging` (staging keys), `.env.black-river-market` (prod keys).
+- [x] Env files: `.env.local` (emulators + test keys), `.env.staging` (staging keys), `.env.production` (prod keys).
 - [x] Stripe webhooks: create staging endpoint (store secret in `.env.test`/Secrets) and prod endpoint (store secret in `.env.production`/Secrets).
 - [ ] Deploy commands: `firebase use staging && firebase deploy --only functions,hosting`; prod: `firebase use prod && firebase deploy --only functions,hosting`.
 
 ### Environment procedures (dev/staging/prod)
 
 - Dev (emulators): `npm run dev` ⇒ loads `.env.development` via `dotenv-cli`; --keep Stripe/Firebase test keys here. Start Functions/Firestore emulators automatically via `dev:emulators`.
-- Staging build/run: `npm run build:staging` or `npm run start:staging` ⇒ loads `.env.black-river-market-staging`.
-- Prod build/run: `npm run build:prod` or `npm run start:prod` ⇒ loads `.env.black-river-market` (prod).
+- Staging build/run: `npm run build:staging` or `npm run start:staging` ⇒ loads `.env.staging`.
+- Prod build/run: `npm run build:prod` or `npm run start:prod` ⇒ loads `.env.production`.
 - Deploy hosting/functions: set the Firebase alias first (`firebase use staging` or `firebase use prod`), then `firebase deploy` (or the existing `deploy:*` scripts). Env vars for deployed functions still come from Secret Manager, not these `.env` files.
 - Functions secrets: keep Stripe secrets in Secret Manager only. Staging: `firebase functions:secrets:set STRIPE_SECRET_KEY/STRIPE_WEBHOOK_SECRET --project <your-staging-project-id>`; Prod: same with `--project <your-prod-project-id>`.
 
