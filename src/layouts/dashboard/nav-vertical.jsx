@@ -7,7 +7,6 @@ import { Logo } from 'src/components/logo';
 import { Scrollbar } from 'src/components/scrollbar';
 import { NavSectionMini, NavSectionVertical } from 'src/components/nav-section';
 
-import { NavUpgrade } from '../components/nav-upgrade';
 import { NavToggleButton } from '../components/nav-toggle-button';
 
 // ----------------------------------------------------------------------
@@ -25,8 +24,6 @@ export function NavVertical({ sx, data, slots, isNavMini, layoutQuery, onToggleN
 
       <Scrollbar fillContent>
         <NavSectionVertical data={data} sx={{ px: 2, flex: '1 1 auto' }} {...other} />
-
-        {slots?.bottomArea ?? <NavUpgrade />}
       </Scrollbar>
     </>
   );

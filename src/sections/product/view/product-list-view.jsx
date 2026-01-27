@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import dayjs from 'dayjs';
 
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
@@ -23,9 +24,10 @@ import { RouterLink } from 'src/routes/components';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { useSetState } from 'src/hooks/use-set-state';
 
-import { PRODUCT_STOCK_OPTIONS } from 'src/_mock';
+import { PRODUCT_STOCK_OPTIONS } from 'src/constants/options';
 import { useGetProducts } from 'src/actions/product';
 import { DashboardContent } from 'src/layouts/dashboard';
+import { deleteProduct } from 'src/lib/firebase/products';
 
 import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
@@ -43,6 +45,9 @@ import {
   RenderCellCreatedAt,
 } from '../product-table-row';
 
+import { fetchShopifyProducts } from 'src/lib/shopify/fetch-products';
+import { toDate } from 'src/utils/dates';
+
 // ----------------------------------------------------------------------
 
 const PUBLISH_OPTIONS = [
@@ -56,15 +61,25 @@ const HIDE_COLUMNS_TOGGLABLE = ['category', 'actions'];
 
 // ----------------------------------------------------------------------
 
+function normalizeProduct(p) {
+  // Prefer your field, fall back to Shopify’s created_at
+  const raw = p.createdAt ?? p.created_at ?? p.createdAtMs ?? null;
+  const d = toDate(raw);
+  console.log({ d });
+  return {
+    ...p,
+    createdAtMs: d ? d.getTime() : null,
+  };
+}
+
 export function ProductListView() {
   const confirmRows = useBoolean();
 
   const router = useRouter();
 
-  const { products, productsLoading } = useGetProducts();
-
   const filters = useSetState({ publish: [], stock: [] });
 
+  const { products, productsLoading } = useGetProducts();
   const [tableData, setTableData] = useState([]);
 
   const [selectedRowIds, setSelectedRowIds] = useState([]);
@@ -75,7 +90,7 @@ export function ProductListView() {
 
   useEffect(() => {
     if (products.length) {
-      setTableData(products);
+      setTableData(products.map(normalizeProduct));
     }
   }, [products]);
 
@@ -83,24 +98,27 @@ export function ProductListView() {
 
   const dataFiltered = applyFilter({ inputData: tableData, filters: filters.state });
 
-  const handleDeleteRow = useCallback(
-    (id) => {
-      const deleteRow = tableData.filter((row) => row.id !== id);
-
+  const handleDeleteRow = useCallback(async (id) => {
+    try {
+      await deleteProduct(id); // Delete from Firestore
       toast.success('Delete success!');
+      setTableData((prevData) => prevData.filter((row) => row.id !== id)); // Update state
+    } catch (error) {
+      toast.error('Failed to delete product. Please try again.');
+      console.error('Error deleting product:', error);
+    }
+  }, []);
 
-      setTableData(deleteRow);
-    },
-    [tableData]
-  );
-
-  const handleDeleteRows = useCallback(() => {
-    const deleteRows = tableData.filter((row) => !selectedRowIds.includes(row.id));
-
-    toast.success('Delete success!');
-
-    setTableData(deleteRows);
-  }, [selectedRowIds, tableData]);
+  const handleDeleteRows = useCallback(async () => {
+    try {
+      await Promise.all(selectedRowIds.map((id) => deleteProduct(id))); // Delete from Firestore
+      toast.success('Delete success!');
+      setTableData((prevData) => prevData.filter((row) => !selectedRowIds.includes(row.id))); // Update state
+    } catch (error) {
+      toast.error('Failed to delete selected products. Please try again.');
+      console.error('Error deleting products:', error);
+    }
+  }, [selectedRowIds]);
 
   const handleEditRow = useCallback(
     (id) => {
@@ -109,12 +127,39 @@ export function ProductListView() {
     [router]
   );
 
+  const getMs = (raw) => {
+    if (!raw) return null;
+    if (typeof raw?.toDate === 'function') return raw.toDate().getTime(); // Firestore Timestamp
+    if (typeof raw?.seconds === 'number')
+      return raw.seconds * 1000 + Math.floor((raw.nanoseconds || 0) / 1e6); // POJO
+    if (typeof raw?._seconds === 'number')
+      return raw._seconds * 1000 + Math.floor((raw._nanoseconds || 0) / 1e6);
+    const d = new Date(raw); // Date | ISO | epoch
+    return Number.isNaN(d.getTime()) ? null : d.getTime();
+  };
+
   const handleViewRow = useCallback(
     (id) => {
       router.push(paths.dashboard.product.details(id));
     },
     [router]
   );
+
+  const handleSyncShopify = useCallback(async () => {
+    const productsFromShopify = await fetchShopifyProducts();
+    if (!Array.isArray(productsFromShopify)) {
+      toast.error(productsFromShopify?.error || 'Failed to fetch from Shopify');
+      return;
+    }
+    setTableData((prev) => {
+      const existingIds = new Set(prev.map((p) => p.id));
+      const unique = productsFromShopify
+        .filter((p) => !existingIds.has(p.id))
+        .map(normalizeProduct);
+      return [...prev, ...unique];
+    });
+    toast.success(`Imported ${productsFromShopify.length} products from Shopify`);
+  }, []);
 
   const CustomToolbarCallback = useCallback(
     () => (
@@ -125,10 +170,10 @@ export function ProductListView() {
         setFilterButtonEl={setFilterButtonEl}
         filteredResults={dataFiltered.length}
         onOpenConfirmDeleteRows={confirmRows.onTrue}
+        onSyncShopify={handleSyncShopify} // ✅ add this
       />
     ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [filters.state, selectedRowIds]
+    [filters.state, selectedRowIds, handleSyncShopify]
   );
 
   const columns = [
@@ -140,14 +185,35 @@ export function ProductListView() {
       minWidth: 360,
       hideable: false,
       renderCell: (params) => (
-        <RenderCellProduct params={params} onViewRow={() => handleViewRow(params.row.id)} />
+        <RenderCellProduct
+          params={params}
+          editHref={paths.dashboard.product.edit(params.row.id)}
+          onEditRow={() => handleEditRow(params.row.id)}
+        />
       ),
     },
     {
-      field: 'createdAt',
-      headerName: 'Create at',
-      width: 160,
-      renderCell: (params) => <RenderCellCreatedAt params={params} />,
+      field: 'createdAtMs',
+      headerName: 'Created at',
+      width: 180,
+
+      // let sorting work even if the field is missing on some rows
+      valueGetter: (params) => {
+        const v = params?.row?.createdAtMs;
+        if (v != null) return Number(v);
+        const raw = params?.row?.createdAt ?? params?.row?.created_at;
+        const ms = getMs(raw);
+        return ms ?? null;
+      },
+
+      sortComparator: (a, b) => (Number(a) || 0) - (Number(b) || 0),
+
+      // force what’s displayed (don’t rely on value/formatter)
+      renderCell: (params) => {
+        const ms =
+          params?.row?.createdAtMs ?? getMs(params?.row?.createdAt ?? params?.row?.created_at);
+        return ms ? dayjs(Number(ms)).format('YYYY-MM-DD HH:mm') : '';
+      },
     },
     {
       field: 'inventoryType',
@@ -172,6 +238,12 @@ export function ProductListView() {
       editable: true,
       valueOptions: PUBLISH_OPTIONS,
       renderCell: (params) => <RenderCellPublish params={params} />,
+    },
+    {
+      field: 'vendorName',
+      headerName: 'Vendor',
+      width: 180,
+      valueGetter: (params) => params?.row?.vendorName || '—',
     },
     {
       type: 'actions',
@@ -214,6 +286,9 @@ export function ProductListView() {
       .filter((column) => !HIDE_COLUMNS_TOGGLABLE.includes(column.field))
       .map((column) => column.field);
 
+  console.log('sample row', dataFiltered[0]);
+  console.log('createdAtMs sample:', dataFiltered[0]?.createdAtMs, dataFiltered[0]?.createdAt);
+
   return (
     <>
       <DashboardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
@@ -250,7 +325,7 @@ export function ProductListView() {
             disableRowSelectionOnClick
             rows={dataFiltered}
             columns={columns}
-            loading={productsLoading}
+            loading={productsLoading} // This now comes from useGetProducts
             getRowHeight={() => 'auto'}
             pageSizeOptions={[5, 10, 25]}
             initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
@@ -305,6 +380,7 @@ function CustomToolbar({
   filteredResults,
   setFilterButtonEl,
   onOpenConfirmDeleteRows,
+  onSyncShopify,
 }) {
   return (
     <>
@@ -323,6 +399,15 @@ function CustomToolbar({
           alignItems="center"
           justifyContent="flex-end"
         >
+          <Button
+            size="small"
+            color="primary"
+            startIcon={<Iconify icon="solar:cart-plus-bold" />}
+            onClick={onSyncShopify}
+          >
+            Sync Shopify
+          </Button>
+
           {!!selectedRowIds.length && (
             <Button
               size="small"

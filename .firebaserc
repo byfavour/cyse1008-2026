@@ -1,5 +1,9 @@
 {
   "projects": {
-    "default": "quilt-b3dec"
-  }
+    "default": "black-river-market-staging",
+    "staging": "black-river-market-staging",
+    "prod": "black-river-market"
+  },
+  "targets": {},
+  "etags": {}
 }

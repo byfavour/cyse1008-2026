@@ -18,31 +18,48 @@ import { IncrementerButton } from '../product/components/incrementer-button';
 // ----------------------------------------------------------------------
 
 export function CheckoutCartProduct({ row, onDelete, onDecrease, onIncrease }) {
+  const safeColors =
+    Array.isArray(row.colors) && row.colors.length
+      ? row.colors.filter(
+          (color) => typeof color === 'string' && color.trim() && color.trim() !== '0'
+        )
+      : [];
+  const hasSize = !!row.size;
+  const hasColors = safeColors.length > 0;
+
   return (
     <TableRow>
       <TableCell>
         <Stack spacing={2} direction="row" alignItems="center">
           <Avatar
             variant="rounded"
-            alt={row.name}
-            src={row.coverUrl}
+            alt={row.name || 'Product'}
+            src={row.coverUrl || (row.images && row.images[0]) || ''}
             sx={{ width: 64, height: 64 }}
           />
 
           <Stack spacing={0.5}>
             <Typography noWrap variant="subtitle2" sx={{ maxWidth: 240 }}>
-              {row.name}
+              {row.name || ''}
             </Typography>
 
-            <Stack
-              direction="row"
-              alignItems="center"
-              sx={{ typography: 'body2', color: 'text.secondary' }}
-            >
-              size: <Label sx={{ ml: 0.5 }}> {row.size} </Label>
-              <Divider orientation="vertical" sx={{ mx: 1, height: 16 }} />
-              <ColorPreview colors={row.colors} />
-            </Stack>
+            {(hasSize || hasColors) && (
+              <Stack
+                direction="row"
+                alignItems="center"
+                sx={{ typography: 'body2', color: 'text.secondary' }}
+              >
+                {hasSize && (
+                  <>
+                    size: <Label sx={{ ml: 0.5 }}> {row.size} </Label>
+                  </>
+                )}
+                {hasSize && hasColors ? (
+                  <Divider orientation="vertical" sx={{ mx: 1, height: 16 }} />
+                ) : null}
+                {hasColors ? <ColorPreview colors={safeColors} /> : null}
+              </Stack>
+            )}
           </Stack>
         </Stack>
       </TableCell>

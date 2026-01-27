@@ -1,0 +1,65 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // helpers
+    function signedIn() { return request.auth != null; }
+    function isOwnerOnCreate() {
+      return signedIn() && request.resource.data.userId == request.auth.uid;
+    }
+    function isOwnerOnExisting() {
+      return signedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    // Public read-only app config (rename if yours is different)
+    match /config/{doc=**} {
+      allow read: if true;
+    }
+
+    // Each user can read/write ONLY their own user doc and any subcollections
+    match /users/{uid}/{rest=**} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
+
+    // Cart stored by uid (top-level or nested)
+    match /carts/{uid}/{rest=**} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
+
+    // Orders owned by a user (top-level ‘orders’ collection)
+match /orders/{id} {
+  allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+  allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+  allow update, delete: if request.auth != null
+                        && resource.data.userId  == request.auth.uid
+                        && request.resource.data.userId == resource.data.userId;
+}
+
+
+    // Stripe extension / typical Elements pattern:
+    // customers/{uid}/checkout_sessions/*, payment_methods/*, etc.
+    match /customers/{uid}/{any=**} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
+
+    // If you store a UID -> Stripe customer mapping here
+    match /stripe_customers/{uid} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
+
+    match /payments/{id} {
+      allow read: if isOwnerOnExisting();
+      allow create: if isOwnerOnCreate();
+      allow update, delete: if isOwnerOnExisting()
+                            && request.resource.data.userId == resource.data.userId;
+    }
+
+    // Products (what you already had)
+    match /products/{id} {
+      allow read: if true;
+      allow create: if isOwnerOnCreate();
+      allow update, delete: if isOwnerOnExisting()
+                            && request.resource.data.userId == resource.data.userId;
+    }
+  }
+}

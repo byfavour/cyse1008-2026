@@ -5,6 +5,8 @@ import Avatar from '@mui/material/Avatar';
 import ListItemText from '@mui/material/ListItemText';
 import LinearProgress from '@mui/material/LinearProgress';
 
+import { RouterLink } from 'src/routes/components';
+
 import { fCurrency } from 'src/utils/format-number';
 import { fTime, fDate } from 'src/utils/format-time';
 
@@ -61,15 +63,26 @@ export function RenderCellStock({ params }) {
 
 // ----------------------------------------------------------------------
 
-export function RenderCellProduct({ params, onViewRow }) {
+export function RenderCellProduct({ params, onEditRow, editHref }) {
+  const linkProps = {
+    component: RouterLink,
+    href: editHref || '#',
+    onClick: (event) => {
+      event.preventDefault();
+      onEditRow?.();
+    },
+  };
+
   return (
     <Stack direction="row" alignItems="center" sx={{ py: 2, width: 1 }}>
-      <Avatar
-        alt={params.row.name}
-        src={params.row.coverUrl}
-        variant="rounded"
-        sx={{ width: 64, height: 64, mr: 2 }}
-      />
+      <Link {...linkProps} sx={{ display: 'inline-flex' }}>
+        <Avatar
+          alt={params.row.name}
+          src={params.row.images && params.row.images.length > 0 ? params.row.images[0] : ''}
+          variant="rounded"
+          sx={{ width: 64, height: 64, mr: 2 }}
+        />
+      </Link>
 
       <ListItemText
         disableTypography
@@ -78,8 +91,8 @@ export function RenderCellProduct({ params, onViewRow }) {
             noWrap
             color="inherit"
             variant="subtitle2"
-            onClick={onViewRow}
             sx={{ cursor: 'pointer' }}
+            {...linkProps}
           >
             {params.row.name}
           </Link>

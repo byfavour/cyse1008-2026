@@ -1,35 +1,21 @@
-import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
+// src/components/upload/components/placeholder.jsx
 
-import { UploadIllustration } from 'src/assets/illustrations';
+import { Typography, Box } from '@mui/material';
+import { Iconify } from 'src/components/iconify';
 
-// ----------------------------------------------------------------------
-
-export function UploadPlaceholder({ sx, ...other }) {
+export function UploadPlaceholder({ icon = 'eva:cloud-upload-fill', label = 'Upload file' }) {
   return (
     <Box
       display="flex"
+      flexDirection="column"
       alignItems="center"
       justifyContent="center"
-      flexDirection="column"
-      sx={sx}
-      {...other}
+      textAlign="center"
     >
-      <UploadIllustration hideBackground sx={{ width: 200 }} />
-
-      <Stack spacing={1} sx={{ textAlign: 'center' }}>
-        <Box sx={{ typography: 'h6' }}>Drop or select file</Box>
-        <Box sx={{ typography: 'body2', color: 'text.secondary' }}>
-          Drop files here or click to
-          <Box
-            component="span"
-            sx={{ mx: 0.5, color: 'primary.main', textDecoration: 'underline' }}
-          >
-            browse
-          </Box>
-          through your machine.
-        </Box>
-      </Stack>
+      <Iconify icon={icon} width={40} height={40} sx={{ color: 'text.secondary', mb: 1 }} />
+      <Typography variant="body2" color="text.secondary">
+        {label}
+      </Typography>
     </Box>
   );
 }

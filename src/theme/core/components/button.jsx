@@ -1,5 +1,10 @@
 import { buttonClasses } from '@mui/material/Button';
-import { loadingButtonClasses } from '@mui/lab/LoadingButton';
+
+// MUI 7 folds LoadingButton into Button; class names remain the same but are not exported.
+const loadingButtonClasses = {
+  loadingIndicatorStart: 'MuiLoadingButton-loadingIndicatorStart',
+  loadingIndicatorEnd: 'MuiLoadingButton-loadingIndicatorEnd',
+};
 
 import { varAlpha, stylesMode } from '../../styles';
 
