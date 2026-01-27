@@ -10,7 +10,7 @@ import { logoClasses } from './classes';
 
 // ----------------------------------------------------------------------
 
-const IMAGE_SRC = '/logo/brm-logo.png';
+const IMAGE_SRC = '/logo/loyalistmarketlogo.png';
 
 export const Logo = forwardRef(
   (
@@ -22,7 +22,7 @@ export const Logo = forwardRef(
 
     const image = (
       <Box
-        alt="Black River Market"
+        alt="Loyalist"
         component="img"
         src={IMAGE_SRC}
         width="100%"

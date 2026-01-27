@@ -11,7 +11,6 @@ const firebaseStorageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
 const nextConfig = {
   trailingSlash: false,
   productionBrowserSourceMaps: false,
-  eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: true },
   env: {
     BUILD_STATIC_EXPORT: isStaticExport,
@@ -23,18 +22,18 @@ const nextConfig = {
   },
   reactStrictMode: true,
   images: {
-    domains: [
-      '127.0.0.1',
-      'localhost',
-      'firebasestorage.googleapis.com',
-      ...(firebaseStorageBucket ? [firebaseStorageBucket] : []),
+    remotePatterns: [
+      { protocol: 'http', hostname: '127.0.0.1' },
+      { protocol: 'http', hostname: 'localhost' },
+      { protocol: 'https', hostname: 'firebasestorage.googleapis.com' },
+      ...(firebaseStorageBucket
+        ? [{ protocol: 'https', hostname: firebaseStorageBucket }]
+        : []),
     ],
     unoptimized: true,
   },
-  turbopack: {
-    // Force correct workspace root for Firebase frameworks builder and silence Turbopack/webpack mismatch warnings.
-    rootDirectory: __dirname,
-  },
+  // Silence Next 16 turbopack/webpack config mismatch by explicitly opting in.
+  turbopack: {},
   async headers() {
     return [
       {

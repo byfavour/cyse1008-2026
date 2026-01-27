@@ -1,12 +1,12 @@
 {
-  "name": "black-river-market",
+  "name": "cyse1008-2026",
   "author": "Coulter",
   "version": "1.0.1",
   "description": "Next & JavaScript",
   "private": true,
   "scripts": {
-    "dev:web": "dotenv -e .env.development -- next dev -p 3032",
-    "dev:emulators": "firebase emulators:start --import ./.firebase-data --export-on-exit",
+    "dev:web": "dotenv -e .env.development -- cross-env NEXT_DISABLE_TURBOPACK=1 next dev -p 3032",
+    "dev:emulators": "firebase emulators:start --import ./.firebase-data --export-on-exit --only auth,functions,firestore,storage,extensions",
     "dev": "npm-run-all -p dev:emulators dev:web",
     "dev:turbopack": "next dev -p 3032 --turbopack",
     "start": "dotenv -e .env.production -- next start -p 3032",

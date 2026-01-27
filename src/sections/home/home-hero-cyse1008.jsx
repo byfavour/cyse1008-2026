@@ -28,7 +28,7 @@ import { Iconify } from 'src/components/iconify';
  */
 function HomeHeroCYSE1008() {
   const theme = useTheme();
-  const [brand, setBrand] = useState('Black River Market');
+  const [brand, setBrand] = useState('Loyalist');
 
   return (
     <Box sx={{ minHeight: '100vh', color: '#e5e7eb', bgcolor: '#070b16', position: 'relative' }}>
@@ -65,14 +65,14 @@ function HomeHeroCYSE1008() {
             }}
           >
             <Button
-              onClick={() => setBrand('Black River Market')}
+              onClick={() => setBrand('Loyalist')}
               sx={
-                brand === 'Black River Market'
+                brand === 'Loyalist'
                   ? activePillSx(theme.palette.success.light)
                   : undefined
               }
             >
-              Black River Market
+              Loyalist
             </Button>
             <Button
               onClick={() => setBrand('Patchwork')}
@@ -203,7 +203,7 @@ function HomeHeroCYSE1008() {
               <PillarCard
                 title="Connect"
                 icon="mdi:link-variant"
-                copy="A mesh of local buyers, vendors, and couriers mapped like a living black river market."
+                copy="A mesh of local buyers, vendors, and couriers mapped like a living Loyalist."
                 glow="cyan"
               />
             </Grid>
