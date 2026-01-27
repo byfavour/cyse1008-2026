@@ -39,8 +39,8 @@ Launch checklist (target: Friday, single-product Stripe checkout):
 
 Environment setup (staging/prod)
 
-- [x] Create Firebase projects: `black-river-market-staging` (staging) and `black-river-market` (prod).
-- [x] Update `.firebaserc` aliases: set `default` -> staging, add `prod` -> `black-river-market`.
+- [x] Create Firebase projects: `<your-staging-project-id>` (staging) and `<your-prod-project-id>` (prod).
+- [x] Update `.firebaserc` aliases: set `default` -> staging, add `prod` -> `<your-prod-project-id>`.
 - [x] Env files: `.env.local` (emulators + test keys), `.env.black-river-market-staging` (staging keys), `.env.black-river-market` (prod keys).
 - [x] Stripe webhooks: create staging endpoint (store secret in `.env.test`/Secrets) and prod endpoint (store secret in `.env.production`/Secrets).
 - [ ] Deploy commands: `firebase use staging && firebase deploy --only functions,hosting`; prod: `firebase use prod && firebase deploy --only functions,hosting`.
@@ -51,21 +51,21 @@ Environment setup (staging/prod)
 - Staging build/run: `npm run build:staging` or `npm run start:staging` ⇒ loads `.env.black-river-market-staging`.
 - Prod build/run: `npm run build:prod` or `npm run start:prod` ⇒ loads `.env.black-river-market` (prod).
 - Deploy hosting/functions: set the Firebase alias first (`firebase use staging` or `firebase use prod`), then `firebase deploy` (or the existing `deploy:*` scripts). Env vars for deployed functions still come from Secret Manager, not these `.env` files.
-- Functions secrets: keep Stripe secrets in Secret Manager only. Staging: `firebase functions:secrets:set STRIPE_SECRET_KEY/STRIPE_WEBHOOK_SECRET --project black-river-market-staging`; Prod: same with `--project black-river-market`.
+- Functions secrets: keep Stripe secrets in Secret Manager only. Staging: `firebase functions:secrets:set STRIPE_SECRET_KEY/STRIPE_WEBHOOK_SECRET --project <your-staging-project-id>`; Prod: same with `--project <your-prod-project-id>`.
 
 ### Hosting deploy commands (Next.js 16 + webpack)
 
 - Staging hosting deploy (forces webpack build):
   ```bash
-  FIREBASE_FRAMEWORKS_BUILD_COMMAND="npm run build:staging" firebase deploy --project black-river-market-staging
+  FIREBASE_FRAMEWORKS_BUILD_COMMAND="npm run build:staging" firebase deploy --project <your-staging-project-id>
   ```
 - Prod hosting deploy (forces webpack build):
   ```bash
-  FIREBASE_FRAMEWORKS_BUILD_COMMAND="npm run build:prod" firebase deploy --project black-river-market
+  FIREBASE_FRAMEWORKS_BUILD_COMMAND="npm run build:prod" firebase deploy --project <your-prod-project-id>
   ```
 - If framework caches get in the way, clear them first:
   ```bash
-  rm -rf .firebase/black-river-market-staging .firebase/hosting.cHVibGlj.cache .firebase/hosting.LmZpcmViYXNlL2JsYWNrLXJpdmVyLW1hcmtldC1zdGFnaW5nL2hvc3Rpbmc.cache
+  rm -rf .firebase
   ```
 
 ### Seed a single product (emulator)
@@ -91,7 +91,7 @@ Environment setup (staging/prod)
 - Run from a terminal with internet access (outside VS Code sandbox):
   ```
   stripe listen --events checkout.session.completed \
-    --forward-to http://127.0.0.1:5001/black-river-market-b3dec/us-central1/stripeWebhook
+    --forward-to http://127.0.0.1:5001/<your-project-id>/us-central1/stripeWebhook
   ```
 - Leave the CLI session running and watch for `→ checkout.session.completed` / `← 200 POST …`.
 - Every time you start the listener, copy the printed `whsec_…` into `functions/.env` or Firebase Secret Manager (and any local `.env` files). Restart `npm run dev` so the emulator reloads the secret.
@@ -129,5 +129,3 @@ Environment setup (staging/prod)
 - You can simulate events quickly with: `stripe trigger checkout.session.completed`.
 
 Share this checklist with students; walking through each item resolves the “order stuck as pending” flow almost every time.
-
-git branch --set-upstream-to=https://github.com/ccoulteratloyalist/cyse1008-2026

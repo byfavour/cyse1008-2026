@@ -9,12 +9,15 @@ const { spawn } = require('node:child_process');
 const { readFile, writeFile } = require('node:fs/promises');
 const { resolve } = require('node:path');
 
+const firebaseProjectId =
+  process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'your-project-id';
+
 const STRIPE_ARGS = [
   'listen',
   '--events',
   'checkout.session.completed',
   '--forward-to',
-  'http://127.0.0.1:5001/black-river-market-b3dec/us-central1/stripeWebhook',
+  `http://127.0.0.1:5001/${firebaseProjectId}/us-central1/stripeWebhook`,
 ];
 
 const ENV_FILES = ['.env.local', '.env', 'functions/.env'];

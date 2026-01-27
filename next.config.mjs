@@ -5,6 +5,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const isStaticExport = 'false';
 const isDev = process.env.NODE_ENV !== 'production';
+const firebaseStorageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -25,8 +26,8 @@ const nextConfig = {
     domains: [
       '127.0.0.1',
       'localhost',
-      'black-river-market-b3dec.appspot.com',
       'firebasestorage.googleapis.com',
+      ...(firebaseStorageBucket ? [firebaseStorageBucket] : []),
     ],
     unoptimized: true,
   },
