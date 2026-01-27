@@ -2,18 +2,9 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-
-    function signedIn() { return request.auth != null; }
-
-    // Each user can read/write only within /users/{uid}/...
-    match /users/{uid}/{allPaths=**} {
-      allow read, write: if signedIn() && request.auth.uid == uid;
-    }
-
-    // Public product images (optional if you also host via user folders)
-    match /public/{allPaths=**} {
-      allow read: if true;
-      allow write: if signedIn();
+    // Emulator-only: allow full access during local development.
+    match /{allPaths=**} {
+      allow read, write: if true;
     }
   }
 }

@@ -18,70 +18,9 @@ service cloud.firestore {
       return signedIn() && resource.data.ownerId == request.auth.uid;
     }
 
-    // Public read-only app config (rename if yours is different)
-    match /config/{doc=**} {
-      allow read: if true;
-    }
-
-    // Each user can read/write ONLY their own user doc and any subcollections
-    match /users/{uid} {
-      allow read, write: if signedIn() && request.auth.uid == uid;
-    }
-    match /users/{uid}/{rest=**} {
-      allow read, write: if signedIn() && request.auth.uid == uid;
-    }
-
-    // Cart stored by uid (top-level or nested)
-    match /carts/{uid}/{rest=**} {
-      allow read, write: if signedIn() && request.auth.uid == uid;
-    }
-
-    // Orders owned by a user (top-level ‘orders’ collection)
-    match /orders/{id} {
-      // Allow any authenticated user to view orders (dashboard access); tighten later if needed
-      allow read: if signedIn() || isStaff();
-
-      allow create: if (signedIn() && request.resource.data.userId == request.auth.uid) || isStaff();
-
-      // Client updates allowed only if they DON'T flip to 'paid'; staff can read/write as needed
-      allow update: if ((signedIn() && resource.data.userId == request.auth.uid &&
-                        request.resource.data.status != 'paid') ||
-                        isStaff());
-    }
-
-
-    // Stripe extension / typical Elements pattern:
-    // customers/{uid}/checkout_sessions/*, payment_methods/*, etc.
-    match /customers/{uid}/{any=**} {
-      allow read, write: if signedIn() && request.auth.uid == uid;
-    }
-
-    // If you store a UID -> Stripe customer mapping here
-    match /stripe_customers/{uid} {
-      allow read, write: if signedIn() && request.auth.uid == uid;
-    }
-
-    match /payments/{id} {
-      allow read: if isOwnerOnExisting();
-      allow create: if isOwnerOnCreate();
-      allow update, delete: if isOwnerOnExisting()
-                            && request.resource.data.userId == resource.data.userId;
-    }
-
-    // Products (what you already had)
-    match /products/{id} {
-      allow read: if true;
-      allow create: if isOwnerOnCreate();
-      allow update, delete: if isOwnerOnExisting()
-                            && request.resource.data.userId == resource.data.userId;
-    }
-
-    // Vendors – each vendor doc belongs to an ownerId (auth UID)
-    match /vendors/{id} {
-      allow read: if true;
-      allow create: if isVendorOwnerOnCreate();
-      allow update, delete: if isVendorOwnerOnExisting()
-                            && request.resource.data.ownerId == resource.data.ownerId;
+    // Emulator-only: allow full access during local development.
+    match /{document=**} {
+      allow read, write: if true;
     }
   }
 }

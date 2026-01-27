@@ -19,8 +19,8 @@ export function HomeView() {
       <Container maxWidth="sm" sx={{ textAlign: 'center' }}>
         <Box
           component="img"
-          src="/assets/images/home/black-river-market-logo-large.png"
-          alt="Black River Market"
+          src="/assets/images/home/loyalist-market-logo-large.png"
+          alt="Loyalist"
           sx={{
             width: '100%',
             maxWidth: 360,

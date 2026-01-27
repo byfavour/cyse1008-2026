@@ -9,9 +9,9 @@ import { RouterLink } from 'src/routes/components';
 import { logoClasses } from './classes';
 
 // ----------------------------------------------------------------------
-// Uses the Black River Market logo from public/logo/brm-logo.png
+// Uses the Loyalist logo from public/logo/loyalistmarketlogo.png
 
-const IMAGE_SRC = '/logo/brm-logo.png';
+const IMAGE_SRC = '/logo/loyalistmarketlogo.png';
 
 export const Logo = forwardRef(
   (
@@ -23,7 +23,7 @@ export const Logo = forwardRef(
 
     const logo = (
       <Box
-        alt="Black River Market"
+        alt="Loyalist Market"
         component="img"
         src={IMAGE_SRC}
         width="100%"

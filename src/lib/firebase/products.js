@@ -24,7 +24,7 @@ export async function addProduct(productData) {
     const docRef = await addDoc(productsCollectionRef, payload);
     return docRef.id;
   } catch (error) {
-    console.error('Error adding product: ', error);
+    console.error('Firestore add product error (collection: products):', error);
     throw error;
   }
 }
@@ -39,7 +39,7 @@ export async function updateProduct(productId, updatedData) {
     const productDocRef = doc(db, 'products', productId);
     await updateDoc(productDocRef, payload);
   } catch (error) {
-    console.error('Error updating product: ', error);
+    console.error('Firestore update product error (collection: products):', error);
     throw error;
   }
 }
@@ -59,7 +59,7 @@ export async function getProducts() {
     });
     return products;
   } catch (error) {
-    console.error('Error fetching products: ', error);
+    console.error('Firestore get products error (collection: products):', error);
     throw error;
   }
 }
@@ -80,7 +80,7 @@ export async function getProductById(productId) {
 
     throw new Error(`Product does not exist ${productId}`);
   } catch (error) {
-    console.error('Error fetching product by ID: ', error);
+    console.error('Firestore get product by ID error (collection: products):', error);
     throw error;
   }
 }
@@ -91,7 +91,7 @@ export async function deleteProduct(productId) {
     const productDocRef = doc(db, 'products', productId);
     await deleteDoc(productDocRef);
   } catch (error) {
-    console.error('Error deleting product: ', error);
+    console.error('Firestore delete product error (collection: products):', error);
     throw error;
   }
 }
@@ -100,7 +100,12 @@ export async function deleteProduct(productId) {
 // Expects docs at product_options/{type} with a `values` array (strings or objects).
 export async function getProductOptions(type) {
   const ref = doc(db, 'product_options', type);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) return null;
-  return snap.data().values || null;
+  try {
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return null;
+    return snap.data().values || null;
+  } catch (error) {
+    console.error('Firestore get product options error (collection: product_options):', error);
+    throw error;
+  }
 }
