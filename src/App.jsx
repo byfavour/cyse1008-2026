@@ -24,6 +24,7 @@ function App() {
         <p>
           Edit <code>src/App.jsx</code> and save to test HMR.  - "Hello Favour Eboh, you need to get your head in the game, you are behind!"
         </p>
+        <p>This is another line of text added to the App component. for FAVOUR EBOH</p>
       </div>
       <p className="read-the-docs">
         Click on the Vite and React logos to learn more
