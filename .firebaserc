@@ -1,8 +1,8 @@
 {
   "projects": {
-    "default": "cyse1008-2026-8490d",
-    "staging": "cyse1008-2026-8490d-staging",
-    "prod": "cyse1008-2026-8490d-prod"
+    "default": "black-river-market",
+    "staging": "black-river-market-staging",
+    "prod": "black-river-market-prod"
   },
   "targets": {},
   "etags": {}
