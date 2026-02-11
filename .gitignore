@@ -57,3 +57,4 @@ keys/
 *.key
 *.json
 !package.json
+.env.development
