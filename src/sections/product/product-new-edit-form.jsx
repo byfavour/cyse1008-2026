@@ -127,7 +127,15 @@ export function ProductNewEditForm({ currentProduct }) {
       colors: currentProduct?.colors || [],
       sizes: currentProduct?.sizes || [],
       options: currentProduct?.options || [],
-      variants: currentProduct?.variants || [],
+      variants: (currentProduct?.variants || []).map((v) => ({
+        ...v,
+        sku:
+          v.sku ||
+          [currentProduct?.code, ...Object.values(v.options || {})]
+            .filter(Boolean)
+            .join('-')
+            .toUpperCase(),
+      })),
       newLabel: currentProduct?.newLabel || { enabled: false, content: '' },
       saleLabel: currentProduct?.saleLabel || { enabled: false, content: '' },
       vendorId: currentProduct?.vendorId || '',

@@ -40,6 +40,7 @@ function cartesianProduct(arrays) {
 
 export function RHFVariantTable({ user, defaultPrice = 0 }) {
   const { control, watch, setValue } = useFormContext();
+  const productCode = watch('code');
 
   const {
     fields: optionFields,
@@ -82,9 +83,10 @@ export function RHFVariantTable({ user, defaultPrice = 0 }) {
           optionsMap[key] = value;
         });
 
+        const skuParts = [productCode, ...combo].filter(Boolean);
         return {
           title: Object.values(optionsMap).join(' / '),
-          sku: '',
+          sku: skuParts.join('-').toUpperCase(),
           price: defaultPrice,
           stock: 0,
           options: optionsMap,
@@ -93,7 +95,7 @@ export function RHFVariantTable({ user, defaultPrice = 0 }) {
 
       replaceVariants(newVariants);
     }
-  }, [options, replaceVariants]);
+  }, [options, replaceVariants, productCode]);
 
   const handleVariantImageUpload = useCallback(
     (variantIndex) => async (event) => {

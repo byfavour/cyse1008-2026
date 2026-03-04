@@ -10,7 +10,10 @@ export default function ProductShopClient() {
 
   useEffect(() => {
     getProducts()
-      .then((products) => setProducts(products))
+      .then((products) => {
+        console.log('🛍️ products array:', products);
+        setProducts(products);
+      })
       .catch((err) => console.error('Failed to load products:', err))
       .finally(() => setLoading(false));
   }, []);

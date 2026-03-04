@@ -13,6 +13,7 @@ export default function ProductEditPage({ id }) {
     const load = async () => {
       try {
         const { product } = await getProductById(id);
+        console.log('📦 product object:', product);
         setProduct(product ?? null);
       } catch (err) {
         console.error('❌ Failed to load product:', err);

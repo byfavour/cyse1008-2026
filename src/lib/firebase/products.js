@@ -10,7 +10,56 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 
-import { db } from './firebase';
+import { db, AUTH } from './firebase';
+
+// ---------------------------------------------------------------------------
+// Firestore Rules Inspector
+// Reconstructs the `request` and `resource` objects that security rules see,
+// using the live auth token. Call logRuleContext() anywhere before a read/write
+// to show students exactly what the rules evaluate.
+// ---------------------------------------------------------------------------
+async function buildRequest({ method, writePath = null, writeData = null }) {
+  const user = AUTH.currentUser;
+  let authContext = null;
+
+  if (user) {
+    const tokenResult = await user.getIdTokenResult();
+    authContext = {
+      uid: user.uid,
+      token: {
+        email: tokenResult.claims.email,
+        email_verified: tokenResult.claims.email_verified,
+        // custom claims (role, etc.) appear here
+        ...Object.fromEntries(
+          Object.entries(tokenResult.claims).filter(
+            ([k]) => !['iss', 'aud', 'auth_time', 'sub', 'iat', 'exp', 'firebase'].includes(k)
+          )
+        ),
+      },
+    };
+  }
+
+  const request = {
+    auth: authContext, // null when signed out
+    method,           // 'get' | 'list' | 'create' | 'update' | 'delete'
+    time: new Date().toISOString(), // approximation of request.time
+    ...(writePath && { path: writePath }),
+    ...(writeData && { resource: { data: writeData } }), // request.resource on writes
+  };
+
+  return request;
+}
+
+function logRuleContext(label, { request, resource = null }) {
+  console.groupCollapsed(`🔐 Firestore Rules Context — ${label}`);
+  console.log('request (what the rule sees on every operation):', request);
+  if (resource) {
+    console.log('resource (the existing document):', resource);
+  } else {
+    console.log('resource: null (no existing doc — this is a list or create)');
+  }
+  console.groupEnd();
+}
 
 const productsCollectionRef = collection(db, 'products');
 
@@ -47,6 +96,9 @@ export async function updateProduct(productId, updatedData) {
 // Get All Products
 export async function getProducts() {
   try {
+    const request = await buildRequest({ method: 'list' });
+    logRuleContext('getProducts (list /products)', { request });
+
     const querySnapshot = await getDocs(productsCollectionRef);
     const products = querySnapshot.docs.map((_doc) => {
       const data = _doc.data();
@@ -72,6 +124,11 @@ export async function getProductById(productId) {
     const productSnapshot = await getDoc(productDocRef);
     if (productSnapshot.exists()) {
       const data = productSnapshot.data();
+
+      const request = await buildRequest({ method: 'get' });
+      const resource = { __name__: `products/${productId}`, data };
+      logRuleContext(`getProductById (get /products/${productId})`, { request, resource });
+
       const name = data?.name || data?.title || '';
       return {
         product: { id: productId, name, reviews: [], ...data },
