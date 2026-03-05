@@ -1,0 +1,10 @@
+{
+  "buckets": [
+    {
+      "id": "black-river-market-staging.firebasestorage.app"
+    },
+    {
+      "id": "black-river-market.firebasestorage.app"
+    }
+  ]
+}
