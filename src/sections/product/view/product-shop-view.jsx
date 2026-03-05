@@ -19,7 +19,7 @@ import {
   PRODUCT_GENDER_OPTIONS,
   PRODUCT_RATING_OPTIONS,
   PRODUCT_CATEGORY_OPTIONS,
-} from 'src/_mock';
+} from 'src/constants/options';
 
 import { EmptyContent } from 'src/components/empty-content';
 

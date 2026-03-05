@@ -6,7 +6,7 @@ import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import Tabs from '@mui/material/Tabs';
 import Card from '@mui/material/Card';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 
 import { paths } from 'src/routes/paths';
@@ -14,7 +14,7 @@ import { paths } from 'src/routes/paths';
 import { useTabs } from 'src/hooks/use-tabs';
 
 import { varAlpha } from 'src/theme/styles';
-import { PRODUCT_PUBLISH_OPTIONS } from 'src/_mock';
+import { PRODUCT_PUBLISH_OPTIONS } from 'src/constants/options';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
@@ -49,6 +49,7 @@ const SUMMARY = [
 
 export function ProductDetailsView({ product }) {
   const tabs = useTabs('description');
+  console.log({ product });
 
   const [publish, setPublish] = useState('');
 
@@ -116,7 +117,7 @@ export function ProductDetailsView({ product }) {
         >
           {[
             { value: 'description', label: 'Description' },
-            { value: 'reviews', label: `Reviews (${product?.reviews.length})` },
+            { value: 'reviews', label: `Reviews (${product?.reviews?.length})` },
           ].map((tab) => (
             <Tab key={tab.value} value={tab.value} label={tab.label} />
           ))}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
@@ -22,7 +22,7 @@ import { fIsAfter, fIsBetween } from 'src/utils/format-time';
 
 import { varAlpha } from 'src/theme/styles';
 import { DashboardContent } from 'src/layouts/dashboard';
-import { _orders, ORDER_STATUS_OPTIONS } from 'src/_mock';
+import { ORDER_STATUS_OPTIONS } from 'src/constants/options';
 
 import { Label } from 'src/components/label';
 import { toast } from 'src/components/snackbar';
@@ -74,7 +74,8 @@ export function OrderListView() {
 
   const confirm = useBoolean();
 
-  const [tableData, setTableData] = useState(_orders);
+  const [tableData, setTableData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const filters = useSetState({
     name: '',
@@ -99,7 +100,28 @@ export function OrderListView() {
     filters.state.status !== 'all' ||
     (!!filters.state.startDate && !!filters.state.endDate);
 
-  const notFound = (!dataFiltered.length && canReset) || !dataFiltered.length;
+  const notFound = (!dataFiltered.length && canReset) || (!dataFiltered.length && !loading);
+
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const { getOrders } = await import('src/lib/firebase/orders');
+        const orders = await getOrders();
+        if (isMounted) {
+          setTableData(orders);
+        }
+      } catch (error) {
+        console.error('Failed to load orders', error);
+        toast.error('Failed to load orders');
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleDeleteRow = useCallback(
     (id) => {
@@ -325,11 +347,12 @@ function applyFilter({ inputData, comparator, filters, dateError }) {
   inputData = stabilizedThis.map((el) => el[0]);
 
   if (name) {
+    const query = name.toLowerCase();
     inputData = inputData.filter(
       (order) =>
-        order.orderNumber.toLowerCase().indexOf(name.toLowerCase()) !== -1 ||
-        order.customer.name.toLowerCase().indexOf(name.toLowerCase()) !== -1 ||
-        order.customer.email.toLowerCase().indexOf(name.toLowerCase()) !== -1
+        (order.orderNumber || order.id || '').toLowerCase().includes(query) ||
+        (order.customer?.name || '').toLowerCase().includes(query) ||
+        (order.customer?.email || '').toLowerCase().includes(query)
     );
   }
 

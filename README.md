@@ -1,54 +1,91 @@
-## Prerequisites
+# Black River Market (Emulator-Only Setup)
 
-- Node.js 20.x (Recommended) hello class of 2025
-## Updated 2025-01-29 18:01 EST
-## Installation
+This course repo is run with **Firebase emulators only**.
+Do not use the remote Firebase Console for this project work.
 
-**Using Yarn (Recommended)**
+## 1) Prerequisites
 
-```sh
-yarn install
-yarn dev
+- Node.js 20.x
+- npm
+- Java (required by Firestore emulator)
+- Firebase CLI
+
+Install Firebase CLI globally if needed:
+
+```bash
+npm install -g firebase-tools
 ```
 
-**Using Npm**
+## 2) Clone and install
 
-```sh
-npm i
+```bash
+git clone https://github.com/Loyalist-College-CCoulter-Courses/cyse1008-2026.git
+cd cyse1008-2026
+npm install
+```
+
+## 3) Use the correct Firebase project alias
+
+This is the step that prevents the emulator data mismatch.
+
+```bash
+firebase login
+firebase use default
+```
+
+`default` maps to project ID `black-river-market` in `.firebaserc`.
+
+If you run emulators under a different alias (like `staging`) while your app uses `black-river-market`, you can create data that does not appear where you expect in Emulator UI.
+
+## 4) Environment file for local dev
+
+Make sure `.env.development` includes:
+
+```env
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=black-river-market
+NEXT_PUBLIC_FIREBASE_EMULATOR=true
+```
+
+## 5) Start the app + emulators
+
+```bash
 npm run dev
 ```
 
-## Build
+This runs:
 
-```sh
-yarn build
-# or
-npm run build
+- Next.js app at `http://localhost:3032`
+- Firebase Emulator UI at `http://127.0.0.1:4000`
+
+## 6) If vendor/product data is not showing in Firestore emulator
+
+1. Stop dev servers.
+2. Re-select the correct alias:
+
+```bash
+firebase use default
 ```
 
-## Mock server
+3. Start again:
 
-By default we provide demo data from : `https://api-dev-minimal-[version].vercel.app`
+```bash
+npm run dev
+```
 
-To set up your local server:
+You can also force project ID at startup:
 
-- **Guide:** [https://docs.minimals.cc/mock-server](https://docs.minimals.cc/mock-server).
+```bash
+firebase emulators:start --project black-river-market --import ./.firebase-data --export-on-exit --only auth,functions,firestore,storage,extensions
+```
 
-- **Resource:** [Download](https://www.dropbox.com/sh/6ojn099upi105tf/AACpmlqrNUacwbBfVdtt2t6va?dl=0).
+## 7) Common workflow
 
-## Full version
+```bash
+# pull latest code
+git pull --rebase
 
-- Create React App ([migrate to CRA](https://docs.minimals.cc/migrate-to-cra/)).
-- Next.js
-- Vite.js
+# run locally
+npm run dev
+```
 
-## Starter version
-
-- To remove unnecessary components. This is a simplified version ([https://starter.minimals.cc/](https://starter.minimals.cc/))
-- Good to start a new project. You can copy components from the full version.
-- Make sure to install the dependencies exactly as compared to the full version.
-
----
-
-**NOTE:**
-_When copying folders remember to also copy hidden files like .env. This is important because .env files often contain environment variables that are crucial for the application to run correctly._
+If `git push` is rejected on protected branches, push your feature branch and open a PR.

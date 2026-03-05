@@ -3,10 +3,10 @@
 import { useEffect } from 'react';
 
 import Container from '@mui/material/Container';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 
-import { PRODUCT_CHECKOUT_STEPS } from 'src/_mock/_product';
+import { PRODUCT_CHECKOUT_STEPS } from 'src/constants/options';
 
 import { CheckoutCart } from '../checkout-cart';
 import { useCheckoutContext } from '../context';

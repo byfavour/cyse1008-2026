@@ -9,12 +9,16 @@ import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
+import LoadingButton from '@mui/lab/LoadingButton';
+import TextField from '@mui/material/TextField';
+
 import { formHelperTextClasses } from '@mui/material/FormHelperText';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 
 import { fCurrency, fShortenNumber } from 'src/utils/format-number';
+import { getProductStockCount } from 'src/utils/inventory';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
@@ -38,40 +42,49 @@ export function ProductDetailsSummary({
   const {
     id,
     name,
-    sizes,
+    title,
+    sizes = [],
     price,
     coverUrl,
-    colors,
-    newLabel,
-    available,
+    images = [],
+    colors = [],
+    newLabel = { enabled: false, content: '' },
     priceSale,
-    saleLabel,
+    saleLabel = { enabled: false, content: '' },
     totalRatings,
     totalReviews,
     inventoryType,
     subDescription,
   } = product;
 
-  const existProduct = !!items?.length && items.map((item) => item.id).includes(id);
+  // Derive availability from stock (sum of variants or product stock_on_hand)
+  const availableCount = getProductStockCount(product);
 
-  const isMaxQuantity =
-    !!items?.length &&
-    items.filter((item) => item.id === id).map((item) => item.quantity)[0] >= available;
+  const existProduct = Array.isArray(items) ? items.some((item) => item.id === id) : false;
+  const cartLine = Array.isArray(items) ? items.find((item) => item.id === id) : null;
+  const isMaxQuantity = cartLine ? cartLine.quantity >= availableCount : false;
+
+  const hasColors = Array.isArray(colors) && colors.length > 0;
+  const hasSizes = false; // temporarily hide sizes for MVP
+
+  const mainImage = coverUrl || (Array.isArray(images) && images.length ? images[0] : '');
 
   const defaultValues = {
     id,
-    name,
-    coverUrl,
-    available,
+    name: name || title || '',
+    coverUrl: mainImage,
+    available: availableCount,
     price,
-    colors: colors[0],
-    size: sizes[4],
-    quantity: available < 1 ? 0 : 1,
+    taxes: product?.taxes ?? 0,
+    colors: hasColors ? colors[0] : '',
+    size: hasSizes ? sizes[0] : '',
+    quantity: availableCount < 1 ? 0 : 1,
   };
 
   const methods = useForm({ defaultValues });
 
-  const { reset, watch, control, setValue, handleSubmit } = methods;
+  const { reset, watch, control, setValue, handleSubmit, formState } = methods;
+  const { isSubmitting } = formState;
 
   const values = watch();
 
@@ -84,8 +97,16 @@ export function ProductDetailsSummary({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
+      const clampedQty = Math.max(0, Math.min(data.quantity, availableCount));
+      const payload = {
+        ...data,
+        quantity: clampedQty,
+        colors: [values.colors],
+        taxes: Number(product?.taxes ?? 0),
+        subtotal: data.price * clampedQty,
+      };
       if (!existProduct) {
-        onAddCart?.({ ...data, colors: [values.colors], subtotal: data.price * data.quantity });
+        onAddCart?.(payload);
       }
       onGotoStep?.(0);
       router.push(paths.product.checkout);
@@ -96,11 +117,21 @@ export function ProductDetailsSummary({
 
   const handleAddCart = useCallback(() => {
     try {
-      onAddCart?.({ ...values, colors: [values.colors], subtotal: values.price * values.quantity });
+      const clampedQty = Math.max(0, Math.min(values.quantity, availableCount));
+      onAddCart?.({
+        ...values,
+        quantity: clampedQty,
+        coverUrl: mainImage,
+        colors: [values.colors],
+        taxes: Number(product?.taxes ?? 0),
+        subtotal: values.price * clampedQty,
+        // pass available so cart can cap increments later too
+        available: availableCount,
+      });
     } catch (error) {
       console.error(error);
     }
-  }, [onAddCart, values]);
+  }, [onAddCart, values, availableCount]);
 
   const renderPrice = (
     <Box sx={{ typography: 'h5' }}>
@@ -151,48 +182,32 @@ export function ProductDetailsSummary({
         Color
       </Typography>
 
-      <Controller
-        name="colors"
-        control={control}
-        render={({ field }) => (
-          <ColorPicker
-            colors={colors}
-            selected={field.value}
-            onSelectColor={(color) => field.onChange(color)}
-            limit={4}
-          />
-        )}
-      />
+      {hasColors && (
+        <Controller
+          name="colors"
+          control={control}
+          render={({ field }) => (
+            <TextField
+              {...field}
+              select
+              fullWidth
+              label="Color"
+              value={field.value ?? ''} // keep it defined
+              SelectProps={{ displayEmpty: true }}
+            >
+              {colors.map((c) => (
+                <MenuItem key={c} value={c}>
+                  {c}
+                </MenuItem>
+              ))}
+            </TextField>
+          )}
+        />
+      )}
     </Stack>
   );
 
-  const renderSizeOptions = (
-    <Stack direction="row">
-      <Typography variant="subtitle2" sx={{ flexGrow: 1 }}>
-        Size
-      </Typography>
-
-      <Field.Select
-        name="size"
-        size="small"
-        helperText={
-          <Link underline="always" color="textPrimary">
-            Size chart
-          </Link>
-        }
-        sx={{
-          maxWidth: 88,
-          [`& .${formHelperTextClasses.root}`]: { mx: 0, mt: 1, textAlign: 'right' },
-        }}
-      >
-        {sizes.map((size) => (
-          <MenuItem key={size} value={size}>
-            {size}
-          </MenuItem>
-        ))}
-      </Field.Select>
-    </Stack>
-  );
+  const renderSizeOptions = null;
 
   const renderQuantity = (
     <Stack direction="row">
@@ -205,17 +220,22 @@ export function ProductDetailsSummary({
           name="quantity"
           quantity={values.quantity}
           disabledDecrease={values.quantity <= 1}
-          disabledIncrease={values.quantity >= available}
+          disabledIncrease={values.quantity >= availableCount}
           onIncrease={() => setValue('quantity', values.quantity + 1)}
           onDecrease={() => setValue('quantity', values.quantity - 1)}
         />
 
         <Typography variant="caption" component="div" sx={{ textAlign: 'right' }}>
-          Available: {available}
+          Available: {availableCount}
         </Typography>
       </Stack>
     </Stack>
   );
+
+  const mustChooseColor = hasColors && !values.colors;
+  const mustChooseSize = hasSizes && !values.size;
+  const disablePurchase =
+    mustChooseColor || mustChooseSize || values.quantity < 1 || availableCount < 1;
 
   const renderActions = (
     <Stack direction="row" spacing={2}>
@@ -232,9 +252,16 @@ export function ProductDetailsSummary({
         Add to cart
       </Button>
 
-      <Button fullWidth size="large" type="submit" variant="contained" disabled={disableActions}>
-        Buy now
-      </Button>
+      <LoadingButton
+        fullWidth
+        size="large"
+        type="submit"
+        variant="contained"
+        disabled={disablePurchase}
+        loading={isSubmitting}
+      >
+        {disablePurchase ? 'Select options' : 'Buy now'}
+      </LoadingButton>
     </Stack>
   );
 
@@ -293,8 +320,6 @@ export function ProductDetailsSummary({
         <Divider sx={{ borderStyle: 'dashed' }} />
 
         {renderColorOptions}
-
-        {renderSizeOptions}
 
         {renderQuantity}
 

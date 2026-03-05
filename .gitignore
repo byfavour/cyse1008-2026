@@ -15,6 +15,7 @@ coverage
 
 # production
 .next
+.firebase
 .swc
 _static
 out
@@ -22,11 +23,15 @@ dist
 build
 
 # environment variables
+.env*
+.env~
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+*.yaml
+keys
 
 # misc
 .DS_Store
@@ -36,3 +41,29 @@ build
 .eslintcache
 .unimportedrc.json
 tsconfig.tsbuildinfo
+setAdmin.js
+keys/
+
+apphosting.local.yaml
+emu
+seed
+service-account.json
+service-account.json
+
+# secrets
+keys/
+*.pem
+*.p12
+*.key
+*.json
+!package.json
+
+# Firebase emulator exports
+.firebase-data/
+.firebase-data/**
+
+# Common Firebase local files
+.firebaserc
+firebase.json
+
+firestore.rules

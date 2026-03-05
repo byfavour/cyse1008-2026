@@ -1,6 +1,6 @@
 import Card from '@mui/material/Card';
 import Button from '@mui/material/Button';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
 
@@ -72,6 +72,7 @@ export function CheckoutCart() {
           total={checkout.total}
           discount={checkout.discount}
           subtotal={checkout.subtotal}
+          tax={checkout.tax}
           onApplyDiscount={checkout.onApplyDiscount}
         />
 

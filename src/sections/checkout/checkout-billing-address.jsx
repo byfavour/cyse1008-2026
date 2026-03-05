@@ -1,10 +1,8 @@
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 
 import { useBoolean } from 'src/hooks/use-boolean';
-
-import { _addressBooks } from 'src/_mock';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -19,38 +17,36 @@ export function CheckoutBillingAddress() {
 
   const addressForm = useBoolean();
 
+  const savedAddresses = checkout.billing ? [checkout.billing] : [];
+
   return (
     <>
       <Grid container spacing={3}>
         <Grid xs={12} md={8}>
-          {_addressBooks.slice(0, 4).map((address) => (
-            <AddressItem
-              key={address.id}
-              address={address}
-              action={
-                <Stack flexDirection="row" flexWrap="wrap" flexShrink={0}>
-                  {!address.primary && (
-                    <Button size="small" color="error" sx={{ mr: 1 }}>
-                      Delete
+          {savedAddresses.length > 0 &&
+            savedAddresses.map((address) => (
+              <AddressItem
+                key={address.id || address.fullAddress}
+                address={address}
+                action={
+                  <Stack flexDirection="row" flexWrap="wrap" flexShrink={0}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => checkout.onCreateBilling(address)}
+                    >
+                      Deliver to this address
                     </Button>
-                  )}
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={() => checkout.onCreateBilling(address)}
-                  >
-                    Deliver to this address
-                  </Button>
-                </Stack>
-              }
-              sx={{
-                p: 3,
-                mb: 3,
-                borderRadius: 2,
-                boxShadow: (theme) => theme.customShadows.card,
-              }}
-            />
-          ))}
+                  </Stack>
+                }
+                sx={{
+                  p: 3,
+                  mb: 3,
+                  borderRadius: 2,
+                  boxShadow: (theme) => theme.customShadows.card,
+                }}
+              />
+            ))}
 
           <Stack direction="row" justifyContent="space-between">
             <Button
@@ -71,6 +67,12 @@ export function CheckoutBillingAddress() {
               New address
             </Button>
           </Stack>
+
+          <Stack direction="row" justifyContent="flex-end" sx={{ mt: 2 }}>
+            <Button color="secondary" onClick={checkout.onSkipBilling}>
+              Skip and continue to payment
+            </Button>
+          </Stack>
         </Grid>
 
         <Grid xs={12} md={4}>
@@ -78,6 +80,7 @@ export function CheckoutBillingAddress() {
             total={checkout.total}
             subtotal={checkout.subtotal}
             discount={checkout.discount}
+            tax={checkout.tax}
           />
         </Grid>
       </Grid>

@@ -26,6 +26,12 @@ import { usePopover, CustomPopover } from 'src/components/custom-popover';
 // ----------------------------------------------------------------------
 
 export function OrderTableRow({ row, selected, onViewRow, onSelectRow, onDeleteRow }) {
+  const customer = row.customer || {};
+  const customerName = customer.name || customer.displayName || row.email || 'Unknown';
+  const customerEmail = customer.email || '';
+  const customerAvatar = customer.avatarUrl || '';
+  const items = Array.isArray(row.items) ? row.items : [];
+
   const confirm = useBoolean();
 
   const collapse = useBoolean();
@@ -50,7 +56,7 @@ export function OrderTableRow({ row, selected, onViewRow, onSelectRow, onDeleteR
 
       <TableCell>
         <Stack spacing={2} direction="row" alignItems="center">
-          <Avatar alt={row.customer.name} src={row.customer.avatarUrl} />
+          <Avatar alt={customerName} src={customerAvatar} />
 
           <Stack
             sx={{
@@ -59,10 +65,12 @@ export function OrderTableRow({ row, selected, onViewRow, onSelectRow, onDeleteR
               alignItems: 'flex-start',
             }}
           >
-            <Box component="span">{row.customer.name}</Box>
-            <Box component="span" sx={{ color: 'text.disabled' }}>
-              {row.customer.email}
-            </Box>
+            <Box component="span">{customerName}</Box>
+            {customerEmail ? (
+              <Box component="span" sx={{ color: 'text.disabled' }}>
+                {customerEmail}
+              </Box>
+            ) : null}
           </Stack>
         </Stack>
       </TableCell>
@@ -124,7 +132,7 @@ export function OrderTableRow({ row, selected, onViewRow, onSelectRow, onDeleteR
           sx={{ bgcolor: 'background.neutral' }}
         >
           <Paper sx={{ m: 1.5 }}>
-            {row.items.map((item) => (
+            {items.map((item) => (
               <Stack
                 key={item.id}
                 direction="row"

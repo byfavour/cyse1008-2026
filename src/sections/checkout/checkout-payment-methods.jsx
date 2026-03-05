@@ -17,7 +17,7 @@ import { varAlpha } from 'src/theme/styles';
 
 import { Iconify } from 'src/components/iconify';
 
-import { PaymentNewCardForm } from '../payment/payment-new-card-form';
+import { PaymentNewCardForm } from './payment-new-card-form';
 
 // ----------------------------------------------------------------------
 
@@ -86,6 +86,8 @@ export function CheckoutPaymentMethods({ name, options, ...other }) {
 // ----------------------------------------------------------------------
 
 function OptionItem({ sx, option, onOpen, selected, isCredit, cardOptions, ...other }) {
+  const hasSavedCards = Array.isArray(cardOptions) && cardOptions.length > 0;
+
   return (
     <Box
       sx={{
@@ -122,14 +124,13 @@ function OptionItem({ sx, option, onOpen, selected, isCredit, cardOptions, ...ot
             <>
               <Iconify icon="logos:mastercard" width={24} />
               <Iconify icon="logos:visa" width={24} />
+              <Iconify icon="logos:stripe" width={44} />
             </>
           )}
-          {option.value === 'paypal' && <Iconify icon="logos:paypal" width={24} />}
-          {option.value === 'cash' && <Iconify icon="solar:wad-of-money-bold" width={32} />}
         </Box>
       </Box>
 
-      {isCredit && (
+      {isCredit && hasSavedCards ? (
         <Box sx={{ px: 3 }}>
           <TextField select fullWidth label="Card" SelectProps={{ native: true }}>
             {cardOptions.map((card) => (
@@ -149,7 +150,13 @@ function OptionItem({ sx, option, onOpen, selected, isCredit, cardOptions, ...ot
             Add new card
           </Button>
         </Box>
-      )}
+      ) : null}
+
+      {isCredit && !hasSavedCards ? (
+        <Box sx={{ px: 3, pb: 3, color: 'text.secondary', typography: 'body2' }}>
+          Enter your card details securely on the next step with Stripe.
+        </Box>
+      ) : null}
     </Box>
   );
 }

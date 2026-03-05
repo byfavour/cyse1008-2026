@@ -3,26 +3,52 @@
 import { useState, useCallback } from 'react';
 
 import Stack from '@mui/material/Stack';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 
 import { paths } from 'src/routes/paths';
 
-import { ORDER_STATUS_OPTIONS } from 'src/_mock';
+import { ORDER_STATUS_OPTIONS } from 'src/constants/options';
 import { DashboardContent } from 'src/layouts/dashboard';
+import { toast } from 'src/components/snackbar';
 
 import { OrderDetailsInfo } from '../order-details-info';
 import { OrderDetailsItems } from '../order-details-item';
 import { OrderDetailsToolbar } from '../order-details-toolbar';
 import { OrderDetailsHistory } from '../order-details-history';
+import { PaymentLinkDialog } from '../payment-link-dialog';
 
 // ----------------------------------------------------------------------
 
 export function OrderDetailsView({ order }) {
   const [status, setStatus] = useState(order?.status);
+  const [paymentLink, setPaymentLink] = useState('');
+  const [openPaymentLink, setOpenPaymentLink] = useState(false);
+  const [paymentLinkLoading, setPaymentLinkLoading] = useState(false);
 
   const handleChangeStatus = useCallback((newValue) => {
     setStatus(newValue);
   }, []);
+
+  const handleCreatePaymentLink = useCallback(async () => {
+    if (!order?.id) return;
+    setPaymentLinkLoading(true);
+    try {
+      const res = await fetch('/api/payment-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: order.id }),
+      });
+      if (!res.ok) throw new Error('Failed to create payment link');
+      const data = await res.json();
+      setPaymentLink(data.url);
+      setOpenPaymentLink(true);
+    } catch (error) {
+      console.error(error);
+      toast.error('Unable to create payment link');
+    } finally {
+      setPaymentLinkLoading(false);
+    }
+  }, [order?.id]);
 
   return (
     <DashboardContent>
@@ -33,6 +59,8 @@ export function OrderDetailsView({ order }) {
         status={status}
         onChangeStatus={handleChangeStatus}
         statusOptions={ORDER_STATUS_OPTIONS}
+        onCreatePaymentLink={handleCreatePaymentLink}
+        paymentLinkLoading={paymentLinkLoading}
       />
 
       <Grid container spacing={3}>
@@ -60,6 +88,13 @@ export function OrderDetailsView({ order }) {
           />
         </Grid>
       </Grid>
+
+      <PaymentLinkDialog
+        open={openPaymentLink}
+        onClose={() => setOpenPaymentLink(false)}
+        linkUrl={paymentLink}
+        loading={paymentLinkLoading}
+      />
     </DashboardContent>
   );
 }

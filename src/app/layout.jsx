@@ -9,6 +9,7 @@ import { detectLanguage } from 'src/locales/server';
 import { schemeConfig } from 'src/theme/scheme-config';
 import { I18nProvider } from 'src/locales/i18n-provider';
 import { ThemeProvider } from 'src/theme/theme-provider';
+import { ProductProvider } from 'src/lib/contexts/ProductContext';
 
 import { Snackbar } from 'src/components/snackbar';
 import { ProgressBar } from 'src/components/progress-bar';
@@ -17,20 +18,11 @@ import { SettingsDrawer, defaultSettings, SettingsProvider } from 'src/component
 
 import { CheckoutProvider } from 'src/sections/checkout/context';
 
-import { AuthProvider as JwtAuthProvider } from 'src/auth/context/jwt';
-import { AuthProvider as Auth0AuthProvider } from 'src/auth/context/auth0';
-import { AuthProvider as AmplifyAuthProvider } from 'src/auth/context/amplify';
-import { AuthProvider as SupabaseAuthProvider } from 'src/auth/context/supabase';
 import { AuthProvider as FirebaseAuthProvider } from 'src/auth/context/firebase';
 
 // ----------------------------------------------------------------------
 
-const AuthProvider =
-  (CONFIG.auth.method === 'amplify' && AmplifyAuthProvider) ||
-  (CONFIG.auth.method === 'firebase' && FirebaseAuthProvider) ||
-  (CONFIG.auth.method === 'supabase' && SupabaseAuthProvider) ||
-  (CONFIG.auth.method === 'auth0' && Auth0AuthProvider) ||
-  JwtAuthProvider;
+const AuthProvider = FirebaseAuthProvider;
 
 export const viewport = {
   width: 'device-width',
@@ -65,10 +57,12 @@ export default async function RootLayout({ children }) {
                 <ThemeProvider>
                   <MotionLazy>
                     <CheckoutProvider>
-                      <Snackbar />
-                      <ProgressBar />
-                      <SettingsDrawer />
-                      {children}
+                      <ProductProvider>
+                        <Snackbar />
+                        <ProgressBar />
+                        <SettingsDrawer />
+                        {children}
+                      </ProductProvider>
                     </CheckoutProvider>
                   </MotionLazy>
                 </ThemeProvider>

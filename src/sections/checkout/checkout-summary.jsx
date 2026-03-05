@@ -14,7 +14,15 @@ import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 
-export function CheckoutSummary({ total, onEdit, discount, subtotal, shipping, onApplyDiscount }) {
+export function CheckoutSummary({
+  total,
+  onEdit,
+  discount,
+  subtotal,
+  shipping,
+  tax = 0,
+  onApplyDiscount,
+}) {
   const displayShipping = shipping !== null ? 'Free' : '-';
 
   return (
@@ -70,6 +78,19 @@ export function CheckoutSummary({ total, onEdit, discount, subtotal, shipping, o
           </Typography>
         </Box>
 
+        <Box display="flex">
+          <Typography
+            component="span"
+            variant="body2"
+            sx={{ flexGrow: 1, color: 'text.secondary' }}
+          >
+            Tax
+          </Typography>
+          <Typography component="span" variant="subtitle2">
+            {tax ? fCurrency(tax) : '-'}
+          </Typography>
+        </Box>
+
         <Divider sx={{ borderStyle: 'dashed' }} />
 
         <Box display="flex">
@@ -86,7 +107,7 @@ export function CheckoutSummary({ total, onEdit, discount, subtotal, shipping, o
               {fCurrency(total)}
             </Typography>
             <Typography variant="caption" sx={{ fontStyle: 'italic' }}>
-              (VAT included if applicable)
+              (Includes tax and shipping)
             </Typography>
           </Box>
         </Box>

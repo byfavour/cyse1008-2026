@@ -1,60 +1,35 @@
-'use client';
+"use client";
 
-import Stack from '@mui/material/Stack';
-
-import { BackToTop } from 'src/components/animate/back-to-top';
-import { ScrollProgress, useScrollProgress } from 'src/components/animate/scroll-progress';
-
-import { HomeHero } from '../home-hero';
-import { HomeFAQs } from '../home-faqs';
-import { HomeZoneUI } from '../home-zone-ui';
-import { HomeMinimal } from '../home-minimal';
-import { HomePricing } from '../home-pricing';
-import { HomeForDesigner } from '../home-for-designer';
-import { HomeTestimonials } from '../home-testimonials';
-import { HomeIntegrations } from '../home-integrations';
-import { HomeAdvertisement } from '../home-advertisement';
-import { HomeHugePackElements } from '../home-hugepack-elements';
-import { HomeHighlightFeatures } from '../home-highlight-features';
+import Box from "@mui/material/Box";
+import Container from "@mui/material/Container";
 
 // ----------------------------------------------------------------------
 
 export function HomeView() {
-  const pageProgress = useScrollProgress();
-
   return (
-    <>
-      <ScrollProgress
-        variant="linear"
-        progress={pageProgress.scrollYProgress}
-        sx={{ position: 'fixed' }}
-      />
-
-      <BackToTop />
-
-      <HomeHero />
-
-      <Stack sx={{ position: 'relative', bgcolor: 'background.default' }}>
-        <HomeMinimal />
-
-        <HomeHugePackElements />
-
-        <HomeForDesigner />
-
-        <HomeHighlightFeatures />
-
-        <HomeIntegrations />
-
-        <HomePricing />
-
-        <HomeTestimonials />
-
-        <HomeFAQs />
-
-        <HomeZoneUI />
-
-        <HomeAdvertisement />
-      </Stack>
-    </>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background:
+          "radial-gradient(circle at 20% 20%, #0a2a2f 0, #051014 35%, #03080a 100%)",
+      }}
+    >
+      <Container maxWidth="sm" sx={{ textAlign: "center" }}>
+        <Box
+          component="img"
+          src="/assets/images/home/loyalist-market-logo-large.png"
+          alt="Loyalist"
+          sx={{
+            width: "100%",
+            maxWidth: 360,
+            mx: "auto",
+            filter: "drop-shadow(0 10px 25px rgba(0,0,0,0.35))",
+          }}
+        />
+      </Container>
+    </Box>
   );
 }

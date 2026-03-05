@@ -21,9 +21,10 @@ import { RoleBasedGuard } from 'src/auth/guard';
 // ----------------------------------------------------------------------
 
 export function PermissionDeniedView() {
-  const [role, setRole] = useState('admin');
+  const [role, setRole] = useState('');
 
   const { user } = useAuthContext();
+  console.log({ user })
   const handleChangeRole = useCallback((event, newRole) => {
     if (newRole !== null) {
       setRole(newRole);

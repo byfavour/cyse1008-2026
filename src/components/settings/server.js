@@ -5,9 +5,9 @@ import { STORAGE_KEY, defaultSettings } from './config-settings';
 // ----------------------------------------------------------------------
 
 export async function detectSettings() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
 
-  const settingsStore = cookieStore.get(STORAGE_KEY);
+  const settingsStore = await cookieStore.get(STORAGE_KEY);
 
   return settingsStore ? JSON.parse(settingsStore?.value) : defaultSettings;
 }

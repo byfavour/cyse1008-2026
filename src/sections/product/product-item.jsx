@@ -16,28 +16,83 @@ import { Iconify } from 'src/components/iconify';
 import { ColorPreview } from 'src/components/color-utils';
 
 import { useCheckoutContext } from '../checkout/context';
+import { getProductStockCount, isProductAvailable } from 'src/utils/inventory';
 
 // ----------------------------------------------------------------------
 
 export function ProductItem({ product }) {
   const checkout = useCheckoutContext();
 
-  const { id, name, coverUrl, price, colors, available, sizes, priceSale, newLabel, saleLabel } =
-    product;
+  const availableCount = getProductStockCount(product); // sum of variant stock
+  const inStock = isProductAvailable(product);
+
+  const {
+    id,
+    name,
+    coverUrl,
+    images = [],
+    price,
+    colors = [],
+    sizes = [],
+    priceSale,
+    newLabel = { enabled: false, content: '' },
+    saleLabel = { enabled: false, content: '' },
+  } = product;
+
+  const safeColors =
+    Array.isArray(colors) && colors.length
+      ? colors.filter((color) => {
+          if (color == null) return false;
+          const value = String(color).trim();
+          return value !== '' && value !== '0';
+        })
+      : [];
+
+  const priceValue = Number(price ?? 0);
+  const priceSaleValue = Number(priceSale ?? 0);
+  const hasSale = Number.isFinite(priceSaleValue) && priceSaleValue > 0;
+  const taxes = Number.isFinite(Number(product?.taxes)) ? Number(product?.taxes) : 0;
 
   const linkTo = paths.product.details(id);
 
+  console.log({
+    id,
+    name,
+    coverUrl,
+    price,
+    colors,
+    inStock,
+    availableCount,
+    sizes,
+    priceSale,
+    newLabel,
+    saleLabel,
+    ...product,
+  });
+
   const handleAddCart = async () => {
+    // Optional: pick first color/size only if they exist:
+    const color = safeColors.length ? safeColors[0] : null;
+    const size = Array.isArray(product.sizes) && product.sizes.length ? product.sizes[0] : null;
+    const mainImage =
+      product.coverUrl || (Array.isArray(product.images) && product.images.length ? product.images[0] : '');
+
+    // Don’t add if nothing left
+    if (!inStock) return;
+
     const newProduct = {
-      id,
-      name,
-      coverUrl,
-      available,
-      price,
-      colors: [colors[0]],
-      size: sizes[0],
+      id: product.id,
+      name: product.name || product.title || '',
+      coverUrl: mainImage,
+      price: product.price,
+      colors: color ? [color] : [],
+      size,
       quantity: 1,
+      taxes,
+      // You can also pass availableCount if your cart wants to cap later
+      available: availableCount,
     };
+
     try {
       checkout.onAddToCart(newProduct);
     } catch (error) {
@@ -72,7 +127,7 @@ export function ProductItem({ product }) {
 
   const renderImg = (
     <Box sx={{ position: 'relative', p: 1 }}>
-      {!!available && (
+      {!!inStock && (
         <Fab
           color="warning"
           size="medium"
@@ -95,12 +150,12 @@ export function ProductItem({ product }) {
         </Fab>
       )}
 
-      <Tooltip title={!available && 'Out of stock'} placement="bottom-end">
+      <Tooltip title={!inStock && 'Out of stock'} placement="bottom-end">
         <Image
           alt={name}
-          src={coverUrl}
+          src={coverUrl || images[0]}
           ratio="1/1"
-          sx={{ borderRadius: 1.5, ...(!available && { opacity: 0.48, filter: 'grayscale(1)' }) }}
+          sx={{ borderRadius: 1.5, ...(!inStock && { opacity: 0.48, filter: 'grayscale(1)' }) }}
         />
       </Tooltip>
     </Box>
@@ -113,16 +168,16 @@ export function ProductItem({ product }) {
       </Link>
 
       <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <ColorPreview colors={colors} />
+        {safeColors.length ? <ColorPreview colors={safeColors} /> : null}
 
         <Stack direction="row" spacing={0.5} sx={{ typography: 'subtitle1' }}>
-          {priceSale && (
+          {hasSale && (
             <Box component="span" sx={{ color: 'text.disabled', textDecoration: 'line-through' }}>
-              {fCurrency(priceSale)}
+              {fCurrency(priceSaleValue)}
             </Box>
           )}
 
-          <Box component="span">{fCurrency(price)}</Box>
+          <Box component="span">{fCurrency(priceValue)}</Box>
         </Stack>
       </Stack>
     </Stack>

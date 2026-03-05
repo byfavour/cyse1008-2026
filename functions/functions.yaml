@@ -1,0 +1,22 @@
+# Manual manifest to unblock the Firebase emulators with CLI 13.x.
+# Update this if you add/remove functions.
+specVersion: v1alpha1
+endpoints:
+  stripeWebhook:
+    platform: gcfv2
+    entryPoint: stripeWebhook
+    httpsTrigger: {}
+    secretEnvironmentVariables:
+      - key: STRIPE_SECRET_KEY
+      - key: STRIPE_WEBHOOK_SECRET
+  enforceProductStock:
+    platform: gcfv2
+    entryPoint: enforceProductStock
+    eventTrigger:
+      eventType: google.cloud.firestore.document.v1.written
+      eventFilters:
+        database: "(default)"
+        namespace: "(default)"
+      eventFilterPathPatterns:
+        document: products/{productId}
+      retry: false

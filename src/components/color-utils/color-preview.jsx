@@ -6,10 +6,22 @@ import { varAlpha } from 'src/theme/styles';
 
 // ----------------------------------------------------------------------
 
-export const ColorPreview = forwardRef(({ colors, limit = 3, sx, ...other }, ref) => {
-  const colorsRange = colors.slice(0, limit);
+const cleanColors = (colors = []) =>
+  Array.isArray(colors)
+    ? colors.filter((color) => {
+        if (color == null) return false;
+        const value = String(color).trim();
+        return value !== '' && value !== '0';
+      })
+    : [];
 
-  const restColors = colors.length - limit;
+export const ColorPreview = forwardRef(({ colors, limit = 3, sx, ...other }, ref) => {
+  const filteredColors = cleanColors(colors);
+  if (!filteredColors.length) return null;
+
+  const colorsRange = filteredColors.slice(0, limit);
+
+  const restColors = filteredColors.length - limit;
 
   return (
     <Box
@@ -39,9 +51,9 @@ export const ColorPreview = forwardRef(({ colors, limit = 3, sx, ...other }, ref
         />
       ))}
 
-      {colors.length > limit && (
+      {filteredColors.length > limit ? (
         <Box component="span" sx={{ typography: 'subtitle2' }}>{`+${restColors}`}</Box>
-      )}
+      ) : null}
     </Box>
   );
 });
