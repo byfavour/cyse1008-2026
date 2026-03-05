@@ -57,3 +57,13 @@ keys/
 *.key
 *.json
 !package.json
+
+# Firebase emulator exports
+.firebase-data/
+.firebase-data/**
+
+# Common Firebase local files
+.firebaserc
+firebase.json
+
+firestore.rules

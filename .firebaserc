@@ -1,9 +1,0 @@
-{
-  "projects": {
-    "default": "black-river-market",
-    "staging": "black-river-market-staging",
-    "prod": "black-river-market-prod"
-  },
-  "targets": {},
-  "etags": {}
-}
