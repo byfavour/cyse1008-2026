@@ -51,7 +51,12 @@ export function AccountPopover({ data = [], sx, ...other }) {
         }}
       >
         <Box sx={{ p: 2, pb: 1.5 }}>
-          <Typography variant="subtitle2" noWrap>
+          <Typography
+            variant="subtitle2"
+            noWrap
+            onClick={() => { popover.onClose(); router.push(`/users/${user?.uid}`); }}
+            sx={{ cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+          >
             {user?.displayName}
           </Typography>
 

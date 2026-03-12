@@ -4,6 +4,8 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 
+import { useRouter } from 'src/routes/hooks';
+
 import { useAuthContext } from 'src/auth/hooks';
 
 import { AccountButton } from './account-button';
@@ -42,6 +44,7 @@ export function AuthUserControls({
     );
   }
 
+  const router = useRouter();
   const displayName = user?.displayName || user?.email || 'User';
 
   return (
@@ -59,9 +62,12 @@ export function AuthUserControls({
           <Typography
             variant="body2"
             noWrap
+            onClick={() => router.push(`/users/${user?.uid}`)}
             sx={{
               display: isColumn ? 'block' : { xs: 'none', sm: 'block' },
               maxWidth: 200,
+              cursor: 'pointer',
+              '&:hover': { textDecoration: 'underline' },
             }}
           >
             {displayName}
