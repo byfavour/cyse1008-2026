@@ -66,6 +66,8 @@ export function VendorDetailsView({ id }) {
   }
 
   const isOwner = user?.uid === vendor.ownerId;
+  const role = user?.role || '';
+  const isStaff = ['admin', 'owner'].includes(role);
 
   return (
     <DashboardContent>
@@ -166,6 +168,28 @@ export function VendorDetailsView({ id }) {
 
                 <Stack direction="row" alignItems="center" spacing={1}>
                   <Typography variant="caption" sx={{ color: 'text.disabled', width: 100 }}>
+                    Role
+                  </Typography>
+                  <Chip
+                    size="small"
+                    label={role || 'none'}
+                    color={isStaff ? 'primary' : 'default'}
+                  />
+                </Stack>
+
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <Typography variant="caption" sx={{ color: 'text.disabled', width: 100 }}>
+                    isStaff?
+                  </Typography>
+                  <Chip
+                    size="small"
+                    label={isStaff ? 'Yes' : 'No'}
+                    color={isStaff ? 'success' : 'default'}
+                  />
+                </Stack>
+
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <Typography variant="caption" sx={{ color: 'text.disabled', width: 100 }}>
                     isActive
                   </Typography>
                   <Chip
@@ -182,11 +206,22 @@ export function VendorDetailsView({ id }) {
                     Rule evidence
                   </Typography>
                   <Typography variant="caption">
-                    ✅ Read allowed → <code>isActive == true</code>
+                    {vendor.isActive ? '✅' : '🔒'} Read → <code>isActive == true</code>:{' '}
+                    <strong>{vendor.isActive ? 'pass' : 'blocked'}</strong>
                   </Typography>
                   <Typography variant="caption">
-                    {isOwner ? '✅' : '🔒'} Update → owner match:{' '}
+                    {isOwner ? '✅' : '🔒'} Create / Update → owner match:{' '}
                     <strong>{isOwner ? 'pass' : 'blocked'}</strong>
+                  </Typography>
+                  <Typography variant="caption">
+                    🔒 Update → ownerId immutable (cannot change <code>ownerId</code> field)
+                  </Typography>
+                  <Typography variant="caption">
+                    {isStaff ? '✅' : '🔒'} Delete → <code>isStaff()</code>:{' '}
+                    <strong>{isStaff ? 'pass' : 'blocked'}</strong>
+                    {!isStaff && (
+                      <> — set <code>role: &quot;admin&quot;</code> in Auth emulator</>
+                    )}
                   </Typography>
                 </Stack>
               </Stack>

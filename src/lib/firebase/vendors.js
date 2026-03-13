@@ -41,10 +41,11 @@ export async function deleteVendor(id) {
 }
 
 export async function getVendors(filter = {}) {
-  let vendorsQuery = vendorsCollectionRef;
+  const constraints = [where('isActive', '==', true)];
   if (filter.ownerId) {
-    vendorsQuery = query(vendorsQuery, where('ownerId', '==', filter.ownerId));
+    constraints.push(where('ownerId', '==', filter.ownerId));
   }
+  let vendorsQuery = query(vendorsCollectionRef, ...constraints);
   const snapshot = await getDocs(vendorsQuery);
   return snapshot.docs.map((_doc) => {
     const data = _doc.data() || {};
