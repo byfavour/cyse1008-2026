@@ -4,9 +4,12 @@ import { useState, useEffect, useCallback } from 'react';
 
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
-import Tabs from '@mui/material/Tabs';
 import Card from '@mui/material/Card';
+import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/Grid';
+import Stack from '@mui/material/Stack';
+import Tabs from '@mui/material/Tabs';
+import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 
 import { paths } from 'src/routes/paths';
@@ -18,6 +21,7 @@ import { PRODUCT_PUBLISH_OPTIONS } from 'src/constants/options';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
+import { useAuthContext } from 'src/auth/hooks';
 
 import { ProductDetailsReview } from '../product-details-review';
 import { ProductDetailsSummary } from '../product-details-summary';
@@ -49,7 +53,9 @@ const SUMMARY = [
 
 export function ProductDetailsView({ product }) {
   const tabs = useTabs('description');
-  console.log({ product });
+  const { user } = useAuthContext();
+  const role = user?.role || '';
+  const isStaff = ['admin', 'owner'].includes(role);
 
   const [publish, setPublish] = useState('');
 
@@ -135,6 +141,49 @@ export function ProductDetailsView({ product }) {
             totalReviews={product?.totalReviews ?? 0}
           />
         )}
+      </Card>
+
+      {/* Security context — for classroom demo */}
+      <Card variant="outlined" sx={{ p: 2, mt: 3, bgcolor: 'background.neutral' }}>
+        <Stack spacing={1.5}>
+          <Typography variant="overline" sx={{ color: 'text.disabled' }}>
+            Security context
+          </Typography>
+
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Typography variant="caption" sx={{ color: 'text.disabled', width: 120 }}>
+              Logged in as
+            </Typography>
+            <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>
+              {user?.uid ?? 'unauthenticated'}
+            </Typography>
+          </Stack>
+
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Typography variant="caption" sx={{ color: 'text.disabled', width: 120 }}>
+              Role
+            </Typography>
+            <Chip size="small" label={role || 'none'} color={isStaff ? 'primary' : 'default'} />
+          </Stack>
+
+          <Divider />
+
+          <Stack spacing={0.5}>
+            <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+              Rule evidence
+            </Typography>
+            <Typography variant="caption">
+              ✅ Read → <code>allow read: if true</code> (public)
+            </Typography>
+            <Typography variant="caption">
+              {isStaff ? '✅' : '🔒'} Create / Update / Delete →{' '}
+              <code>isStaff()</code>: <strong>{isStaff ? 'pass' : 'blocked'}</strong>
+              {!isStaff && (
+                <> — set <code>role: &quot;admin&quot;</code> or <code>&quot;owner&quot;</code> in Auth emulator</>
+              )}
+            </Typography>
+          </Stack>
+        </Stack>
       </Card>
     </DashboardContent>
   );
