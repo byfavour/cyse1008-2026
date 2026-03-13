@@ -56,7 +56,11 @@ export function AuthUserControls({
       {...other}
     >
       <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
-        <AccountButton photoURL={user?.photoURL} displayName={displayName} />
+        <AccountButton
+          photoURL={user?.photoURL}
+          displayName={displayName}
+          onClick={() => router.push(`/users/${user?.uid}`)}
+        />
 
         {showName && (
           <Typography
