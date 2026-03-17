@@ -6,8 +6,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import Card from '@mui/material/Card';
+import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
+import Divider from '@mui/material/Divider';
+import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
@@ -75,10 +78,11 @@ export function VendorNewEditForm({ currentVendor, loading }) {
         await updateVendor(currentVendor.id, data);
         toast.success('Vendor updated');
       } else {
-        await addVendor({
-          ...data,
-          ownerId: user?.uid || null,
-        });
+        const payload = { ...data, ownerId: user?.uid || null };
+        console.log('[Firestore] request.resource.data =', payload);
+        console.log('[Firestore] request.auth.uid =', user?.uid);
+        console.log('[Firestore] ownerId matches uid =', payload.ownerId === user?.uid);
+        await addVendor(payload);
         toast.success('Vendor created');
       }
       router.push(paths.dashboard.vendor.root);
@@ -88,7 +92,57 @@ export function VendorNewEditForm({ currentVendor, loading }) {
     }
   });
 
+  const isCreate = !currentVendor?.id;
+  const ownerId = currentVendor?.ownerId || user?.uid || null;
+
   return (
+    <>
+      {/* Security context — for classroom demo */}
+      {isCreate && (
+        <Card variant="outlined" sx={{ p: 2, mb: 3, bgcolor: 'background.neutral' }}>
+          <Stack spacing={1.5}>
+            <Typography variant="overline" sx={{ color: 'text.disabled' }}>
+              Security context — create rule
+            </Typography>
+
+            <Stack direction="row" alignItems="flex-start" spacing={2}>
+              <Typography variant="caption" sx={{ color: 'text.disabled', width: 140, flexShrink: 0 }}>
+                Your UID (request.auth.uid)
+              </Typography>
+              <Typography variant="caption" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                {user?.uid ?? 'unauthenticated'}
+              </Typography>
+            </Stack>
+
+            <Stack direction="row" alignItems="flex-start" spacing={2}>
+              <Typography variant="caption" sx={{ color: 'text.disabled', width: 140, flexShrink: 0 }}>
+                ownerId to be written
+              </Typography>
+              <Typography variant="caption" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                {ownerId ?? '—'}
+              </Typography>
+            </Stack>
+
+            <Stack direction="row" alignItems="center" spacing={2}>
+              <Typography variant="caption" sx={{ color: 'text.disabled', width: 140, flexShrink: 0 }}>
+                IDs match?
+              </Typography>
+              <Chip
+                size="small"
+                label={ownerId === user?.uid ? 'Yes — create will be allowed ✅' : 'No — create will be blocked 🔒'}
+                color={ownerId === user?.uid ? 'success' : 'error'}
+              />
+            </Stack>
+
+            <Divider />
+
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              Rule: <code>allow create: if signedIn() &amp;&amp; request.resource.data.ownerId == request.auth.uid</code>
+            </Typography>
+          </Stack>
+        </Card>
+      )}
+
     <Card sx={{ p: 3 }}>
       <Form methods={methods} onSubmit={onSubmit}>
         <Stack spacing={3}>
@@ -114,5 +168,6 @@ export function VendorNewEditForm({ currentVendor, loading }) {
         </Stack>
       </Form>
     </Card>
+    </>
   );
 }

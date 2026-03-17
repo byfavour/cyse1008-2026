@@ -22,12 +22,14 @@ export function AuthUserControls({
   ...other
 }) {
   const { user, loading, authenticated } = useAuthContext();
+  const router = useRouter();
 
   if (loading) {
     return <CircularProgress size={20} sx={{ color: 'text.secondary', ...sx }} {...other} />;
   }
 
   const isColumn = layout === 'column';
+  const displayName = user?.displayName || user?.email || 'User';
 
   if (!authenticated) {
     return (
@@ -43,9 +45,6 @@ export function AuthUserControls({
       />
     );
   }
-
-  const router = useRouter();
-  const displayName = user?.displayName || user?.email || 'User';
 
   return (
     <Stack
