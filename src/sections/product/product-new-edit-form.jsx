@@ -237,6 +237,7 @@ export function ProductNewEditForm({ currentProduct }) {
         ...data,
         images: uploaded,
         userId: user.uid,
+        ownerId: user.uid,
         variants: normalizedVariants,
         stock: productLevelStock, // aggregate for quick reads
         vendorId,
@@ -250,6 +251,9 @@ export function ProductNewEditForm({ currentProduct }) {
         await updateProduct(currentProduct.id, productData);
         toast.success('Update successful!');
       } else {
+        console.log('[Firestore] request.resource.data =', productData);
+        console.log('[Firestore] request.auth.uid =', user.uid);
+        console.log('[Firestore] ownerId matches uid =', productData.ownerId === user.uid);
         await createProduct(productData);
         toast.success('Product created!');
       }

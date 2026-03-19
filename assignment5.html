@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Assignment 5 – API Routes &amp; Callbacks</title>
+</head>
+<body>
+<div style="max-width: 900px;">
+
+  <h2><strong>
+    <img role="presentation"
+      src="https://loyalistcollege.instructure.com/courses/19609/files/6122568/preview"
+      data-api-endpoint="https://loyalistcollege.instructure.com/api/v1/courses/19609/files/6122568"
+      data-api-returntype="File" />
+    Assignment Overview
+  </strong></h2>
+
+  <div style="padding: 14px 16px; border: 1px solid #ddd; border-radius: 6px; background: #fff;">
+    <p><strong>Assignment 5:</strong> API Routes, HTTP Methods &amp; Callbacks</p>
+    <p><strong>Purpose:</strong> In this assignment you will learn how a Next.js web app exposes
+      <strong>API routes</strong> and how the front end calls them using <code>fetch()</code>.
+      The code is provided for you — your job is to run it, observe the results, and explain
+      what is happening. This is the foundation for the next assignment, where Stripe sends
+      a <strong>webhook callback</strong> to our API after a customer pays.</p>
+    <p><strong>Points:</strong> 15</p>
+    <p><strong>Submission Type:</strong> GitHub repository URL + screenshots + short written answers</p>
+    <p><strong>What you will do:</strong></p>
+    <ul>
+      <li>Answer short questions about <strong>APIs</strong>, <strong>HTTP methods</strong>,
+        <strong>async/await</strong>, and <strong>callbacks</strong></li>
+      <li>Run a provided demo page at <code>/assignment5</code> that calls four API routes</li>
+      <li>Read and explain what each route does</li>
+      <li>Complete Part C by making two small changes to a starter route</li>
+      <li>Commit and push your work to GitHub</li>
+    </ul>
+  </div>
+
+  <p><img style="width: 100%;" role="presentation"
+    src="https://loyalistcollege.instructure.com/courses/19609/files/6121996/preview"
+    data-api-endpoint="https://loyalistcollege.instructure.com/api/v1/courses/19609/files/6121996"
+    data-api-returntype="File" /></p>
+
+  <!-- ===== SETUP ===== -->
+  <h2><strong>
+    <img role="presentation"
+      src="https://loyalistcollege.instructure.com/courses/19609/files/6122177/preview"
+      data-api-endpoint="https://loyalistcollege.instructure.com/api/v1/courses/19609/files/6122177"
+      data-api-returntype="File" />
+    Required Setup
+  </strong></h2>
+
+  <div style="padding: 14px 16px; border: 1px solid #ddd; border-radius: 6px; background: #fff;">
+    <p><strong>Important:</strong> Keep your own GitHub repo as <strong>origin</strong> and the
+      instructor repo as <strong>upstream</strong>.</p>
+
+    <h3 style="color: #8b1e41;"><strong>1) Check your remotes</strong></h3>
+    <pre><code class="language-bash">git remote -v</code></pre>
+    <p>If <code>upstream</code> does not exist yet, add it:</p>
+    <pre><code class="language-bash">git remote add upstream https://github.com/Loyalist-College-CCoulter-Courses/cyse1008-2026.git</code></pre>
+
+    <h3 style="color: #8b1e41;"><strong>2) Fetch and reset to the latest instructor version</strong></h3>
+    <pre><code class="language-bash">git fetch upstream
+git reset --hard upstream/feature/assignment5</code></pre>
+
+    <h3 style="color: #8b1e41;"><strong>3) Create your working branch</strong></h3>
+    <pre><code class="language-bash">git checkout -b feature/assignment5</code></pre>
+
+    <h3 style="color: #8b1e41;"><strong>4) Start the app</strong></h3>
+    <pre><code class="language-bash">npm run dev</code></pre>
+    <p>The web app runs on <strong>http://localhost:3032</strong>.
+      You do <strong>not</strong> need the Firebase emulators for Parts A and B.
+      You will need them for the products route — start them in a second terminal if needed:</p>
+    <pre><code class="language-bash">npm run dev:emulators</code></pre>
+
+    <h3 style="color: #8b1e41;"><strong>5) Open the assignment page</strong></h3>
+    <p>Navigate to <strong>http://localhost:3032/assignment5</strong> — you should see four
+      coloured sections, each with a button.</p>
+  </div>
+
+  <p><img style="width: 100%;" role="presentation"
+    src="https://loyalistcollege.instructure.com/courses/19609/files/6121996/preview"
+    data-api-endpoint="https://loyalistcollege.instructure.com/api/v1/courses/19609/files/6121996"
+    data-api-returntype="File" /></p>
+
+  <!-- ===== GUIDELINES ===== -->
+  <h2><strong>
+    <img role="presentation"
+      src="https://loyalistcollege.instructure.com/courses/19609/files/6122177/preview"
+      data-api-endpoint="https://loyalistcollege.instructure.com/api/v1/courses/19609/files/6122177"
+      data-api-returntype="File" />
+    Guidelines and Steps
+  </strong></h2>
+
+  <div style="padding: 14px 16px; border: 1px solid #ddd; border-radius: 6px; background: #fff;">
+
+    <!-- ===== PART A ===== -->
+    <h3 style="color: #8b1e41;"><strong>Part A &mdash; Ideas (3 points)</strong></h3>
+    <p>Answer the following questions in your own words. Submit these as Canvas text or in a README.
+      No code is required for Part A.</p>
+    <p><strong>To earn Excellent (3):</strong> answer all four sections clearly.</p>
+
+    <ol>
+      <li>
+        <strong>What is an API?</strong>
+        <ul>
+          <li>What does API stand for?</li>
+          <li>In the diagram below, the browser never talks to the database directly.
+            It always goes through an API route. Why is this a good idea?
+            Name one security benefit.</li>
+        </ul>
+        <pre><code>Browser  →  fetch('/api/...')  →  API Route  →  Database
+Browser  ←  JSON response    ←  API Route  ←  Database</code></pre>
+      </li>
+
+      <li>
+        <strong>HTTP Methods &mdash; GET vs POST</strong>
+        <ul>
+          <li>What is the difference between a <code>GET</code> and a <code>POST</code> request?</li>
+          <li>You can type a URL into the browser address bar to test a GET route.
+            Why can you <em>not</em> do the same thing to test a POST route?</li>
+          <li>Give one ecommerce example of each:
+            when would the checkout page use <code>POST</code>?
+            when would a product listing page use <code>GET</code>?</li>
+        </ul>
+      </li>
+
+      <li>
+        <strong>async / await</strong>
+        <ul>
+          <li>Look at this fetch code. There are <strong>two</strong> <code>await</code> calls.
+            What does each one wait for?</li>
+        </ul>
+        <pre><code class="language-js">const response = await fetch('/api/assignment5');   // await #1
+const data     = await response.json();             // await #2
+console.log(data);</code></pre>
+      </li>
+
+      <li>
+        <strong>Callbacks and Webhooks</strong>
+        <ul>
+          <li>In a normal API call <em>we</em> call Stripe (e.g. to create a payment session).
+            In a webhook callback, <em>Stripe</em> calls <em>us</em>.
+            What event triggers Stripe to call our webhook?</li>
+          <li>Look at <code>src/app/api/stripe/webhook/route.js</code> in the project.
+            What HTTP method does it export? Why does a webhook use that method?</li>
+        </ul>
+      </li>
+    </ol>
+
+    <!-- ===== PART B ===== -->
+    <h3 style="color: #8b1e41;"><strong>Part B &mdash; Connections (6 points)</strong></h3>
+    <p>The instructor has provided four API routes and a demo page. Your job is to run them,
+      screenshot the results, and answer the questions below each step.</p>
+    <p><strong>Files provided (do not edit these for Part B):</strong></p>
+    <ul>
+      <li><code>src/app/assignment5/page.jsx</code> &mdash; the demo page</li>
+      <li><code>src/app/api/assignment5/route.js</code> &mdash; GET and POST handlers</li>
+      <li><code>src/app/api/assignment5/callback/route.js</code> &mdash; webhook callback simulation</li>
+      <li><code>src/app/api/assignment5/products/route.js</code> &mdash; fetches products from Firestore</li>
+    </ul>
+
+    <!-- Step 1 -->
+    <h4><strong>Step 1 &mdash; GET request</strong></h4>
+    <p>Open the file <code>src/app/api/assignment5/route.js</code> and read the
+      <code>GET</code> handler:</p>
+    <pre><code class="language-js">export async function GET() {
+  console.log('[GET /api/assignment5] handler called');
+
+  return NextResponse.json({
+    message: 'Hello from the Black River Market API',
+    method: 'GET',
+    timestamp: new Date().toISOString(),
+  });
+}</code></pre>
+    <p>First, test it directly in the browser by navigating to:</p>
+    <pre><code>http://localhost:3032/api/assignment5</code></pre>
+    <p>Then go to the assignment page (<code>/assignment5</code>), click
+      <strong>"Call GET /api/assignment5"</strong>, and open DevTools Console (F12).</p>
+    <p><strong>To earn Excellent on this step:</strong></p>
+    <ul>
+      <li>Screenshot the raw JSON in the browser tab</li>
+      <li>Screenshot the console log from the page button click</li>
+      <li>Answer: the route file exports a function called <code>GET</code>.
+        How does Next.js know to call that function when a GET request arrives?
+        (Hint: look at the function name.)</li>
+    </ul>
+
+    <!-- Step 2 -->
+    <h4><strong>Step 2 &mdash; POST request</strong></h4>
+    <p>Read the <code>POST</code> handler in the same file:</p>
+    <pre><code class="language-js">export async function POST(req) {
+  const body = await req.json();
+  const name = body.name || 'stranger';
+  console.log('[POST /api/assignment5] body received =', body);
+
+  return NextResponse.json({
+    message: `Hello, ${name}! Your POST request was received.`,
+    method: 'POST',
+    received: body,
+    timestamp: new Date().toISOString(),
+  });
+}</code></pre>
+    <p>On the assignment page, click <strong>"Call POST /api/assignment5"</strong>.
+      The page sends this body:</p>
+    <pre><code class="language-js">{ name: 'Black River Market Student' }</code></pre>
+    <p><strong>To earn Excellent on this step:</strong></p>
+    <ul>
+      <li>Screenshot the response displayed on the page</li>
+      <li>Screenshot the console log showing the body that was received</li>
+      <li>Answer: you cannot test a POST route by typing its URL into the browser.
+        Why not? What does the page use instead?</li>
+      <li>Answer: the response includes a <code>received</code> field that echoes back
+        the body we sent. Why might an API echo back what it received?</li>
+    </ul>
+
+    <!-- Step 3 -->
+    <h4><strong>Step 3 &mdash; Callback / Webhook simulation</strong></h4>
+    <p>Open <code>src/app/api/assignment5/callback/route.js</code> and read the comments.</p>
+    <pre><code class="language-js">export async function POST(req) {
+  const event = await req.json();
+  console.log('[CALLBACK] event received =', event);
+
+  const eventType = event.type || 'unknown';
+  const orderId   = event.orderId || 'n/a';
+
+  let responseMessage = 'Event noted';
+  if (eventType === 'payment.completed') {
+    responseMessage = `Order ${orderId} marked as paid — stock updated`;
+  }
+
+  return NextResponse.json({
+    received: true,
+    eventType,
+    orderId,
+    message: responseMessage,
+    processedAt: new Date().toISOString(),
+  });
+}</code></pre>
+    <p>On the assignment page, click
+      <strong>"Simulate callback POST (type: payment.completed)"</strong>.</p>
+    <p><strong>To earn Excellent on this step:</strong></p>
+    <ul>
+      <li>Screenshot the response displayed on the page</li>
+      <li>Answer: the page is <em>simulating</em> Stripe calling our route.
+        In the real checkout flow (<code>src/app/api/stripe/webhook/route.js</code>),
+        who actually sends that POST request?</li>
+      <li>Answer: the route checks <code>event.type === 'payment.completed'</code>
+        and changes its response message. Name one thing a real webhook handler
+        would do after confirming payment (e.g. update the database, send a
+        confirmation email, etc.).</li>
+    </ul>
+
+    <!-- Step 4 -->
+    <h4><strong>Step 4 &mdash; Fetching products from Firestore</strong></h4>
+    <p>Open <code>src/app/api/assignment5/products/route.js</code> and read how it
+      fetches documents and loops through them:</p>
+    <pre><code class="language-js">export async function GET() {
+  const db = getDb();
+
+  // 1. Ask Firestore for all documents in the 'products' collection
+  const snapshot = await db.collection('products').get();
+
+  // 2. Convert the snapshot into a plain array
+  const products = snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
+
+  // 3. Loop through the array to calculate summary numbers
+  let totalStock = 0;
+  let totalValue = 0;
+
+  for (const product of products) {
+    const stock = Number(product.stock ?? 0);
+    const price = Number(product.price ?? 0);
+    totalStock += stock;
+    totalValue += stock * price;
+  }
+
+  // 4. Return the summary alongside the list
+  return NextResponse.json({
+    count: products.length,
+    totalStock,
+    totalValue: Number(totalValue.toFixed(2)),
+    products: products.map((p) => ({
+      id:    p.id,
+      name:  p.name || p.title || 'Untitled',
+      price: Number(p.price ?? 0),
+      stock: Number(p.stock ?? 0),
+    })),
+  });
+}</code></pre>
+    <p><strong>Make sure the emulators are running</strong>, then click
+      <strong>"Call GET /api/assignment5/products"</strong>.</p>
+    <p><strong>To earn Excellent on this step:</strong></p>
+    <ul>
+      <li>Screenshot the summary bar and JSON response on the page</li>
+      <li>Answer: this route uses <code>getDb()</code> from <code>firebase-admin</code>.
+        The browser pages use the regular Firebase client SDK instead.
+        Why does an API route use the Admin SDK rather than the client SDK?</li>
+      <li>Answer: what does <code>snapshot.docs.map(...)</code> do?
+        What kind of value does it produce?</li>
+      <li>Answer: the <code>for</code> loop adds up <code>stock * price</code> for
+        every product. What ecommerce term describes this total?</li>
+    </ul>
+
+    <!-- ===== PART C ===== -->
+    <h3 style="color: #8b1e41;"><strong>Part C &mdash; Extensions (3 points)</strong></h3>
+    <p>A starter file has been provided at
+      <code>src/app/api/assignment5/partC/route.js</code>.
+      It is a copy of the products route with two <code>TODO</code> comments.
+      Make both changes, then add a button to the page to call it.</p>
+
+    <h4><strong>Step 1 &mdash; Open the starter file</strong></h4>
+    <p>Open <code>src/app/api/assignment5/partC/route.js</code>. It currently fetches
+      the <code>products</code> collection. You will change it to fetch
+      <code>vendors</code> instead.</p>
+    <pre><code class="language-js">// TODO: change 'products' to 'vendors'
+const snapshot = await db.collection('products').get();
+
+// TODO: change this loop to count active vendors instead of stock/value
+let totalStock = 0;
+for (const item of items) {
+  totalStock += Number(item.stock ?? 0);
+}</code></pre>
+
+    <h4><strong>Step 2 &mdash; Make the two changes</strong></h4>
+    <p><strong>Change 1:</strong> Replace <code>'products'</code> with <code>'vendors'</code>
+      on the <code>db.collection()</code> line.</p>
+    <p><strong>Change 2:</strong> Replace the <code>totalStock</code> loop with a loop
+      that counts how many vendors have <code>isActive === true</code>.
+      Store the result in a variable called <code>activeCount</code> and include it
+      in the <code>NextResponse.json()</code> return value.</p>
+    <p>Hint &mdash; counting active vendors looks like this:</p>
+    <pre><code class="language-js">let activeCount = 0;
+for (const item of items) {
+  if (item.isActive === true) {
+    activeCount += 1;
+  }
+}</code></pre>
+    <p>And add it to the response:</p>
+    <pre><code class="language-js">return NextResponse.json({
+  count: items.length,
+  activeCount,       // &lt;-- add this line
+  items: items.map((i) => ({ id: i.id, name: i.name || 'Untitled' })),
+});</code></pre>
+
+    <h4><strong>Step 3 &mdash; Add a button to the page</strong></h4>
+    <p>Open <code>src/app/assignment5/page.jsx</code> and add a fifth section at the
+      bottom, modelled on the existing sections. The button should call
+      <code>GET /api/assignment5/partC</code> and display the result.</p>
+    <p>Copy this and add it after the last <code>&lt;Section&gt;</code> block:</p>
+    <pre><code class="language-jsx">{/* ── Part C ── */}
+&lt;Section title="Part C — Vendors from Firestore" color="#00695c"&gt;
+  &lt;p&gt;
+    This route fetches the &lt;code&gt;vendors&lt;/code&gt; collection and counts
+    how many are active. Route: &lt;code&gt;src/app/api/assignment5/partC/route.js&lt;/code&gt;
+  &lt;/p&gt;
+  &lt;Button label="Call GET /api/assignment5/partC" onClick={handlePartC} /&gt;
+  &lt;Result data={partCResult} /&gt;
+&lt;/Section&gt;</code></pre>
+    <p>And add the state and handler near the top of the component
+      (copy the pattern from the existing handlers):</p>
+    <pre><code class="language-jsx">const [partCResult, setPartCResult] = useState(null);
+
+async function handlePartC() {
+  const data = await callApi('/api/assignment5/partC');
+  setPartCResult(data);
+}</code></pre>
+
+    <p><strong>To earn Excellent (3):</strong></p>
+    <ul>
+      <li>Screenshot the JSON response showing <code>count</code> and
+        <code>activeCount</code> fields</li>
+      <li>Answer: you changed one collection name and one loop — but the overall
+        shape of the route stayed the same. What does this tell you about how
+        API routes are structured?</li>
+      <li>Answer: the products route calculates <code>totalValue</code>.
+        The vendors route counts <code>activeCount</code>. Both use a
+        <code>for</code> loop. Describe in one sentence what a
+        <code>for...of</code> loop does.</li>
+    </ul>
+
+  </div>
+
+  <p><img style="width: 100%;" role="presentation"
+    src="https://loyalistcollege.instructure.com/courses/19609/files/6121996/preview"
+    data-api-endpoint="https://loyalistcollege.instructure.com/api/v1/courses/19609/files/6121996"
+    data-api-returntype="File" /></p>
+
+  <!-- ===== GIT ===== -->
+  <h2><strong>
+    <img role="presentation"
+      src="https://loyalistcollege.instructure.com/courses/19609/files/6122146/preview"
+      data-api-endpoint="https://loyalistcollege.instructure.com/api/v1/courses/19609/files/6122146"
+      data-api-returntype="File" />
+    Git Requirements and Submission
+  </strong></h2>
+
+  <div style="padding: 14px 16px; border: 1px solid #ddd; border-radius: 6px; background: #fff;">
+    <h3 style="color: #8b1e41;"><strong>Commit and Push Your Work</strong></h3>
+    <pre><code class="language-bash">git status
+git add .
+git commit -m "Assignment 5: API routes and callbacks"
+git push origin HEAD</code></pre>
+    <p>If needed, use:</p>
+    <pre><code class="language-bash">git push -u origin HEAD</code></pre>
+
+    <h3 style="color: #8b1e41;"><strong>Troubleshooting Documentation</strong></h3>
+    <p>If something does not work, include a short note describing:</p>
+    <ul>
+      <li>What problem you encountered</li>
+      <li>What you tried</li>
+      <li>What happened as a result</li>
+    </ul>
+    <p>A screenshot of an error message counts as valid troubleshooting evidence.</p>
+
+    <h3 style="color: #8b1e41;"><strong>Submission</strong></h3>
+    <ul>
+      <li>GitHub repository URL</li>
+      <li>Your Part A written answers</li>
+      <li>Screenshot: raw JSON from <code>/api/assignment5</code> in the browser tab</li>
+      <li>Screenshot: GET response in the console / page</li>
+      <li>Screenshot: POST response in the console / page</li>
+      <li>Screenshot: callback response in the console / page</li>
+      <li>Screenshot: products response showing count, totalStock, totalValue</li>
+      <li>Screenshot: Part C response showing count and activeCount</li>
+      <li>Troubleshooting note (if needed)</li>
+    </ul>
+  </div>
+
+  <p><img style="width: 100%;" role="presentation"
+    src="https://loyalistcollege.instructure.com/courses/19609/files/6121996/preview"
+    data-api-endpoint="https://loyalistcollege.instructure.com/api/v1/courses/19609/files/6121996"
+    data-api-returntype="File" /></p>
+
+  <!-- ===== CHECKLIST ===== -->
+  <h2><strong>Submission Checklist</strong></h2>
+  <div style="padding: 14px 16px; border: 1px solid #ddd; border-radius: 6px; background: #fff;">
+    <ul>
+      <li>&#x2705; I answered the Part A questions about APIs, GET vs POST, async/await, and webhooks</li>
+      <li>&#x2705; I ran the assignment page and screenshotted the GET response (browser tab + page)</li>
+      <li>&#x2705; I screenshotted the POST response and explained why the body was echoed back</li>
+      <li>&#x2705; I screenshotted the callback response and explained what triggers a real Stripe webhook</li>
+      <li>&#x2705; I screenshotted the products response with count, totalStock, and totalValue</li>
+      <li>&#x2705; I edited <code>partC/route.js</code> to fetch vendors and count active ones</li>
+      <li>&#x2705; I added a fifth button to <code>page.jsx</code> and screenshotted the Part C response</li>
+      <li>&#x2705; I committed and pushed my work</li>
+      <li>&#x2705; I included troubleshooting notes if needed</li>
+    </ul>
+  </div>
+
+  <p><img style="width: 100%;" role="presentation"
+    src="https://loyalistcollege.instructure.com/courses/19609/files/6121996/preview"
+    data-api-endpoint="https://loyalistcollege.instructure.com/api/v1/courses/19609/files/6121996"
+    data-api-returntype="File" /></p>
+
+  <!-- ===== RUBRIC ===== -->
+  <h2><strong>Rubric (15 points)</strong></h2>
+  <p>Each criterion is worth up to <strong>3 points</strong>.</p>
+
+  <table style="border-collapse: collapse; width: 100%;" border="1">
+    <tbody>
+      <tr>
+        <th>Criterion</th>
+        <th>3 &mdash; Excellent</th>
+        <th>2 &mdash; Satisfactory</th>
+        <th>1 &mdash; Attempted</th>
+        <th>0 &mdash; Missing</th>
+      </tr>
+      <tr>
+        <td><strong>1) Ideas &mdash; APIs &amp; HTTP Methods (3)</strong></td>
+        <td>Clearly explains what an API is, the difference between GET and POST, and gives accurate ecommerce examples for each; correctly identifies the two <code>await</code> calls</td>
+        <td>Mostly correct with minor gaps or vague examples</td>
+        <td>Partial or confused explanation of one or more concepts</td>
+        <td>Missing or entirely incorrect</td>
+      </tr>
+      <tr>
+        <td><strong>2) Ideas &mdash; Callbacks &amp; Webhooks (3)</strong></td>
+        <td>Accurately explains what triggers a Stripe webhook, what HTTP method it uses and why, and names one action a real handler would take after confirming payment</td>
+        <td>Mostly correct but one concept is incomplete or vague</td>
+        <td>Some understanding shown but significant gaps</td>
+        <td>Missing</td>
+      </tr>
+      <tr>
+        <td><strong>3) Connections &mdash; GET, POST &amp; Callback routes (3)</strong></td>
+        <td>All three buttons clicked with screenshots; GET tested in browser tab; answers to route naming, POST body, and callback simulation are correct</td>
+        <td>Screenshots present and routes work, but one answer is incomplete</td>
+        <td>Some screenshots present or partial answers, but evidence is missing for one or more steps</td>
+        <td>Not attempted or routes not run</td>
+      </tr>
+      <tr>
+        <td><strong>4) Connections &mdash; Products from Firestore (3)</strong></td>
+        <td>Products route runs with screenshot showing count / totalStock / totalValue; correctly explains Admin SDK vs client SDK, <code>.map()</code>, and the meaning of totalValue</td>
+        <td>Route runs with screenshot but one explanation is incomplete</td>
+        <td>Screenshot present but explanations are missing or largely incorrect</td>
+        <td>Not attempted</td>
+      </tr>
+      <tr>
+        <td><strong>5) Extensions &mdash; Part C + Git (3)</strong></td>
+        <td>Both TODO changes made correctly; fifth button added to page; screenshot shows <code>activeCount</code> in response; work committed and pushed</td>
+        <td>Changes partially correct or button added but not fully working; push succeeds</td>
+        <td>Attempted with some evidence but route or button is incomplete; or push is missing</td>
+        <td>Not attempted or no push</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Total: 15 points</strong></p>
+
+</div>
+</body>
+</html>
