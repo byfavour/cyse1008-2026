@@ -20,14 +20,24 @@ const useEmulators = process.env.NEXT_PUBLIC_FIREBASE_EMULATOR === 'true';
 const isBrowser = typeof window !== 'undefined';
 
 if (useEmulators && isBrowser) {
-  console.log('Connecting to Firebase emulators...');
+  // In GitHub Codespaces every port is reachable via a forwarded hostname,
+  // not via localhost. Detect Codespaces and build the correct base URL.
+  const codespaceName = process.env.NEXT_PUBLIC_CODESPACE_NAME;
+  const codespaceHost = codespaceName
+    ? `${codespaceName}.app.github.dev`
+    : null;
 
-  // Auth Emulator
-  connectAuthEmulator(AUTH, 'http://127.0.0.1:9099', { disableWarnings: true });
+  const authUrl = codespaceHost
+    ? `https://${codespaceName}-9099.${codespaceHost.split('.').slice(1).join('.')}`
+    : 'http://127.0.0.1:9099';
+  const firestoreHost = codespaceHost ? `${codespaceName}-8080.app.github.dev` : '127.0.0.1';
+  const firestorePort = codespaceHost ? 443 : 8080;
+  const storageHost = codespaceHost ? `${codespaceName}-9199.app.github.dev` : '127.0.0.1';
+  const storagePort = codespaceHost ? 443 : 9199;
 
-  // Firestore Emulator
-  connectFirestoreEmulator(db, '127.0.0.1', 8080);
+  console.log('Connecting to Firebase emulators...', codespaceHost ? '(Codespaces)' : '(local)');
 
-  // Storage Emulator
-  connectStorageEmulator(storage, '127.0.0.1', 9199);
+  connectAuthEmulator(AUTH, authUrl, { disableWarnings: true });
+  connectFirestoreEmulator(db, firestoreHost, firestorePort);
+  connectStorageEmulator(storage, storageHost, storagePort);
 }
