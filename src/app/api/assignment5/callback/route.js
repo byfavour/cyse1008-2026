@@ -10,28 +10,33 @@ import { NextResponse } from 'next/server';
 // Stripe telling us "payment completed".
 //
 export async function POST(req) {
-  const event = await req.json();   // the "event" payload the caller sent us
+  try {
+    const event = await req.json();   // the "event" payload the caller sent us
 
-  console.log('[CALLBACK] event received =', event);
+    console.log('[CALLBACK] event received =', event);
 
-  // In a real payment webhook we would:
-  //   1. Verify the signature to confirm the request really came from Stripe
-  //   2. Read event.type to decide what happened
-  //   3. Update our database (mark order as paid, reduce stock, etc.)
+    // In a real payment webhook we would:
+    //   1. Verify the signature to confirm the request really came from Stripe
+    //   2. Read event.type to decide what happened
+    //   3. Update our database (mark order as paid, reduce stock, etc.)
 
-  const eventType = event.type || 'unknown';
-  const orderId   = event.orderId || 'n/a';
+    const eventType = event.type || 'unknown';
+    const orderId   = event.orderId || 'n/a';
 
-  let responseMessage = 'Event noted';
-  if (eventType === 'payment.completed') {
-    responseMessage = `Order ${orderId} marked as paid — stock updated`;
+    let responseMessage = 'Event noted';
+    if (eventType === 'payment.completed') {
+      responseMessage = `Order ${orderId} marked as paid — stock updated`;
+    }
+
+    return NextResponse.json({
+      received: true,
+      eventType,
+      orderId,
+      message: responseMessage,
+      processedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('[CALLBACK] error =', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
-
-  return NextResponse.json({
-    received: true,
-    eventType,
-    orderId,
-    message: responseMessage,
-    processedAt: new Date().toISOString(),
-  });
 }
