@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 
 import Box from '@mui/material/Box';
+import Avatar from '@mui/material/Avatar';
 
 import { Image } from 'src/components/image';
 import { Lightbox, useLightBox } from 'src/components/lightbox';
@@ -30,6 +31,23 @@ export function ProductDetailsCarousel({ images }) {
       carousel.mainApi?.scrollTo(lightbox.selected, true);
     }
   }, [carousel.mainApi, lightbox.open, lightbox.selected]);
+
+  if (!slides.length) {
+    return (
+      <Avatar
+        variant="rounded"
+        sx={{
+          width: '100%',
+          height: 0,
+          paddingBottom: '100%',
+          borderRadius: 2,
+          fontSize: 80,
+          bgcolor: 'background.neutral',
+          color: 'text.secondary',
+        }}
+      />
+    );
+  }
 
   return (
     <>

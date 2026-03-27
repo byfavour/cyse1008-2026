@@ -40,9 +40,9 @@ import { useAuthContext } from 'src/auth/hooks';
 // ----------------------------------------------------------------------
 export const NewProductSchema = zod.object({
   name: zod.string().min(1, { message: 'Name is required!' }),
-  description: schemaHelper.editor({ message: { required_error: 'Description is required!' } }),
-  images: schemaHelper.files({ minFiles: 1, message: { required_error: 'Images is required!' } }),
-  code: zod.string().min(1, { message: 'Product code is required!' }),
+  description: zod.string().optional().default(''),
+  images: zod.array(zod.any()).optional().default([]),
+  code: zod.string().optional().default(''),
 
   // Product-level stock (used for single-variant products; ignored when variants exist)
   stock: zod.coerce.number().min(0).default(0),
@@ -79,15 +79,15 @@ export const NewProductSchema = zod.object({
     .optional()
     .default([]),
 
-  gender: zod.array(zod.string()).nonempty({ message: 'Choose at least one option!' }),
-  price: zod.coerce.number().min(1, { message: 'Price should not be $0.00' }),
-  category: zod.string(),
+  gender: zod.array(zod.string()).optional().default([]),
+  price: zod.coerce.number().min(0).optional().default(0),
+  category: zod.string().optional().default(''),
   priceSale: zod.coerce.number().optional().default(0),
   subDescription: zod.string().optional().default(''),
   taxes: zod.coerce.number().optional().default(0),
   saleLabel: zod.object({ enabled: zod.boolean(), content: zod.string().optional().default('') }),
   newLabel: zod.object({ enabled: zod.boolean(), content: zod.string().optional().default('') }),
-  vendorId: zod.string().min(1, { message: 'Vendor is required' }),
+  vendorId: zod.string().optional().default(''),
 });
 
 // ----------------------------------------------------------------------
@@ -199,17 +199,6 @@ export function ProductNewEditForm({ currentProduct }) {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      await trigger('images');
-      const uploaded = getValues('images') || [];
-
-      if (!Array.isArray(uploaded) || uploaded.length === 0) {
-        toast.error('Please upload at least one image.');
-        return;
-      }
-      if (!vendorId) {
-        toast.error('Select a vendor before saving.');
-        return;
-      }
 
       const hasVariants = Array.isArray(data.variants) && data.variants.length > 0;
 
@@ -225,7 +214,7 @@ export function ProductNewEditForm({ currentProduct }) {
               price: data.price,
               stock: Number(data.stock ?? 0),
               options: {},
-              image: uploaded,
+              image: data.images?.[0] ?? null,
             },
           ];
 
@@ -235,7 +224,8 @@ export function ProductNewEditForm({ currentProduct }) {
 
       let productData = {
         ...data,
-        images: uploaded,
+        images: data.images ?? [],
+        uid: user.uid,
         userId: user.uid,
         ownerId: user.uid,
         variants: normalizedVariants,

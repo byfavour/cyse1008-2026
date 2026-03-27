@@ -32,14 +32,28 @@ function initAdminApp() {
 
   const errors = [];
 
-  // (1) Explicit service account
+  // (0) Explicit service account — takes priority over everything, including the emulator.
+  // Must delete FIRESTORE_EMULATOR_HOST first: the Firestore client reads it automatically
+  // regardless of how the app was initialized, so it would override the real Firebase host.
   if (clientEmail && privateKey && projectId) {
+    delete process.env.FIRESTORE_EMULATOR_HOST;
     try {
+      console.log('[firebase-admin] using service account for', clientEmail);
       appInstance = initializeApp({
         credential: cert({ projectId, clientEmail, privateKey }),
         projectId,
         storageBucket,
       });
+      return appInstance;
+    } catch (error) {
+      errors.push(error);
+    }
+  }
+
+  // (1) Emulator mode — no credentials needed, Admin SDK reads FIRESTORE_EMULATOR_HOST automatically
+  if (process.env.FIRESTORE_EMULATOR_HOST && projectId) {
+    try {
+      appInstance = initializeApp({ projectId, storageBucket });
       return appInstance;
     } catch (error) {
       errors.push(error);

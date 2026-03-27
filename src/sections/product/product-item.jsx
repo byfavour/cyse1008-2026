@@ -3,6 +3,7 @@ import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
+import Avatar from '@mui/material/Avatar';
 import Tooltip from '@mui/material/Tooltip';
 
 import { paths } from 'src/routes/paths';
@@ -151,12 +152,31 @@ export function ProductItem({ product }) {
       )}
 
       <Tooltip title={!inStock && 'Out of stock'} placement="bottom-end">
-        <Image
-          alt={name}
-          src={coverUrl || images[0]}
-          ratio="1/1"
-          sx={{ borderRadius: 1.5, ...(!inStock && { opacity: 0.48, filter: 'grayscale(1)' }) }}
-        />
+        {coverUrl || images?.[0] ? (
+          <Image
+            alt={name}
+            src={coverUrl || images[0]}
+            ratio="1/1"
+            sx={{ borderRadius: 1.5, ...(!inStock && { opacity: 0.48, filter: 'grayscale(1)' }) }}
+          />
+        ) : (
+          <Avatar
+            alt={name}
+            variant="rounded"
+            sx={{
+              width: '100%',
+              height: 0,
+              paddingBottom: '100%',
+              borderRadius: 1.5,
+              fontSize: 48,
+              bgcolor: 'background.neutral',
+              color: 'text.secondary',
+              ...(!inStock && { opacity: 0.48, filter: 'grayscale(1)' }),
+            }}
+          >
+            {name?.charAt(0).toUpperCase()}
+          </Avatar>
+        )}
       </Tooltip>
     </Box>
   );

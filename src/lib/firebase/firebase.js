@@ -30,14 +30,19 @@ if (useEmulators && isBrowser) {
   const authUrl = codespaceHost
     ? `https://${codespaceName}-9099.${codespaceHost.split('.').slice(1).join('.')}`
     : 'http://127.0.0.1:9099';
-  const firestoreHost = codespaceHost ? `${codespaceName}-8080.app.github.dev` : '127.0.0.1';
-  const firestorePort = codespaceHost ? 443 : 8080;
-  const storageHost = codespaceHost ? `${codespaceName}-9199.app.github.dev` : '127.0.0.1';
-  const storagePort = codespaceHost ? 443 : 9199;
+  const firestoreHost = '127.0.0.1';
+  const firestorePort = 8080;
+  const storageHost = '127.0.0.1';
+  const storagePort = 9199;
 
   console.log('Connecting to Firebase emulators...', codespaceHost ? '(Codespaces)' : '(local)');
 
-  connectAuthEmulator(AUTH, authUrl, { disableWarnings: true });
-  connectFirestoreEmulator(db, firestoreHost, firestorePort);
-  connectStorageEmulator(storage, storageHost, storagePort);
+  // In Codespaces, skip all emulators: auth emulator tokens are invalid for
+  // real Firestore, and Firestore/Storage emulators can't connect via HTTPS.
+  // Use the real Firebase project for everything in Codespaces.
+  if (!codespaceHost) {
+    connectAuthEmulator(AUTH, authUrl, { disableWarnings: true });
+    connectFirestoreEmulator(db, firestoreHost, firestorePort);
+    connectStorageEmulator(storage, storageHost, storagePort);
+  }
 }
