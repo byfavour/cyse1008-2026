@@ -34,6 +34,7 @@ export default function Assignment5Page() {
   const [postResult,     setPostResult]     = useState(null);
   const [callbackResult, setCallbackResult] = useState(null);
   const [productsResult, setProductsResult] = useState(null);
+  const [partCResult,    setPartCResult]    = useState(null);
 
   // ── Button 1: GET /api/assignment5 ────────────────────────────────────────
   // A GET request sends NO body.  We just call the URL.
@@ -75,6 +76,13 @@ export default function Assignment5Page() {
   async function handleProducts() {
     const data = await callApi('/api/assignment5/products');
     setProductsResult(data);
+  }
+
+  // ── Button 5: GET /api/assignment5/partC ──────────────────────────────────
+  // Fetches vendors from Firestore and counts how many are active.
+  async function handlePartC() {
+    const data = await callApi('/api/assignment5/partC');
+    setPartCResult(data);
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -138,6 +146,16 @@ export default function Assignment5Page() {
           </div>
         )}
         <Result data={productsResult} />
+      </Section>
+
+      {/* ── Section 5: Part C — Vendors from DB ─────────────────────────── */}
+      <Section title="Part C — Vendors from Firestore" color="#00695c">
+        <p>
+          This route fetches the <code>vendors</code> collection and counts
+          how many are active. Route: <code>src/app/api/assignment5/partC/route.js</code>
+        </p>
+        <Button label="Call GET /api/assignment5/partC" onClick={handlePartC} />
+        <Result data={partCResult} />
       </Section>
     </div>
   );
